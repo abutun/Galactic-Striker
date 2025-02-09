@@ -11,4 +11,6 @@ class ScoreManager:
 
     def draw(self, screen):
         score_text = self.font.render(f"Score: {self.score}", True, (255, 255, 255))
-        screen.blit(score_text, (10, 10))
+        sw, _ = screen.get_size()
+        text_rect = score_text.get_rect(topright=(sw - 10, 10))
+        screen.blit(score_text, text_rect)

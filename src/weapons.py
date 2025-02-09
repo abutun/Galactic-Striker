@@ -12,8 +12,11 @@ class Bullet(pygame.sprite.Sprite):
 
     def update(self):
         self.rect.y += self.vy
-        if self.rect.bottom < 0 or self.rect.top > 800:
-            self.kill()
+        surface = pygame.display.get_surface()
+        if surface:
+            _, sh = surface.get_size()
+            if self.rect.bottom < 0 or self.rect.top > sh:
+                self.kill()
 
 class Missile(pygame.sprite.Sprite):
     def __init__(self, x, y, vy, damage=5):
@@ -26,5 +29,8 @@ class Missile(pygame.sprite.Sprite):
 
     def update(self):
         self.rect.y += self.vy
-        if self.rect.bottom < 0 or self.rect.top > 800:
-            self.kill()
+        surface = pygame.display.get_surface()
+        if surface:
+            _, sh = surface.get_size()
+            if self.rect.bottom < 0 or self.rect.top > sh:
+                self.kill()
