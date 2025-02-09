@@ -1,0 +1,26 @@
+/galactic_striker
+├── /assets
+│   ├── /sprites
+│   │    ├── player.png              # 64x64 player sprite
+│   │    ├── enemy_grunt.png         # 32x32 grunt enemy sprite
+│   │    ├── enemy_swarmer.png       # 32x32 swarmer enemy sprite
+│   │    ├── enemy_boss.png          # 64x64 boss enemy sprite
+│   │    ├── powerup_shield.png      # 24x24 shield power‑up icon
+│   │    └── powerup_weapon.png      # 24x24 weapon upgrade icon
+│   ├── /audio
+│   │    ├── laser.wav
+│   │    ├── explosion.wav
+│   │    ├── chiptune.ogg
+│   │    └── boss_theme.ogg
+│   └── /levels
+│        └── custom_level.json      # Level files saved/loaded by the editor
+├── /src
+│   ├── main.py
+│   ├── player.py
+│   ├── enemies.py
+│   ├── weapons.py
+│   ├── powerups.py
+│   ├── level_editor.py
+│   ├── scoring.py
+│   └── utils.py
+└── requirements.txt
