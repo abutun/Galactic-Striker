@@ -7,10 +7,11 @@ class GruntEnemy(BaseEnemy):
         super().__init__(x, y, bullet_group, health=2, speed=2, points=100)
         self.image = load_image("assets/sprites/enemy_grunt.png", (255, 0, 0), (32, 32))
         self.rect = self.image.get_rect(center=(x, y))
-        self.fire_delay = 1500  # milliseconds
+        self.fire_delay = 3000  # milliseconds
         self.last_fire = pygame.time.get_ticks()
 
     def update(self):
+
         self.rect.y += self.speed
         now = pygame.time.get_ticks()
         if now - self.last_fire > self.fire_delay:

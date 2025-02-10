@@ -18,8 +18,8 @@ class BaseEnemy(pygame.sprite.Sprite):
         if not screen:
             return
         sw, sh = screen.get_size()
-        left_bound = int(sw * 0.15)
-        right_bound = int(sw * 0.85)
+        left_bound = int(sw * 0.16)
+        right_bound = int(sw * 0.84)
         if self.rect.right < left_bound:
             self.rect.left = right_bound
         elif self.rect.left > right_bound:

@@ -1,6 +1,6 @@
 import pygame
 from weapons import Bullet, Missile
-from utils import load_image
+from utils import load_image, load_sound
 
 RANK_NAMES = [
     "Ensign", "Lieutenant", "Commander", "Captain", "Admiral",
@@ -19,6 +19,7 @@ class Player(pygame.sprite.Sprite):
     def __init__(self, x, y, bullet_group):
         super().__init__()
         self.image = load_image("assets/sprites/player.png", (0, 255, 0), (64, 64))
+        self.sound = laser_sound = load_sound("assets/audio/laser.wav")
         self.base_image = self.image.copy()
         self.rect = self.image.get_rect(center=(x, y))
         self.speed = 5
@@ -26,7 +27,7 @@ class Player(pygame.sprite.Sprite):
         self.shield = 100
         self.weapon_level = 1
         self.shot_count = 1
-        self.fire_delay = 250
+        self.fire_delay = 200
         self.last_fire = pygame.time.get_ticks()
         self.bullet_group = bullet_group
 
@@ -81,12 +82,13 @@ class Player(pygame.sprite.Sprite):
         self.check_rank_upgrade()
 
     def fire_bullet(self):
-        spacing = 10
+        spacing = 2
         count = self.shot_count
         start_x = self.rect.centerx - ((count - 1) * spacing) // 2
         for i in range(count):
             bullet = Bullet(start_x + i * spacing, self.rect.top, -self.bullet_speed, damage=1 * self.weapon_level)
             self.bullet_group.add(bullet)
+            self.sound.play()
 
     def fire_missile(self, charge):
         missile = Missile(self.rect.centerx, self.rect.top, -8, damage=int(charge / 10))

@@ -12,7 +12,7 @@ class SwarmerEnemy(BaseEnemy):
         self.direction = random.choice([-1, 1])
         self.movement_pattern = random.choice(["direct", "zigzag", "circular"])
         self.time_offset = random.random() * 2 * math.pi
-        self.fire_delay = 2000
+        self.fire_delay = 3500
         self.last_fire = pygame.time.get_ticks()
 
     def update(self):

@@ -24,16 +24,20 @@ def draw_dev_info(screen, player, level_manager, score_manager):
     info_lines.append(f"Shot Count: {player.shot_count}")
     info_lines.append(f"Weapon Level: {player.weapon_level}")
     info_lines.append(f"Health: {player.health}")
+    info_lines.append(f"Lives: {player.lives}")
     info_lines.append(f"Shield: {player.shield}")
     info_lines.append(f"Speed: {player.speed}")
     info_lines.append(f"Money: {player.money}")
     info_lines.append(f"Time Stat: {player.time_stat}")
     info_lines.append(f"Bullet Speed: {player.bullet_speed}")
     info_lines.append(f"Score: {score_manager.score}")
+    info_lines.append(f"Autofire: {player.autofire}")
+    info_lines.append(f"Bullet Count: {player.bullet_count}")
+    info_lines.append(f"Shot Count: {player.shot_count}")
     info_lines.append(f"Letters: {', '.join(player.letters) if player.letters else 'None'}")
     # Create a semi-transparent overlay surface.
     overlay_width = 300
-    overlay_height = 200
+    overlay_height = 400
     overlay = pygame.Surface((overlay_width, overlay_height))
     overlay.set_alpha(200)  # semi-transparent
     overlay.fill((0, 0, 0))
@@ -63,7 +67,7 @@ def main():
     enemies = pygame.sprite.Group()
     bonus_group = pygame.sprite.Group()
 
-    player = Player(screen_width // 2, int(screen_height * 0.85), player_bullets)
+    player = Player(screen_width // 2, int(screen_height * 0.95  ), player_bullets)
     all_sprites.add(player)
 
     score_manager = ScoreManager()
@@ -74,7 +78,6 @@ def main():
     current_level = 1
     level_manager = LevelManager(current_level, enemies, all_sprites, enemy_bullets)
 
-    laser_sound = load_sound("assets/audio/laser.wav")
     explosion_sound = load_sound("assets/audio/explosion.wav")
 
     # Developer mode flag.

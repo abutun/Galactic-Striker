@@ -1,26 +1,86 @@
-/galactic_striker
-├── /assets
-│   ├── /sprites
-│   │    ├── player.png              # 64x64 player sprite
-│   │    ├── enemy_grunt.png         # 32x32 grunt enemy sprite
-│   │    ├── enemy_swarmer.png       # 32x32 swarmer enemy sprite
-│   │    ├── enemy_boss.png          # 64x64 boss enemy sprite
-│   │    ├── powerup_shield.png      # 24x24 shield power‑up icon
-│   │    └── powerup_weapon.png      # 24x24 weapon upgrade icon
-│   ├── /audio
-│   │    ├── laser.wav
-│   │    ├── explosion.wav
-│   │    ├── chiptune.ogg
-│   │    └── boss_theme.ogg
-│   └── /levels
-│        └── custom_level.json      # Level files saved/loaded by the editor
-├── /src
-│   ├── main.py
-│   ├── player.py
-│   ├── enemies.py
-│   ├── weapons.py
-│   ├── powerups.py
-│   ├── level_editor.py
-│   ├── scoring.py
-│   └── utils.py
-└── requirements.txt
+Galactic-Striker/
+├── assets/
+│   ├── audio/
+│   │   ├── laser.wav
+│   │   └── explosion.wav
+│   ├── background/
+│   │   ├── space_bg.png
+│   │   ├── left_border.png
+│   │   └── right_border.png
+│   ├── levels/
+│   │   ├── 01.json
+│   │   ├── 02.json
+│   │   ├── ... (levels 03-05)
+│   │   ├── 06.json   (bonus level)
+│   │   ├── ...
+│   │   └── 100.json
+│   └── sprites/
+│       ├── player.png
+│       ├── enemy_grunt.png
+│       ├── enemy_swarmer.png
+│       ├── enemy_boss.png
+│       ├── single_shot.png
+│       ├── double_shot.png
+│       ├── triple_shot.png
+│       ├── quad_shot.png
+│       ├── extra_speed.png
+│       ├── extra_bullet.png
+│       ├── extra_time.png
+│       ├── extra_bullet_speed.png
+│       ├── money_bonus.png
+│       ├── extra_life.png
+│       ├── ship_autofire.png
+│       ├── shield.png
+│       ├── alien_scoop.png
+│       ├── money_bomb.png
+│       ├── gem_bomb.png
+│       ├── letter_E.png
+│       ├── letter_X.png
+│       ├── letter_T.png
+│       ├── letter_R.png
+│       ├── letter_A.png
+│       ├── rank_marker_red.png
+│       ├── rank_marker_orange.png
+│       ├── rank_marker_yellow.png
+│       ├── rank_marker_green.png
+│       ├── rank_marker_blue.png
+│       ├── rank_marker_purple.png
+│       ├── rank_marker_darkpurple.png
+│       ├── bonus_meteorstorm.png
+│       ├── bonus_memorystation.png
+│       ├── decrease_strength_red.png
+│       ├── decrease_strength_green.png
+│       ├── decrease_strength_blue.png
+│       ├── x2_multiplier.png
+│       ├── x5_multiplier.png
+│       ├── cash_doubler.png
+│       ├── mirror_mode.png
+│       ├── drunk_mode.png
+│       ├── freeze_mode.png
+│       └── warp_forward.png
+└── src/
+    ├── bonus/
+    │   ├── __init__.py
+    │   ├── base_bonus.py
+    │   ├── shot_bonus.py
+    │   ├── stat_bonus.py
+    │   ├── money_bonus.py
+    │   ├── life_bonus.py
+    │   ├── special_bonus.py
+    │   ├── letter_bonus.py
+    │   ├── rank_marker_bonus.py
+    │   ├── bonus_level_bonus.py
+    │   └── hidden_bonus.py
+    ├── enemy/
+    │   ├── base_enemy.py
+    │   ├── grunt_enemy.py
+    │   ├── swarmer_enemy.py
+    │   └── boss_enemy.py
+    ├── background.py
+    ├── level_editor.py
+    ├── level_manager.py
+    ├── main.py
+    ├── player.py
+    ├── scoring.py
+    ├── utils.py
+    └── weapons.py
