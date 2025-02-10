@@ -1,19 +1,16 @@
-# src/level_editor.py
 import pygame
 import json
 
 class LevelEditor:
     def __init__(self):
-        self.grid_width = 20    # Number of columns.
-        self.grid_height = 25   # Number of rows.
-        # Initialize an empty grid.
+        self.grid_width = 20
+        self.grid_height = 25
         self.grid = [[None for _ in range(self.grid_width)] for _ in range(self.grid_height)]
         self.font = pygame.font.SysFont(None, 20)
-        self.selected_type = "grunt"  # Default selected object.
+        self.selected_type = "grunt"
 
     def get_grid_params(self, screen):
         sw, sh = screen.get_size()
-        # Compute a cell size that fits the grid in the current screen.
         cell_size = min(sw / self.grid_width, sh / self.grid_height)
         offset_x = (sw - (cell_size * self.grid_width)) / 2
         offset_y = (sh - (cell_size * self.grid_height)) / 2
@@ -41,9 +38,9 @@ class LevelEditor:
             x, y = event.pos
             grid_x = int((x - offset_x) // cell_size)
             grid_y = int((y - offset_y) // cell_size)
-            if event.button == 1:  # Left-click places the selected object.
+            if event.button == 1:
                 self.place_object(grid_x, grid_y, self.selected_type)
-            elif event.button == 3:  # Right-click removes an object.
+            elif event.button == 3:
                 self.remove_object(grid_x, grid_y)
 
     def place_object(self, grid_x, grid_y, obj_type):
@@ -55,22 +52,17 @@ class LevelEditor:
             self.grid[grid_y][grid_x] = None
 
     def save_level(self, filename):
-        level_data = {
-            "name": "Custom Level",
-            "grid": self.grid
-        }
+        level_data = {"name": "Custom Level", "grid": self.grid}
         with open(f"assets/levels/{filename}.json", "w") as f:
             json.dump(level_data, f, indent=4)
         print(f"Level saved as assets/levels/{filename}.json")
 
     def update(self):
-        # (Any dynamic updates for the editor can go here)
         pass
 
     def draw(self, screen):
         sw, sh = screen.get_size()
         cell_size, offset_x, offset_y = self.get_grid_params(screen)
-        # Draw the grid.
         for y in range(self.grid_height):
             for x in range(self.grid_width):
                 rect = pygame.Rect(offset_x + x * cell_size, offset_y + y * cell_size, cell_size, cell_size)
@@ -78,7 +70,6 @@ class LevelEditor:
                 if self.grid[y][x]:
                     text_surface = self.font.render(self.grid[y][x], True, (255, 255, 255))
                     screen.blit(text_surface, (rect.x + 2, rect.y + 2))
-        # Display editor instructions (left aligned at the top).
         instructions = [
             "Level Editor Mode:",
             "Left Click: Place object",

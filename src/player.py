@@ -1,4 +1,3 @@
-# src/player.py
 import pygame
 from weapons import Bullet, Missile
 from utils import load_image
@@ -8,27 +7,38 @@ class Player(pygame.sprite.Sprite):
         super().__init__()
         self.image = load_image("assets/sprites/player.png", (0, 255, 0), (64, 64))
         self.rect = self.image.get_rect(center=(x, y))
-        self.speed = 5  # Horizontal speed only.
+        self.speed = 5  # Only horizontal movement
         self.health = 3
         self.shield = 100
         self.weapon_level = 1
-        self.fire_delay = 250  # milliseconds between primary shots
+        self.shot_count = 1  # Number of bullets per shot (modified by shot bonuses)
+        self.fire_delay = 250  # milliseconds between shots
         self.last_fire = pygame.time.get_ticks()
         self.bullet_group = bullet_group
 
-        # Secondary missile (chargeable) variables.
-        self.missile_charge = 0
-        self.missile_charging = False
-        self.missile_charge_rate = 0.5
-        self.missile_max_charge = 100
+        # Additional stats for bonuses:
+        self.bullet_count = 1
+        self.time_stat = 30  # seconds, for bonus durations
+        self.bullet_speed = 10
+        self.money = 0
+        self.lives = 3
+        self.armour = 0
+        self.autofire = False
+        self.shield_active = False
+        self.scoop_active = False
+        self.letters = []
+        self.rank_markers = []
+        self.rank = 0
+        self.mirror_mode = False
+        self.drunk_mode = False
 
     def update(self):
         keys = pygame.key.get_pressed()
-        # Only horizontal movement: left/right.
+        # Only left/right movement.
         dx = (keys[pygame.K_RIGHT] - keys[pygame.K_LEFT]) * self.speed
         self.rect.x += dx
 
-        # Clamp player to the screen.
+        # Clamp within screen.
         surface = pygame.display.get_surface()
         if surface:
             sw, sh = surface.get_size()
@@ -36,36 +46,28 @@ class Player(pygame.sprite.Sprite):
 
         now = pygame.time.get_ticks()
         if keys[pygame.K_SPACE]:
-            # If SHIFT is held, charge missile; otherwise fire laser.
-            if keys[pygame.K_LSHIFT] or keys[pygame.K_RSHIFT]:
-                self.missile_charging = True
-                self.missile_charge += self.missile_charge_rate
-                if self.missile_charge > self.missile_max_charge:
-                    self.missile_charge = self.missile_max_charge
-            else:
-                if now - self.last_fire >= self.fire_delay:
-                    self.fire_bullet()
-                    self.last_fire = now
-        else:
-            if self.missile_charging:
-                self.fire_missile(self.missile_charge)
-                self.missile_charge = 0
-                self.missile_charging = False
+            if now - self.last_fire >= self.fire_delay:
+                self.fire_bullet()
+                self.last_fire = now
 
     def fire_bullet(self):
-        bullet = Bullet(self.rect.centerx, self.rect.top, -10, damage=1 * self.weapon_level)
-        self.bullet_group.add(bullet)
+        # Fire shot_count bullets in a spread.
+        spacing = 10  # spacing between bullets in multi-shot
+        count = self.shot_count
+        start_x = self.rect.centerx - ((count - 1) * spacing) // 2
+        for i in range(count):
+            bullet = Bullet(start_x + i * spacing, self.rect.top, -self.bullet_speed, damage=1 * self.weapon_level)
+            self.bullet_group.add(bullet)
 
     def fire_missile(self, charge):
         missile = Missile(self.rect.centerx, self.rect.top, -8, damage=int(charge / 10))
         self.bullet_group.add(missile)
 
     def take_damage(self, damage):
-        # Shields absorb damage first.
         if self.shield > 0:
             self.shield -= damage * 10
             if self.shield < 0:
-                self.health += self.shield // 10  # subtract remaining damage
+                self.health += self.shield // 10
                 self.shield = 0
         else:
             self.health -= damage

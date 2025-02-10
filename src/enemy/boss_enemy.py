@@ -2,7 +2,6 @@ import pygame
 from enemy.base_enemy import BaseEnemy
 from utils import load_image
 
-
 class BossEnemy(BaseEnemy):
     def __init__(self, x, y, bullet_group, phases=3):
         super().__init__(x, y, bullet_group, health=20 * phases, speed=1, points=1000)
@@ -10,7 +9,7 @@ class BossEnemy(BaseEnemy):
         self.rect = self.image.get_rect(center=(x, y))
         self.phases = phases
         self.current_phase = 1
-        self.fire_delay = 1000  # milliseconds between shots
+        self.fire_delay = 1000
         self.last_fire = pygame.time.get_ticks()
 
     def update(self):
@@ -19,13 +18,9 @@ class BossEnemy(BaseEnemy):
         if now - self.last_fire > self.fire_delay:
             self.fire()
             self.last_fire = now
-
-        # Transition to a new phase if health drops below a threshold.
-        if self.health < (20 * self.phases) * (
-                1 - self.current_phase / self.phases) and self.current_phase < self.phases:
+        if self.health < (20 * self.phases) * (1 - self.current_phase / self.phases) and self.current_phase < self.phases:
             self.current_phase += 1
             self.fire_delay = max(500, self.fire_delay - 200)
-
         self.wrap_position()
 
     def fire(self):

@@ -1,62 +1,39 @@
-# src/background.py
 import pygame
 from utils import load_image
 
-
 class Background:
     def __init__(self, screen_width, screen_height, scroll_speed=1):
-        """
-        Initializes the background with a scrolling starfield and side borders.
-
-        :param screen_width: The width of the full display.
-        :param screen_height: The height of the full display.
-        :param scroll_speed: The vertical scroll speed.
-        """
         self.screen_width = screen_width
         self.screen_height = screen_height
         self.scroll_speed = scroll_speed
 
-        # Load the main background image. It should tile vertically.
-        self.bg_image = load_image("assets/background/space_bg.png", fallback_color=(0, 0, 0),
-                                   size=(screen_width, screen_height))
-
-        # For continuous scrolling, we use two copies.
+        # Load the main background image (should tile vertically)
+        self.bg_image = load_image("assets/background/space_bg.png", fallback_color=(0, 0, 0), size=(screen_width, screen_height))
         self.y1 = 0
         self.y2 = -screen_height
 
-        # Determine if the device is mobile. (For now, we assume False.)
+        # For non-mobile devices, load separate side borders.
         self.IS_MOBILE = False
         if not self.IS_MOBILE:
-            # Calculate border width as 15% of the screen width.
             self.border_width = int(screen_width * 0.15)
-            # Load left and right border images.
-            self.left_border_image = load_image("assets/background/left_border.png", fallback_color=(30, 30, 30),
-                                                size=(self.border_width, screen_height))
-            self.right_border_image = load_image("assets/background/right_border.png", fallback_color=(30, 30, 30),
-                                                 size=(self.border_width, screen_height))
+            self.left_border_image = load_image("assets/background/left_border.png", fallback_color=(30, 30, 30), size=(self.border_width, screen_height))
+            self.right_border_image = load_image("assets/background/right_border.png", fallback_color=(30, 30, 30), size=(self.border_width, screen_height))
         else:
             self.border_width = 0
             self.left_border_image = None
             self.right_border_image = None
 
     def update(self):
-        """Scroll the background vertically."""
         self.y1 += self.scroll_speed
         self.y2 += self.scroll_speed
-        # When an image is completely off-screen, reset its position.
         if self.y1 >= self.screen_height:
             self.y1 = self.y2 - self.screen_height
         if self.y2 >= self.screen_height:
             self.y2 = self.y1 - self.screen_height
 
     def draw(self, screen):
-        """
-        Draw the scrolling background and side borders.
-        When borders are used, the play area is the central region.
-        """
         sw, sh = screen.get_size()
         if self.left_border_image and self.right_border_image:
-            # Define play area as central region.
             play_area_x = self.border_width
             play_area_width = sw - 2 * self.border_width
             bg_image_scaled = pygame.transform.scale(self.bg_image, (play_area_width, sh))
@@ -65,11 +42,9 @@ class Background:
             play_area_width = sw
             bg_image_scaled = self.bg_image
 
-        # Draw two copies of the background for continuous scrolling.
         screen.blit(bg_image_scaled, (play_area_x, self.y1))
         screen.blit(bg_image_scaled, (play_area_x, self.y2))
 
-        # Draw the side borders.
         if self.left_border_image and self.right_border_image:
             screen.blit(self.left_border_image, (0, 0))
             screen.blit(self.right_border_image, (sw - self.border_width, 0))

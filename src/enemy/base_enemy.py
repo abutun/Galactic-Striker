@@ -1,4 +1,3 @@
-import os
 import pygame
 from utils import load_image
 
@@ -8,35 +7,22 @@ class BaseEnemy(pygame.sprite.Sprite):
         self.bullet_group = bullet_group
         self.health = health
         self.speed = speed
-        self.points = points  # Score awarded when destroyed
+        self.points = points
 
     def take_damage(self, damage):
         self.health -= damage
 
     def wrap_position(self):
-        """
-        Wraps the enemy's position within the play area.
-        The play area is defined as:
-          Horizontal: [left_bound, right_bound] where:
-              left_bound = 15% of screen width
-              right_bound = 85% of screen width
-          Vertical: [0, screen_height]
-        If the enemy moves off one side, it reappears on the opposite side.
-        """
         screen = pygame.display.get_surface()
         if not screen:
             return
         sw, sh = screen.get_size()
         left_bound = int(sw * 0.15)
         right_bound = int(sw * 0.85)
-
-        # Horizontal wrapping:
         if self.rect.right < left_bound:
             self.rect.left = right_bound
         elif self.rect.left > right_bound:
             self.rect.right = left_bound
-
-        # Vertical wrapping:
         if self.rect.top > sh:
             self.rect.bottom = 0
         elif self.rect.bottom < 0:

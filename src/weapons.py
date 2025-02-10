@@ -1,4 +1,3 @@
-# src/weapons.py
 import pygame
 
 class Bullet(pygame.sprite.Sprite):
