@@ -5,14 +5,14 @@ class ScoreManager:
         self.score = 0
         self.font = pygame.font.SysFont(None, 30)
         self.multiplier = 1
-        self.multiplier_time = 0  # time remaining for multiplier effect
+        self.multiplier_time = 0  # in milliseconds
 
     def add_points(self, points):
         self.score += points * self.multiplier
 
     def activate_multiplier(self, mult, duration):
         self.multiplier = mult
-        self.multiplier_time = duration * 1000  # convert seconds to milliseconds
+        self.multiplier_time = duration * 1000
 
     def update(self, dt):
         if self.multiplier_time > 0:

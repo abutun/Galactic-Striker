@@ -1,7 +1,7 @@
 import pygame
 import sys
 import random
-from player import Player
+from player import Player, RANK_NAMES
 from enemy.grunt_enemy import GruntEnemy
 from enemy.swarmer_enemy import SwarmerEnemy
 from enemy.boss_enemy import BossEnemy
@@ -11,6 +11,40 @@ from level_editor import LevelEditor
 from scoring import ScoreManager
 from utils import load_sound
 from background import Background
+from level_manager import LevelManager
+
+
+# Developer mode overlay function.
+def draw_dev_info(screen, player, level_manager, score_manager):
+    info_lines = []
+    info_lines.append("Developer Mode: ON")
+    info_lines.append(f"Level: {level_manager.level_number}")
+    info_lines.append(f"Rank: {RANK_NAMES[player.rank - 1]} (#{player.rank})")
+    info_lines.append(f"Collected Rank Markers: {len(player.rank_markers)}")
+    info_lines.append(f"Shot Count: {player.shot_count}")
+    info_lines.append(f"Weapon Level: {player.weapon_level}")
+    info_lines.append(f"Health: {player.health}")
+    info_lines.append(f"Shield: {player.shield}")
+    info_lines.append(f"Speed: {player.speed}")
+    info_lines.append(f"Money: {player.money}")
+    info_lines.append(f"Time Stat: {player.time_stat}")
+    info_lines.append(f"Bullet Speed: {player.bullet_speed}")
+    info_lines.append(f"Score: {score_manager.score}")
+    info_lines.append(f"Letters: {', '.join(player.letters) if player.letters else 'None'}")
+    # Create a semi-transparent overlay surface.
+    overlay_width = 300
+    overlay_height = 200
+    overlay = pygame.Surface((overlay_width, overlay_height))
+    overlay.set_alpha(200)  # semi-transparent
+    overlay.fill((0, 0, 0))
+    font = pygame.font.Font(None, 20)
+    y_offset = 10
+    for line in info_lines:
+        text_surface = font.render(line, True, (255, 255, 255))
+        overlay.blit(text_surface, (10, y_offset))
+        y_offset += text_surface.get_height() + 2
+    # Blit the overlay onto the main screen.
+    screen.blit(overlay, (10, 100))
 
 
 def main():
@@ -22,11 +56,11 @@ def main():
 
     background = Background(screen_width, screen_height, scroll_speed=1)
 
+    # Sprite groups.
     all_sprites = pygame.sprite.Group()
     player_bullets = pygame.sprite.Group()
     enemy_bullets = pygame.sprite.Group()
     enemies = pygame.sprite.Group()
-    # We'll use the bonus group for all bonus/powerup sprites.
     bonus_group = pygame.sprite.Group()
 
     player = Player(screen_width // 2, int(screen_height * 0.85), player_bullets)
@@ -36,11 +70,15 @@ def main():
     editor = LevelEditor()
     editing = False
 
-    SPAWN_ENEMY = pygame.USEREVENT + 1
-    pygame.time.set_timer(SPAWN_ENEMY, 2000)
+    # Start at level 1.
+    current_level = 1
+    level_manager = LevelManager(current_level, enemies, all_sprites, enemy_bullets)
 
     laser_sound = load_sound("assets/audio/laser.wav")
     explosion_sound = load_sound("assets/audio/explosion.wav")
+
+    # Developer mode flag.
+    dev_mode = True
 
     # Example game context for bonus effects.
     def start_meteorstorm():
@@ -66,21 +104,18 @@ def main():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
-
+            # Toggle editor mode with E.
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_e:
                     editing = not editing
+                # Toggle developer mode with D.
+                if event.key == pygame.K_d:
+                    dev_mode = not dev_mode
             if editing:
                 editor.handle_event(event)
-            if event.type == SPAWN_ENEMY and not editing:
-                enemy_type = random.choice(["grunt", "swarmer"])
-                x = random.randint(50, screen_width - 50)
-                if enemy_type == "grunt":
-                    enemy = GruntEnemy(x, -50, enemy_bullets)
-                elif enemy_type == "swarmer":
-                    enemy = SwarmerEnemy(x, -50, enemy_bullets)
-                enemies.add(enemy)
-                all_sprites.add(enemy)
+            if event.type == pygame.USEREVENT + 1 and not editing:
+                # LevelManager now schedules enemy spawns; no longer using random spawns here.
+                pass  # (Spawn events are handled by the LevelManager.)
 
         if editing:
             editor.update()
@@ -92,7 +127,17 @@ def main():
             bonus_group.update()
             score_manager.update(dt)
 
-            # Collision: Player bullets vs. Enemies.
+            level_manager.update()
+            if level_manager.is_level_complete():
+                current_level += 1
+                if current_level > 100:
+                    print("All levels complete!")
+                    running = False
+                else:
+                    level_manager.load_next_level(current_level)
+                    print(f"Level {current_level} started!")
+
+            # Collision: Player bullets vs. enemies.
             hits = pygame.sprite.groupcollide(enemies, player_bullets, False, True)
             for enemy, bullets in hits.items():
                 for bullet in bullets:
@@ -110,7 +155,7 @@ def main():
                             MoneyBonus10, MoneyBonus50, MoneyBonus100, MoneyBonus200,
                             ExtraLifeBonus, ShipAutofireBonus, ShieldBonus, AlienScoopBonus,
                             MoneyBombBonus, GemBombBonus,
-                            ExtraLetterBonus,  # For letters, you might choose a specific letter.
+                            ExtraLetterBonus,  # Supply a letter when applying.
                             RankMarkerBonus,
                             BonusMeteorstormBonus, BonusMemorystationBonus,
                             DecreaseStrengthRedBonus, DecreaseStrengthGreenBonus, DecreaseStrengthBlueBonus,
@@ -118,7 +163,6 @@ def main():
                             CashDoublerBonus, MirrorModeBonus, DrunkModeBonus, FreezeModeBonus, WarpForwardBonus
                         ]
                         chosen_bonus = random.choice(bonus_classes)
-                        # For letter bonus, specify a letter.
                         if chosen_bonus == ExtraLetterBonus:
                             letter = random.choice(["E", "X", "T", "R", "A"])
                             bonus_instance = chosen_bonus(enemy.rect.centerx, enemy.rect.centery, letter)
@@ -161,10 +205,19 @@ def main():
             enemy_bullets.draw(screen)
             bonus_group.draw(screen)
             score_manager.draw(screen)
+            # Display player's current rank in the upper left.
+            font = pygame.font.Font(None, 30)
+            rank_text = font.render(f"Rank: {RANK_NAMES[player.rank - 1]}", True, (255, 255, 255))
+            screen.blit(rank_text, (10, 10))
+
+        # If developer mode is enabled, draw the developer info overlay.
+        if dev_mode:
+            draw_dev_info(screen, player, level_manager, score_manager)
 
         pygame.display.flip()
         clock.tick(60)
 
+    print(f"Final Rank: {RANK_NAMES[player.rank - 1]}")
     pygame.quit()
     sys.exit()
 

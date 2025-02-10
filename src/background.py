@@ -6,18 +6,15 @@ class Background:
         self.screen_width = screen_width
         self.screen_height = screen_height
         self.scroll_speed = scroll_speed
-
-        # Load the main background image (should tile vertically)
-        self.bg_image = load_image("assets/background/space_bg.png", fallback_color=(0, 0, 0), size=(screen_width, screen_height))
+        self.bg_image = load_image("assets/background/space_bg.png", (0, 0, 0), (screen_width, screen_height))
         self.y1 = 0
         self.y2 = -screen_height
 
-        # For non-mobile devices, load separate side borders.
         self.IS_MOBILE = False
         if not self.IS_MOBILE:
             self.border_width = int(screen_width * 0.15)
-            self.left_border_image = load_image("assets/background/left_border.png", fallback_color=(30, 30, 30), size=(self.border_width, screen_height))
-            self.right_border_image = load_image("assets/background/right_border.png", fallback_color=(30, 30, 30), size=(self.border_width, screen_height))
+            self.left_border_image = load_image("assets/background/left_border.png", (30, 30, 30), (self.border_width, screen_height))
+            self.right_border_image = load_image("assets/background/right_border.png", (30, 30, 30), (self.border_width, screen_height))
         else:
             self.border_width = 0
             self.left_border_image = None

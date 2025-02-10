@@ -13,6 +13,7 @@ class BaseEnemy(pygame.sprite.Sprite):
         self.health -= damage
 
     def wrap_position(self):
+        # Wrap enemy position within the play area (horizontal: 15%-85% of screen width; vertical: full height)
         screen = pygame.display.get_surface()
         if not screen:
             return

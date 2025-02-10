@@ -6,7 +6,7 @@ class BaseBonus(pygame.sprite.Sprite):
         super().__init__()
         self.image = load_image(image_path, fallback_color, size)
         self.rect = self.image.get_rect(center=(x, y))
-        self.speed = 2
+        self.speed = 1.25
 
     def update(self):
         self.rect.y += self.speed

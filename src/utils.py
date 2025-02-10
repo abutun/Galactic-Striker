@@ -2,10 +2,6 @@ import os
 import pygame
 
 def resource_path(relative_path):
-    """
-    Returns the absolute path to a resource file.
-    Assumes the base directory is one level above the src folder.
-    """
     base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
     normalized_path = os.path.normpath(relative_path)
     return os.path.join(base_dir, normalized_path)
