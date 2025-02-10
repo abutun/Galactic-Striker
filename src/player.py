@@ -8,28 +8,27 @@ class Player(pygame.sprite.Sprite):
         super().__init__()
         self.image = load_image("assets/sprites/player.png", (0, 255, 0), (64, 64))
         self.rect = self.image.get_rect(center=(x, y))
-        self.speed = 5
+        self.speed = 5  # Horizontal speed only.
         self.health = 3
         self.shield = 100
         self.weapon_level = 1
-        self.fire_delay = 250  # Milliseconds between shots.
+        self.fire_delay = 250  # milliseconds between primary shots
         self.last_fire = pygame.time.get_ticks()
         self.bullet_group = bullet_group
 
-        # Variables for the secondary (chargeable) missile attack.
+        # Secondary missile (chargeable) variables.
         self.missile_charge = 0
         self.missile_charging = False
-        self.missile_charge_rate = 0.5  # Charge units per frame.
+        self.missile_charge_rate = 0.5
         self.missile_max_charge = 100
 
     def update(self):
         keys = pygame.key.get_pressed()
+        # Only horizontal movement: left/right.
         dx = (keys[pygame.K_RIGHT] - keys[pygame.K_LEFT]) * self.speed
-        dy = (keys[pygame.K_DOWN] - keys[pygame.K_UP]) * self.speed
         self.rect.x += dx
-        self.rect.y += dy
 
-        # Clamp the player within the current screen boundaries.
+        # Clamp player to the screen.
         surface = pygame.display.get_surface()
         if surface:
             sw, sh = surface.get_size()
@@ -37,7 +36,7 @@ class Player(pygame.sprite.Sprite):
 
         now = pygame.time.get_ticks()
         if keys[pygame.K_SPACE]:
-            # Hold SHIFT to charge a missile instead of firing lasers.
+            # If SHIFT is held, charge missile; otherwise fire laser.
             if keys[pygame.K_LSHIFT] or keys[pygame.K_RSHIFT]:
                 self.missile_charging = True
                 self.missile_charge += self.missile_charge_rate
@@ -66,7 +65,7 @@ class Player(pygame.sprite.Sprite):
         if self.shield > 0:
             self.shield -= damage * 10
             if self.shield < 0:
-                self.health += self.shield // 10  # Remaining damage subtracts from health.
+                self.health += self.shield // 10  # subtract remaining damage
                 self.shield = 0
         else:
             self.health -= damage
