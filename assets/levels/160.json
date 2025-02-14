@@ -1,0 +1,83 @@
+{
+    "level_number": 160,
+    "level_type": "normal",
+    "difficulty": 160.0,
+    "individual_enemies": [
+        {
+            "enemy_category": "large",
+            "enemy_type": 1,
+            "subtype": 2,
+            "x": 879,
+            "y": -100,
+            "spawn_time": 1825,
+            "movement_pattern": "random"
+        },
+        {
+            "enemy_category": "small",
+            "enemy_type": 15,
+            "subtype": 2,
+            "x": 387,
+            "y": -100,
+            "spawn_time": 2075,
+            "movement_pattern": "random"
+        },
+        {
+            "enemy_category": "large",
+            "enemy_type": 12,
+            "subtype": 2,
+            "x": 388,
+            "y": -100,
+            "spawn_time": 1919,
+            "movement_pattern": "random"
+        },
+        {
+            "enemy_category": "large",
+            "enemy_type": 8,
+            "subtype": 2,
+            "x": 805,
+            "y": -100,
+            "spawn_time": 2037,
+            "movement_pattern": "zigzag"
+        }
+    ],
+    "enemy_groups": [
+        {
+            "group_id": "g160",
+            "spawn_time": 7071,
+            "path": [
+                [
+                    0.58,
+                    0.27
+                ],
+                [
+                    0.86,
+                    0.13
+                ]
+            ],
+            "group_movement_pattern": "circular",
+            "enemies": [
+                {
+                    "enemy_category": "small",
+                    "enemy_type": 10,
+                    "subtype": 2,
+                    "offset": [
+                        -12,
+                        -2
+                    ],
+                    "spawn_delay": 864
+                },
+                {
+                    "enemy_category": "large",
+                    "enemy_type": 3,
+                    "subtype": 1,
+                    "offset": [
+                        -10,
+                        16
+                    ],
+                    "spawn_delay": 1000
+                }
+            ],
+            "group_speed": 1.6162470039472665
+        }
+    ]
+}

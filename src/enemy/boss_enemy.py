@@ -1,6 +1,10 @@
 import pygame
+import math
+import random
 from enemy.base_enemy import BaseEnemy
 from utils import load_image
+from weapons import Bullet
+from global_state import global_player  # Updated import
 
 class BossEnemy(BaseEnemy):
     def __init__(self, x, y, bullet_group, phases=3):
@@ -13,7 +17,24 @@ class BossEnemy(BaseEnemy):
         self.last_fire = pygame.time.get_ticks()
 
     def update(self):
-        self.rect.y += self.speed
+        screen = pygame.display.get_surface()
+        if screen:
+            _, sh = screen.get_size()
+            if self.rect.y < sh * 0.85:
+                self.rect.y += self.speed
+            else:
+                pattern = random.choice(["zigzag", "circular", "random"])
+                if pattern == "zigzag":
+                    self.rect.y += self.speed
+                    self.rect.x += random.choice([-2, 2])
+                elif pattern == "circular":
+                    t = pygame.time.get_ticks() / 1000.0
+                    amplitude = 15
+                    self.rect.y += self.speed
+                    self.rect.x += int(math.sin(t) * amplitude)
+                elif pattern == "random":
+                    self.rect.y += self.speed
+                    self.rect.x += random.randint(-3, 3)
         now = pygame.time.get_ticks()
         if now - self.last_fire > self.fire_delay:
             self.fire()
@@ -24,13 +45,28 @@ class BossEnemy(BaseEnemy):
         self.wrap_position()
 
     def fire(self):
-        for angle in (-15, 0, 15):
+        if global_player is not None:
+            player_pos = global_player.rect.center
+            enemy_pos = self.rect.center
+            dx = player_pos[0] - enemy_pos[0]
+            dy = player_pos[1] - enemy_pos[1]
+            angle = math.atan2(dy, dx)
+            bullet_speed = 3
+            vx = bullet_speed * math.cos(angle)
+            vy = bullet_speed * math.sin(angle)
+        else:
+            vx = 0
+            vy = 3
+        for angle_offset in (-15, 0, 15):
             bullet = pygame.sprite.Sprite()
             bullet.image = pygame.Surface((8, 16))
             bullet.image.fill((255, 255, 0))
             bullet.rect = bullet.image.get_rect(center=self.rect.midbottom)
-            bullet.vx = 3 * pygame.math.Vector2(1, 0).rotate(angle).x
-            bullet.vy = 3 * pygame.math.Vector2(0, 1).rotate(angle).y + 3
+            rad = math.radians(angle_offset)
+            vx_offset = vx + 3 * math.cos(rad)
+            vy_offset = vy + 3 * math.sin(rad)
+            bullet.vx = vx_offset
+            bullet.vy = vy_offset
             bullet.damage = 2
 
             def update_bullet(self):

@@ -1,7 +1,8 @@
 import pygame
-from weapons import Bullet, Missile
-from utils import load_image, load_sound
+from weapons import Missile  # Missile still resides in weapons.py
+from utils import load_image
 
+# List of rank names.
 RANK_NAMES = [
     "Ensign", "Lieutenant", "Commander", "Captain", "Admiral",
     "Admiral 1 Bronze Star", "Admiral 2 Bronze Star", "Admiral 3 Bronze Star",
@@ -15,25 +16,30 @@ RANK_NAMES = [
     "Galactic Mercury Rank", "Galactic Sol Rank"
 ]
 
+
 class Player(pygame.sprite.Sprite):
     def __init__(self, x, y, bullet_group):
         super().__init__()
         self.image = load_image("assets/sprites/player.png", (0, 255, 0), (64, 64))
-        self.sound = laser_sound = load_sound("assets/audio/laser.wav")
         self.base_image = self.image.copy()
         self.rect = self.image.get_rect(center=(x, y))
-        self.speed = 5
+        self.speed = 5  # horizontal movement only
         self.health = 3
         self.shield = 100
         self.weapon_level = 1
-        self.shot_count = 1
-        self.fire_delay = 200
+        self.primary_weapon = 1  # Value 1-9, starting with Weapon1 (Single Shot)
+        self.extra_bullets = 0  # Modifier from Extra Bullet bonus.
+        self.fire_delay = 250
         self.last_fire = pygame.time.get_ticks()
         self.bullet_group = bullet_group
 
+        # Secondary weapon: rockets.
+        self.rockets = 10  # initial pack of 10 rockets.
+        self.max_rockets = 50
+
         # Additional stats
         self.bullet_count = 1
-        self.time_stat = 30
+        self.time_stat = 30  # seconds
         self.bullet_speed = 10
         self.money = 0
         self.lives = 3
@@ -79,20 +85,60 @@ class Player(pygame.sprite.Sprite):
                 self.fire_bullet()
                 self.last_fire = now
 
+        # Secondary fire with left shift.
+        if keys[pygame.K_LSHIFT]:
+            self.fire_secondary()
+
         self.check_rank_upgrade()
 
     def fire_bullet(self):
-        spacing = 2
-        count = self.shot_count
-        start_x = self.rect.centerx - ((count - 1) * spacing) // 2
-        for i in range(count):
-            bullet = Bullet(start_x + i * spacing, self.rect.top, -self.bullet_speed, damage=1 * self.weapon_level)
+        # Instantiate the appropriate primary weapon from the separate files.
+        if self.primary_weapon == 1:
+            from weapon.weapon1 import Weapon1
+            weapon = Weapon1()
+        elif self.primary_weapon == 2:
+            from weapon.weapon2 import Weapon2
+            weapon = Weapon2()
+        elif self.primary_weapon == 3:
+            from weapon.weapon3 import Weapon3
+            weapon = Weapon3()
+        elif self.primary_weapon == 4:
+            from weapon.weapon4 import Weapon4
+            weapon = Weapon4()
+        elif self.primary_weapon == 5:
+            from weapon.weapon5 import Weapon5
+            weapon = Weapon5()
+        elif self.primary_weapon == 6:
+            from weapon.weapon6 import Weapon6
+            weapon = Weapon6()
+        elif self.primary_weapon == 7:
+            from weapon.weapon7 import Weapon7
+            weapon = Weapon7()
+        elif self.primary_weapon == 8:
+            from weapon.weapon8 import Weapon8
+            weapon = Weapon8()
+        elif self.primary_weapon == 9:
+            from weapon.weapon9 import Weapon9
+            weapon = Weapon9()
+        else:
+            from weapon.weapon1 import Weapon1
+            weapon = Weapon1()
+        weapon.fire(self, self.bullet_group)
+        # Fire extra bullets if extra_bullets modifier is active.
+        for i in range(self.extra_bullets):
+            bullet = pygame.sprite.Sprite()
+            bullet.image = pygame.Surface((5, 10))
+            bullet.image.fill((0, 255, 255))
+            bullet.rect = bullet.image.get_rect(center=self.rect.center)
+            bullet.vx = 0
+            bullet.vy = -self.bullet_speed
+            bullet.damage = 1 * self.weapon_level
             self.bullet_group.add(bullet)
-            self.sound.play()
 
-    def fire_missile(self, charge):
-        missile = Missile(self.rect.centerx, self.rect.top, -8, damage=int(charge / 10))
-        self.bullet_group.add(missile)
+    def fire_secondary(self):
+        from weapon.secondary_weapon import SecondaryWeapon
+        sec = SecondaryWeapon()
+        sec.fire(self, self.bullet_group)
 
     def take_damage(self, damage):
         if self.shield > 0:

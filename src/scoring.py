@@ -5,7 +5,7 @@ class ScoreManager:
         self.score = 0
         self.font = pygame.font.SysFont(None, 30)
         self.multiplier = 1
-        self.multiplier_time = 0  # in milliseconds
+        self.multiplier_time = 0
 
     def add_points(self, points):
         self.score += points * self.multiplier

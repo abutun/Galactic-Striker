@@ -1,0 +1,78 @@
+{
+    "level_number": 165,
+    "level_type": "normal",
+    "difficulty": 165.0,
+    "individual_enemies": [
+        {
+            "enemy_category": "large",
+            "enemy_type": 23,
+            "subtype": 2,
+            "x": 825,
+            "y": -100,
+            "spawn_time": 2065,
+            "movement_pattern": "zigzag"
+        },
+        {
+            "enemy_category": "large",
+            "enemy_type": 7,
+            "subtype": 1,
+            "x": 847,
+            "y": -100,
+            "spawn_time": 3459,
+            "movement_pattern": "random"
+        },
+        {
+            "enemy_category": "small",
+            "enemy_type": 17,
+            "subtype": 2,
+            "x": 767,
+            "y": -100,
+            "spawn_time": 1813,
+            "movement_pattern": "zigzag"
+        }
+    ],
+    "enemy_groups": [
+        {
+            "group_id": "g165",
+            "spawn_time": 7602,
+            "path": [
+                [
+                    0.89,
+                    0.26
+                ],
+                [
+                    0.48,
+                    0.24
+                ],
+                [
+                    0.66,
+                    0.22
+                ]
+            ],
+            "group_movement_pattern": "circular",
+            "enemies": [
+                {
+                    "enemy_category": "small",
+                    "enemy_type": 22,
+                    "subtype": 1,
+                    "offset": [
+                        -15,
+                        -2
+                    ],
+                    "spawn_delay": 183
+                },
+                {
+                    "enemy_category": "small",
+                    "enemy_type": 2,
+                    "subtype": 1,
+                    "offset": [
+                        9,
+                        -16
+                    ],
+                    "spawn_delay": 589
+                }
+            ],
+            "group_speed": 2.9982565312087512
+        }
+    ]
+}

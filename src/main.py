@@ -2,44 +2,37 @@ import pygame
 import sys
 import random
 from player import Player, RANK_NAMES
-from enemy.grunt_enemy import GruntEnemy
-from enemy.swarmer_enemy import SwarmerEnemy
-from enemy.boss_enemy import BossEnemy
-from weapons import Bullet, Missile
 from bonus import *
 from level_editor import LevelEditor
 from scoring import ScoreManager
 from utils import load_sound
 from background import Background
 from level_manager import LevelManager
+import global_state  # global_state holds global_player
 
 
 # Developer mode overlay function.
 def draw_dev_info(screen, player, level_manager, score_manager):
-    info_lines = []
-    info_lines.append("Developer Mode: ON")
-    info_lines.append(f"Level: {level_manager.level_number}")
-    info_lines.append(f"Rank: {RANK_NAMES[player.rank - 1]} (#{player.rank})")
-    info_lines.append(f"Collected Rank Markers: {len(player.rank_markers)}")
-    info_lines.append(f"Shot Count: {player.shot_count}")
-    info_lines.append(f"Weapon Level: {player.weapon_level}")
-    info_lines.append(f"Health: {player.health}")
-    info_lines.append(f"Lives: {player.lives}")
-    info_lines.append(f"Shield: {player.shield}")
-    info_lines.append(f"Speed: {player.speed}")
-    info_lines.append(f"Money: {player.money}")
-    info_lines.append(f"Time Stat: {player.time_stat}")
-    info_lines.append(f"Bullet Speed: {player.bullet_speed}")
-    info_lines.append(f"Score: {score_manager.score}")
-    info_lines.append(f"Autofire: {player.autofire}")
-    info_lines.append(f"Bullet Count: {player.bullet_count}")
-    info_lines.append(f"Shot Count: {player.shot_count}")
-    info_lines.append(f"Letters: {', '.join(player.letters) if player.letters else 'None'}")
-    # Create a semi-transparent overlay surface.
-    overlay_width = 300
-    overlay_height = 400
-    overlay = pygame.Surface((overlay_width, overlay_height))
-    overlay.set_alpha(200)  # semi-transparent
+    info_lines = [
+        "Developer Mode: ON",
+        f"Level: {level_manager.level_number}",
+        f"Rank: {RANK_NAMES[player.rank - 1]} (#{player.rank})",
+        f"Collected Rank Markers: {len(player.rank_markers)}",
+        f"Scoop Active: {player.scoop_active}",
+        f"Weapon Level: {player.weapon_level}",
+        f"Primary Weapon: {player.primary_weapon}",
+        f"Health: {player.health}",
+        f"Shield: {player.shield}",
+        f"Speed: {player.speed}",
+        f"Money: {player.money}",
+        f"Time Stat: {player.time_stat}",
+        f"Bullet Speed: {player.bullet_speed}",
+        f"Bullet Count: {player.bullet_count}",
+        f"Score: {score_manager.score}",
+        f"Letters: {', '.join(player.letters) if player.letters else 'None'}"
+    ]
+    overlay = pygame.Surface((270, 400))
+    overlay.set_alpha(200)
     overlay.fill((0, 0, 0))
     font = pygame.font.Font(None, 20)
     y_offset = 10
@@ -47,7 +40,6 @@ def draw_dev_info(screen, player, level_manager, score_manager):
         text_surface = font.render(line, True, (255, 255, 255))
         overlay.blit(text_surface, (10, y_offset))
         y_offset += text_surface.get_height() + 2
-    # Blit the overlay onto the main screen.
     screen.blit(overlay, (10, 100))
 
 
@@ -60,15 +52,16 @@ def main():
 
     background = Background(screen_width, screen_height, scroll_speed=1)
 
-    # Sprite groups.
     all_sprites = pygame.sprite.Group()
     player_bullets = pygame.sprite.Group()
     enemy_bullets = pygame.sprite.Group()
     enemies = pygame.sprite.Group()
     bonus_group = pygame.sprite.Group()
 
-    player = Player(screen_width // 2, int(screen_height * 0.95  ), player_bullets)
+    # Player spawns at 95% of screen height.
+    player = Player(screen_width // 2, int(screen_height * 0.95), player_bullets)
     all_sprites.add(player)
+    global_state.global_player = player  # set global player
 
     score_manager = ScoreManager()
     editor = LevelEditor()
@@ -78,12 +71,14 @@ def main():
     current_level = 1
     level_manager = LevelManager(current_level, enemies, all_sprites, enemy_bullets)
 
+    laser_sound = load_sound("assets/audio/laser.wav")
     explosion_sound = load_sound("assets/audio/explosion.wav")
 
-    # Developer mode flag.
-    dev_mode = True
+    dev_mode = False  # developer mode toggle
 
-    # Example game context for bonus effects.
+    # Intro duration in milliseconds.
+    level_intro_duration = 3000
+
     def start_meteorstorm():
         print("Meteorstorm bonus level started!")
 
@@ -107,50 +102,62 @@ def main():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
-            # Toggle editor mode with E.
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_e:
                     editing = not editing
-                # Toggle developer mode with D.
                 if event.key == pygame.K_d:
                     dev_mode = not dev_mode
             if editing:
                 editor.handle_event(event)
-            if event.type == pygame.USEREVENT + 1 and not editing:
-                # LevelManager now schedules enemy spawns; no longer using random spawns here.
-                pass  # (Spawn events are handled by the LevelManager.)
 
-        if editing:
-            editor.update()
+        background.update()
+        all_sprites.update()
+        player_bullets.update()
+        enemy_bullets.update()
+        bonus_group.update()
+        score_manager.update(dt)
+
+        # Check time since level start.
+        current_level_time = pygame.time.get_ticks() - level_manager.start_time
+
+        # If within intro period, display level intro text and skip level updates.
+        if current_level_time < level_intro_duration:
+            # Draw background and sprites, then overlay level intro text.
+            background.draw(screen)
+            all_sprites.draw(screen)
+            player_bullets.draw(screen)
+            enemy_bullets.draw(screen)
+            bonus_group.draw(screen)
+            score_manager.draw(screen)
+
+            font = pygame.font.Font(None, 50)
+            level_text = f"Level {level_manager.level_number}"
+            text_surface = font.render(level_text, True, (255, 255, 255))
+            text_rect = text_surface.get_rect(center=(screen_width // 2, screen_height // 2))
+            screen.blit(text_surface, text_rect)
         else:
-            background.update()
-            all_sprites.update()
-            player_bullets.update()
-            enemy_bullets.update()
-            bonus_group.update()
-            score_manager.update(dt)
-
+            # Once intro period is over, update the level.
             level_manager.update()
             if level_manager.is_level_complete():
                 current_level += 1
-                if current_level > 100:
+                if current_level > 250:
                     print("All levels complete!")
                     running = False
                 else:
                     level_manager.load_next_level(current_level)
                     print(f"Level {current_level} started!")
 
-            # Collision: Player bullets vs. enemies.
+            # Collision: Player bullets vs. Enemies.
             hits = pygame.sprite.groupcollide(enemies, player_bullets, False, True)
             for enemy, bullets in hits.items():
                 for bullet in bullets:
                     enemy.take_damage(bullet.damage)
+                    bullet.kill()
                 if enemy.health <= 0:
                     enemy.kill()
                     score_manager.add_points(enemy.points)
                     if explosion_sound:
                         explosion_sound.play()
-                    # 30% chance to drop a bonus.
                     if random.random() < 0.3:
                         bonus_classes = [
                             SingleShotBonus, DoubleShotBonus, TripleShotBonus, QuadShotBonus,
@@ -158,7 +165,7 @@ def main():
                             MoneyBonus10, MoneyBonus50, MoneyBonus100, MoneyBonus200,
                             ExtraLifeBonus, ShipAutofireBonus, ShieldBonus, AlienScoopBonus,
                             MoneyBombBonus, GemBombBonus,
-                            ExtraLetterBonus,  # Supply a letter when applying.
+                            ExtraLetterBonus,
                             RankMarkerBonus,
                             BonusMeteorstormBonus, BonusMemorystationBonus,
                             DecreaseStrengthRedBonus, DecreaseStrengthGreenBonus, DecreaseStrengthBlueBonus,
@@ -178,16 +185,17 @@ def main():
             hits = pygame.sprite.spritecollide(player, enemy_bullets, True)
             for bullet in hits:
                 player.take_damage(bullet.damage)
+                bullet.kill()
                 if player.health <= 0:
                     print("Game Over!")
                     running = False
 
-            # Collision: Player collides with bonuses.
+            # Collision: Player collides with Bonuses.
             hits = pygame.sprite.spritecollide(player, bonus_group, True)
             for bonus in hits:
                 bonus.apply(player, game_context)
 
-            # Optional: Player collides with enemies.
+            # Optional: Player collides with Enemies.
             hits = pygame.sprite.spritecollide(player, enemies, False)
             for enemy in hits:
                 player.take_damage(1)
@@ -199,21 +207,16 @@ def main():
                     print("Game Over!")
                     running = False
 
-        background.draw(screen)
-        if editing:
-            editor.draw(screen)
-        else:
+            background.draw(screen)
             all_sprites.draw(screen)
             player_bullets.draw(screen)
             enemy_bullets.draw(screen)
             bonus_group.draw(screen)
             score_manager.draw(screen)
-            # Display player's current rank in the upper left.
             font = pygame.font.Font(None, 30)
             rank_text = font.render(f"Rank: {RANK_NAMES[player.rank - 1]}", True, (255, 255, 255))
             screen.blit(rank_text, (10, 10))
 
-        # If developer mode is enabled, draw the developer info overlay.
         if dev_mode:
             draw_dev_info(screen, player, level_manager, score_manager)
 

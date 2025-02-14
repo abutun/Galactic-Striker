@@ -1,0 +1,82 @@
+{
+    "level_number": 138,
+    "level_type": "normal",
+    "difficulty": 138.0,
+    "individual_enemies": [
+        {
+            "enemy_category": "small",
+            "enemy_type": 24,
+            "subtype": 1,
+            "x": -100,
+            "y": -100,
+            "spawn_time": 516,
+            "movement_pattern": "direct"
+        },
+        {
+            "enemy_category": "small",
+            "enemy_type": 23,
+            "subtype": 1,
+            "x": 484,
+            "y": -100,
+            "spawn_time": 1276,
+            "movement_pattern": "zigzag"
+        },
+        {
+            "enemy_category": "large",
+            "enemy_type": 15,
+            "subtype": 1,
+            "x": 869,
+            "y": -100,
+            "spawn_time": 3845,
+            "movement_pattern": "zigzag"
+        }
+    ],
+    "enemy_groups": [
+        {
+            "group_id": "g138",
+            "spawn_time": 4524,
+            "path": [
+                [
+                    0.4,
+                    0.01
+                ],
+                [
+                    0.77,
+                    0.09
+                ],
+                [
+                    0.28,
+                    0.27
+                ],
+                [
+                    0.49,
+                    0.13
+                ]
+            ],
+            "group_movement_pattern": "circular",
+            "enemies": [
+                {
+                    "enemy_category": "small",
+                    "enemy_type": 24,
+                    "subtype": 2,
+                    "offset": [
+                        -19,
+                        -13
+                    ],
+                    "spawn_delay": 521
+                },
+                {
+                    "enemy_category": "small",
+                    "enemy_type": 8,
+                    "subtype": 1,
+                    "offset": [
+                        -1,
+                        -7
+                    ],
+                    "spawn_delay": 596
+                }
+            ],
+            "group_speed": 1.3528292897933982
+        }
+    ]
+}

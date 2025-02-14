@@ -1,0 +1,87 @@
+{
+    "level_number": 105,
+    "level_type": "normal",
+    "difficulty": 105.0,
+    "individual_enemies": [
+        {
+            "enemy_category": "small",
+            "enemy_type": 22,
+            "subtype": 2,
+            "x": -13,
+            "y": -100,
+            "spawn_time": 2688,
+            "movement_pattern": "circular"
+        },
+        {
+            "enemy_category": "small",
+            "enemy_type": 22,
+            "subtype": 2,
+            "x": 859,
+            "y": -100,
+            "spawn_time": 3085,
+            "movement_pattern": "circular"
+        },
+        {
+            "enemy_category": "large",
+            "enemy_type": 10,
+            "subtype": 2,
+            "x": -94,
+            "y": -100,
+            "spawn_time": 3364,
+            "movement_pattern": "random"
+        },
+        {
+            "enemy_category": "large",
+            "enemy_type": 10,
+            "subtype": 2,
+            "x": 843,
+            "y": -100,
+            "spawn_time": 2997,
+            "movement_pattern": "direct"
+        }
+    ],
+    "enemy_groups": [
+        {
+            "group_id": "g105",
+            "spawn_time": 7413,
+            "path": [
+                [
+                    0.16,
+                    0.11
+                ],
+                [
+                    0.32,
+                    0.16
+                ],
+                [
+                    0.47,
+                    0.18
+                ]
+            ],
+            "group_movement_pattern": "circular",
+            "enemies": [
+                {
+                    "enemy_category": "large",
+                    "enemy_type": 5,
+                    "subtype": 2,
+                    "offset": [
+                        14,
+                        -10
+                    ],
+                    "spawn_delay": 983
+                },
+                {
+                    "enemy_category": "small",
+                    "enemy_type": 20,
+                    "subtype": 1,
+                    "offset": [
+                        17,
+                        11
+                    ],
+                    "spawn_delay": 883
+                }
+            ],
+            "group_speed": 2.9840421544055813
+        }
+    ]
+}

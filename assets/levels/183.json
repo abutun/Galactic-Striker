@@ -1,0 +1,120 @@
+{
+    "level_number": 183,
+    "level_type": "normal",
+    "difficulty": 183.0,
+    "individual_enemies": [
+        {
+            "enemy_category": "small",
+            "enemy_type": 6,
+            "subtype": 2,
+            "x": -100,
+            "y": -100,
+            "spawn_time": 4826,
+            "movement_pattern": "circular"
+        },
+        {
+            "enemy_category": "small",
+            "enemy_type": 9,
+            "subtype": 1,
+            "x": -75,
+            "y": -100,
+            "spawn_time": 4056,
+            "movement_pattern": "direct"
+        },
+        {
+            "enemy_category": "large",
+            "enemy_type": 20,
+            "subtype": 2,
+            "x": 771,
+            "y": -100,
+            "spawn_time": 2799,
+            "movement_pattern": "circular"
+        },
+        {
+            "enemy_category": "small",
+            "enemy_type": 22,
+            "subtype": 2,
+            "x": -90,
+            "y": -100,
+            "spawn_time": 3203,
+            "movement_pattern": "zigzag"
+        },
+        {
+            "enemy_category": "small",
+            "enemy_type": 10,
+            "subtype": 1,
+            "x": 357,
+            "y": -100,
+            "spawn_time": 2465,
+            "movement_pattern": "random"
+        }
+    ],
+    "enemy_groups": [
+        {
+            "group_id": "g183",
+            "spawn_time": 3322,
+            "path": [
+                [
+                    0.42,
+                    0.13
+                ],
+                [
+                    0.44,
+                    0.13
+                ],
+                [
+                    0.87,
+                    0.09
+                ],
+                [
+                    0.14,
+                    0.04
+                ]
+            ],
+            "group_movement_pattern": "zigzag",
+            "enemies": [
+                {
+                    "enemy_category": "large",
+                    "enemy_type": 6,
+                    "subtype": 1,
+                    "offset": [
+                        20,
+                        -16
+                    ],
+                    "spawn_delay": 580
+                },
+                {
+                    "enemy_category": "large",
+                    "enemy_type": 16,
+                    "subtype": 2,
+                    "offset": [
+                        -10,
+                        -14
+                    ],
+                    "spawn_delay": 271
+                },
+                {
+                    "enemy_category": "large",
+                    "enemy_type": 15,
+                    "subtype": 2,
+                    "offset": [
+                        3,
+                        -20
+                    ],
+                    "spawn_delay": 179
+                },
+                {
+                    "enemy_category": "large",
+                    "enemy_type": 23,
+                    "subtype": 2,
+                    "offset": [
+                        20,
+                        2
+                    ],
+                    "spawn_delay": 571
+                }
+            ],
+            "group_speed": 1.8400917273292667
+        }
+    ]
+}
