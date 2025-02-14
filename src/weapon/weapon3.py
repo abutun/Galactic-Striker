@@ -5,7 +5,7 @@ from src.weapons import Bullet
 class Weapon3(PrimaryWeapon):
     def fire(self, player, bullet_group):
         # Triple Shot: one bullet straight, one left, one right.
-        spacing = 7
+        spacing = 5
         x = player.rect.centerx
         y = player.rect.top
         damage = 1 * player.weapon_level

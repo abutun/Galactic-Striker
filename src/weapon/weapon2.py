@@ -9,7 +9,7 @@ class Weapon2(PrimaryWeapon):
         x = player.rect.centerx
         y = player.rect.top
         damage = 1 * player.weapon_level
-        bullet_left = Bullet(x - spacing, y, -1, -player.bullet_speed, damage)
-        bullet_right = Bullet(x + spacing, y, 1, -player.bullet_speed, damage)
+        bullet_left = Bullet(x - spacing, y, 0, -player.bullet_speed, damage)
+        bullet_right = Bullet(x + spacing, y, 0 , -player.bullet_speed, damage)
         bullet_group.add(bullet_left)
         bullet_group.add(bullet_right)

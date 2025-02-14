@@ -27,7 +27,7 @@ class Player(pygame.sprite.Sprite):
         self.health = 3
         self.shield = 100
         self.weapon_level = 1
-        self.primary_weapon = 1  # Value 1-9, starting with Weapon1 (Single Shot)
+        self.primary_weapon = 4  # Value 1-9, starting with Weapon1 (Single Shot)
         self.extra_bullets = 0  # Modifier from Extra Bullet bonus.
         self.fire_delay = 250
         self.last_fire = pygame.time.get_ticks()

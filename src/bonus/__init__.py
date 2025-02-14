@@ -5,7 +5,7 @@ from .money_bonus import MoneyBonus10, MoneyBonus50, MoneyBonus100, MoneyBonus20
 from .life_bonus import ExtraLifeBonus
 from .special_bonus import ShipAutofireBonus, ShieldBonus, AlienScoopBonus, MoneyBombBonus, GemBombBonus
 from .letter_bonus import ExtraLetterBonus
-from .rank_marker_bonus import RankMarkerBonus, RankMarkerDarkPurpleBonus
+from .rank_marker_bonus import RankMarkerBonus
 from .bonus_level_bonus import BonusMeteorstormBonus, BonusMemorystationBonus
 from .hidden_bonus import (DecreaseStrengthRedBonus, DecreaseStrengthGreenBonus, DecreaseStrengthBlueBonus,
                            X2ScoreMultiplierBonus, X5ScoreMultiplierBonus, CashDoublerBonus, MirrorModeBonus,
