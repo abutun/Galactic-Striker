@@ -3,20 +3,68 @@
 import pygame
 import math
 from utils import load_image
+from .behavior_tree import *
+import logging
+from utils import ResourceManager
+
+logger = logging.getLogger(__name__)
 
 class BaseEnemy(pygame.sprite.Sprite):
-    def __init__(self, x, y, bullet_group, health, speed, points):
+    def __init__(self, x: int, y: int, bullet_group: pygame.sprite.Group, 
+                 health: int, speed: float, points: int):
         super().__init__()
-        self.bullet_group = bullet_group
-        self.health = health
-        self.speed = speed
-        self.points = points
-        # Optionally, an enemy may be given a movement path:
-        self.path = None
-        self.target_index = 0
-
-    def take_damage(self, damage):
-        self.health -= damage
+        try:
+            self.bullet_group = bullet_group
+            self.health = health
+            self.speed = speed
+            self.points = points
+            self.path = None
+            self.target_index = 0
+            
+            # Setup behavior tree
+            self.behavior_tree = Selector([
+                Sequence([
+                    FollowPath(),
+                    FireAtPlayer()
+                ]),
+                Sequence([
+                    MoveTowardsPlayer(),
+                    FireAtPlayer()
+                ])
+            ])
+            
+            # Context for behavior tree
+            self.context = {
+                'enemy': self,
+                'player': None  # Will be set during update
+            }
+            
+        except Exception as e:
+            logger.error(f"Error initializing enemy: {e}")
+            raise
+            
+    def update(self) -> None:
+        """Update enemy behavior."""
+        try:
+            # Update context with current game state
+            from global_state import global_player
+            self.context['player'] = global_player
+            
+            # Execute behavior tree
+            self.behavior_tree.execute(self.context)
+            
+            # Ensure enemy stays in bounds
+            self.wrap_position()
+            
+        except Exception as e:
+            logger.error(f"Error updating enemy: {e}")
+            
+    def take_damage(self, damage: int) -> None:
+        """Handle taking damage."""
+        try:
+            self.health -= damage
+        except Exception as e:
+            logger.error(f"Error handling damage: {e}")
 
     def follow_path(self):
         if self.path and len(self.path) > 0:
@@ -55,8 +103,3 @@ class BaseEnemy(pygame.sprite.Sprite):
             self.rect.bottom = 0
         elif self.rect.bottom < 0:
             self.rect.top = sh
-
-    def update(self):
-        # In the base class we let the enemy follow a path if assigned.
-        if self.path:
-            self.follow_path()

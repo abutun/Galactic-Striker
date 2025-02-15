@@ -8,7 +8,8 @@ from scoring import ScoreManager
 from utils import load_sound
 from background import Background
 from level_manager import LevelManager
-import global_state  # global_state holds global_player
+import global_state
+from weapons import Missile  # global_state holds global_player
 
 
 # Developer mode overlay function.
@@ -52,7 +53,7 @@ def main():
 
     background = Background(screen_width, screen_height, scroll_speed=1)
 
-    all_sprites = pygame.sprite.Group()
+    all_sprites = pygame.sprite.RenderUpdates()
     player_bullets = pygame.sprite.Group()
     enemy_bullets = pygame.sprite.Group()
     enemies = pygame.sprite.Group()
@@ -74,10 +75,23 @@ def main():
     laser_sound = load_sound("assets/audio/laser.wav")
     explosion_sound = load_sound("assets/audio/explosion.wav")
 
+    # Add sound volume control
+    if laser_sound:
+        laser_sound.set_volume(0.5)  # 50% volume
+    if explosion_sound:
+        explosion_sound.set_volume(0.7)  # 70% volume
+
     dev_mode = False  # developer mode toggle
 
     # Intro duration in milliseconds.
     level_intro_duration = 3000
+
+    # Pre-load commonly used fonts
+    FONTS = {
+        'small': pygame.font.Font(None, 20),
+        'medium': pygame.font.Font(None, 30),
+        'large': pygame.font.Font(None, 50)
+    }
 
     def start_meteorstorm():
         print("Meteorstorm bonus level started!")
@@ -96,13 +110,40 @@ def main():
         "warp_forward": warp_forward
     }
 
+    # Add game states
+    class GameState:
+        MENU = "menu"
+        PLAYING = "playing"
+        PAUSED = "paused"
+        GAME_OVER = "game_over"
+        
+    current_state = GameState.PLAYING
+    
+    # Add pause functionality
+    def toggle_pause():
+        nonlocal current_state
+        if current_state == GameState.PLAYING:
+            current_state = GameState.PAUSED
+        elif current_state == GameState.PAUSED:
+            current_state = GameState.PLAYING
+    
     running = True
+    previous_time = pygame.time.get_ticks()
     while running:
-        dt = clock.get_time()
+        current_time = pygame.time.get_ticks()
+        dt = (current_time - previous_time) / 1000.0  # Convert to seconds
+        previous_time = current_time
+        
+        # Add escape key handling
         for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
             if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    if current_state == GameState.PLAYING:
+                        toggle_pause()
+                    else:
+                        running = False
+                if event.key == pygame.K_p:
+                    toggle_pause()
                 if event.key == pygame.K_e:
                     editing = not editing
                 if event.key == pygame.K_d:
@@ -110,8 +151,26 @@ def main():
             if editing:
                 editor.handle_event(event)
 
+        if current_state == GameState.PAUSED:
+            # Draw pause screen
+            continue
+
         background.update()
         all_sprites.update()
+        
+        # Check for new projectiles and play sound
+        for projectile in player_bullets:
+            if hasattr(projectile, 'just_spawned') and projectile.just_spawned:
+                if laser_sound:
+                    if isinstance(projectile, Missile):
+                        # Optional: You could add a different sound for missiles
+                        laser_sound.set_volume(0.7)  # Louder for missiles
+                        laser_sound.play()
+                        laser_sound.set_volume(0.5)  # Reset volume
+                    else:
+                        laser_sound.play()
+                projectile.just_spawned = False
+        
         player_bullets.update()
         enemy_bullets.update()
         bonus_group.update()

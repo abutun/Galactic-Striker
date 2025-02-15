@@ -9,8 +9,16 @@ class Bullet(pygame.sprite.Sprite):
         self.vx = vx
         self.vy = vy
         self.damage = damage
+        self.creation_time = pygame.time.get_ticks()  # Add lifetime tracking
+        self.max_lifetime = 5000  # 5 seconds max lifetime
+        self.just_spawned = True  # Add this flag back
 
     def update(self):
+        # Add lifetime check
+        if pygame.time.get_ticks() - self.creation_time > self.max_lifetime:
+            self.kill()
+            return
+            
         self.rect.x += self.vx
         self.rect.y += self.vy
         surface = pygame.display.get_surface()
@@ -28,6 +36,7 @@ class Missile(pygame.sprite.Sprite):
         self.rect = self.image.get_rect(center=(x, y))
         self.vy = vy
         self.damage = damage
+        self.just_spawned = True  # Add this flag for missiles too
 
     def update(self):
         self.rect.y += self.vy
