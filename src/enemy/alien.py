@@ -4,16 +4,32 @@ import random
 from src.enemy.base_enemy import BaseEnemy
 from src.utils import load_image
 from src.global_state import global_player
+import logging
+
+logger = logging.getLogger(__name__)
 
 class Alien(BaseEnemy):
     def __init__(self, x, y, bullet_group, health, speed, points, image_file, size):
         super().__init__(x, y, bullet_group, health, speed, points)
-        # Load the image as a PNG now.
-        self.image = load_image(image_file, (255, 255, 255), size)
+        # Log the path being searched
+        logger.debug(f"Looking for alien sprite: {image_file}")
+        try:
+            # Load the sprite with fallback color and size
+            self.image = load_image(
+                f"assets/aliens/{image_file}_1.png",  # Add _1 for first frame
+                fallback_color=(255, 0, 0),  # Red fallback color
+                size=size
+            )
+        except Exception as e:
+            logger.error(f"Error loading sprite {image_file}: {e}")
+            # Create a fallback surface if image loading fails
+            self.image = pygame.Surface(size, pygame.SRCALPHA)
+            self.image.fill((255, 0, 0))  # Red rectangle as fallback
+            
         self.rect = self.image.get_rect(center=(x, y))
         self.fire_delay = 2000  # milliseconds delay between shots
         self.last_fire = pygame.time.get_ticks()
-        self.path = None  # For enemy group movement (absolute coordinates)
+        self.path = None
         self.path_index = 0
 
     def follow_path(self):
@@ -90,12 +106,7 @@ class Alien(BaseEnemy):
         self.bullet_group.add(bullet)
 
 class NonBossAlien(Alien):
-    def __init__(self, x, y, bullet_group, enemy_category="small", enemy_type=1, subtype=1):
-        """
-        enemy_category: "small" or "large"
-        enemy_type: integer 1..25
-        subtype: integer 1 or 2
-        """
+    def __init__(self, x, y, bullet_group, enemy_category="small", enemy_type=1):
         if enemy_category == "small":
             health = 1
             points = 100
@@ -104,15 +115,16 @@ class NonBossAlien(Alien):
             health = 3
             points = 200
             size = (48, 48)
-        # Construct image filename using PNG extension.
-        filename = f"assets/aliens/alien_{enemy_type:02d}_{enemy_category}_{subtype}.png"
-        super().__init__(x, y, bullet_group, health, speed=2, points=points, image_file=filename, size=size)
+            
+        filename = f"alien_{enemy_type:02d}_{enemy_category}"
+        super().__init__(x, y, bullet_group, health, speed=2, points=points, 
+                        image_file=filename, size=size)
 
 class BossAlien(Alien):
     def __init__(self, x, y, bullet_group, boss_type=1):
         health = 20
         points = 1000
         size = (96, 96)
-        filename = f"assets/aliens/boss_{boss_type:02d}.png"
-        super().__init__(x, y, bullet_group, health, speed=1, points=points, image_file=filename, size=size)
-        self.fire_delay = 1000
+        filename = f"boss_{boss_type:02d}"
+        super().__init__(x, y, bullet_group, health, speed=1, points=points, 
+                        image_file=filename, size=size)

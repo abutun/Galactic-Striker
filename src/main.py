@@ -1,15 +1,21 @@
-import pygame
+import os
 import sys
+
+# Add the project root directory to Python path
+project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, project_root)
+
+import pygame
 import random
-from player import Player, RANK_NAMES
-from bonus import *
-from level_editor import LevelEditor
-from scoring import ScoreManager
-from utils import load_sound
-from background import Background
-from level_manager import LevelManager
-import global_state
-from weapons import Missile  # global_state holds global_player
+from src.player import Player, RANK_NAMES
+from src.bonus import *
+from src.level_editor import LevelEditor
+from src.scoring import ScoreManager
+from src.utils import load_sound
+from src.background import Background
+from src.level_manager import LevelManager
+import src.global_state as global_state
+from src.weapons import Missile  # global_state holds global_player
 
 
 # Developer mode overlay function.
@@ -65,7 +71,7 @@ def main():
     global_state.global_player = player  # set global player
 
     score_manager = ScoreManager()
-    editor = LevelEditor()
+    editor = None  # Initialize editor as None
     editing = False
 
     # Start at level 1.
@@ -146,9 +152,14 @@ def main():
                     toggle_pause()
                 if event.key == pygame.K_e:
                     editing = not editing
+                    if editing and editor is None:
+                        editor = LevelEditor()  # Create editor only when needed
+                    if not editing:
+                        editor = None  # Clean up editor when not in use
                 if event.key == pygame.K_d:
                     dev_mode = not dev_mode
-            if editing:
+
+            if editing and editor:
                 editor.handle_event(event)
 
         if current_state == GameState.PAUSED:

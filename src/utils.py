@@ -76,25 +76,25 @@ def resource_path(relative_path: str) -> str:
         base_path = os.path.abspath(".")
     return os.path.join(base_path, relative_path)
 
-def load_image(path, fallback_color, size):
-    full_path = resource_path(path)
-    if not os.path.exists(full_path):
-        print(f"File not found: {full_path}. Using placeholder.")
-        image = pygame.Surface(size, pygame.SRCALPHA)
-        image.fill(fallback_color)
-        return image
+def load_image(path: str, fallback_color: tuple, size: tuple) -> pygame.Surface:
+    """Load an image with fallback options."""
     try:
-        image = pygame.image.load(full_path)
-        if pygame.display.get_surface():
-            image = image.convert_alpha()
+        if os.path.exists(path):
+            image = pygame.image.load(path).convert_alpha()
         else:
-            image = image.convert()
-        image = pygame.transform.scale(image, size)
+            logger.warning(f"File not found: {path}. Using placeholder.")
+            image = pygame.Surface(size, pygame.SRCALPHA)
+            image.fill(fallback_color)
+            
+        if size:
+            image = pygame.transform.scale(image, size)
+        return image
     except Exception as e:
-        print(f"Error loading image {full_path}: {e}. Using placeholder.")
-        image = pygame.Surface(size, pygame.SRCALPHA)
-        image.fill(fallback_color)
-    return image
+        logger.error(f"Error loading image {path}: {e}")
+        # Create a fallback surface
+        surface = pygame.Surface(size, pygame.SRCALPHA)
+        surface.fill(fallback_color)
+        return surface
 
 def load_sound(path):
     full_path = resource_path(path)

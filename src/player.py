@@ -1,8 +1,8 @@
 import pygame
-from weapons import Missile  # Missile still resides in weapons.py
-from utils import ResourceManager, load_image
-from weapon.weapon_factory import WeaponFactory
 import logging
+from src.utils import ResourceManager, load_image
+from src.weapon.weapon_factory import WeaponFactory
+from src.weapons import Missile
 
 logger = logging.getLogger(__name__)
 

@@ -1,6 +1,6 @@
 # src/weapon/weapon1.py
+from weapons import Bullet
 from .base_weapon import PrimaryWeapon
-from src.weapons import Bullet
 import logging
 
 logger = logging.getLogger(__name__)

@@ -1,13 +1,169 @@
 {
-    "level_number": 50,
-    "level_type": "boss",
-    "difficulty": 50.0,
-    "boss": {
-        "boss_type": 2,
-        "x": 400,
-        "y": -150,
-        "spawn_time": 0
+  "level_number": 50,
+  "name": "Level 50",
+  "difficulty": 4,
+  "alien_groups": [
+    {
+      "alien_type": "boss_02",
+      "count": 1,
+      "formation": "single",
+      "spacing": 0,
+      "entry_point": "top",
+      "path": [
+        {
+          "x": 0.4612052487437295,
+          "y": 0,
+          "wait_time": 0,
+          "shoot": false
+        },
+        {
+          "x": 0.6440362317964776,
+          "y": 0.5235746202930252,
+          "wait_time": 0.7429635810244744,
+          "shoot": false
+        },
+        {
+          "x": 0.5752296105619685,
+          "y": 0.1702832152401102,
+          "wait_time": 0.3075937588215645,
+          "shoot": false
+        },
+        {
+          "x": 0.9858370538832194,
+          "y": 0.010938071146115502,
+          "wait_time": 1.4630531310159405,
+          "shoot": false
+        },
+        {
+          "x": 0.9037772899370836,
+          "y": 0.3440915813585258,
+          "wait_time": 1.6090679820860974,
+          "shoot": false
+        },
+        {
+          "x": 0.090352138587392,
+          "y": 0,
+          "wait_time": 0,
+          "shoot": false
+        }
+      ],
+      "movement_pattern": "boss",
+      "speed": 0.8,
+      "health": 20,
+      "shoot_interval": 1.0,
+      "group_behavior": false
     },
-    "individual_enemies": [],
-    "enemy_groups": []
+    {
+      "alien_type": "alien_06_small",
+      "count": 2,
+      "formation": "wave",
+      "spacing": 35,
+      "entry_point": "top_left",
+      "path": [
+        {
+          "x": 0,
+          "y": 0,
+          "wait_time": 0,
+          "shoot": false
+        },
+        {
+          "x": 0.8906454398094128,
+          "y": 0.21856074240760648,
+          "wait_time": 1.9854724055427355,
+          "shoot": false
+        },
+        {
+          "x": 0.7451067839886732,
+          "y": 0.4629946610626209,
+          "wait_time": 0.33888756524255914,
+          "shoot": false
+        },
+        {
+          "x": 0.9796084676094171,
+          "y": 0.664963700046892,
+          "wait_time": 1.0063785588182657,
+          "shoot": true
+        },
+        {
+          "x": 0.4596301886601023,
+          "y": 0.03278796347130094,
+          "wait_time": 1.5184643498382315,
+          "shoot": false
+        },
+        {
+          "x": 0.5440507457222872,
+          "y": 0,
+          "wait_time": 0,
+          "shoot": false
+        }
+      ],
+      "movement_pattern": "zigzag",
+      "speed": 1.6,
+      "health": 6,
+      "shoot_interval": 2.2,
+      "group_behavior": true
+    },
+    {
+      "alien_type": "alien_06_small",
+      "count": 2,
+      "formation": "line",
+      "spacing": 43,
+      "entry_point": "top_right",
+      "path": [
+        {
+          "x": 1,
+          "y": 0,
+          "wait_time": 0,
+          "shoot": false
+        },
+        {
+          "x": 0.20394987531401487,
+          "y": 0.6156198746418656,
+          "wait_time": 1.8960897146036977,
+          "shoot": false
+        },
+        {
+          "x": 0.18793971356564199,
+          "y": 0.5221676460763728,
+          "wait_time": 0.7690340508311917,
+          "shoot": false
+        },
+        {
+          "x": 0.026709893852246647,
+          "y": 0.5402805185935021,
+          "wait_time": 1.5886526241208876,
+          "shoot": false
+        },
+        {
+          "x": 0.4421681839598468,
+          "y": 0.5186837870174926,
+          "wait_time": 1.0854599985011024,
+          "shoot": false
+        },
+        {
+          "x": 0.4778815928601843,
+          "y": 0,
+          "wait_time": 0,
+          "shoot": false
+        }
+      ],
+      "movement_pattern": "zigzag",
+      "speed": 1.6,
+      "health": 6,
+      "shoot_interval": 2.2,
+      "group_behavior": false
+    }
+  ],
+  "boss_data": {
+    "type": "boss_2",
+    "health": 100,
+    "patterns": 4
+  },
+  "background_speed": 1.4,
+  "music_track": "level_4.mp3",
+  "special_effects": [],
+  "power_up_frequency": 0.2,
+  "minimum_clear_time": 30.0,
+  "bonus_objectives": null,
+  "hazard_types": null
 }

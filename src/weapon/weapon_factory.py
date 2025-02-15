@@ -1,6 +1,6 @@
 from typing import Type
-from .base_weapon import PrimaryWeapon
 from .weapon1 import Weapon1
+from .base_weapon import PrimaryWeapon
 from .weapon2 import Weapon2
 from .weapon3 import Weapon3
 from .weapon4 import Weapon4
@@ -40,3 +40,10 @@ class WeaponFactory:
     def register_weapon(cls, weapon_type: int, weapon_class: Type[PrimaryWeapon]) -> None:
         """Register a new weapon type."""
         cls._weapon_classes[weapon_type] = weapon_class 
+
+    @staticmethod
+    def create_weapon(weapon_type: int) -> PrimaryWeapon:
+        if weapon_type == 1:
+            return Weapon1()
+        # Add more weapon types here
+        return Weapon1()  # Default to Weapon1 

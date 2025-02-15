@@ -1,6 +1,9 @@
 import pygame
 import json
 import os
+from src.level.level_data import *
+import tkinter as tk
+from tkinter import filedialog
 
 # Available object types for grid mode.
 AVAILABLE_TYPES = ["grunt", "swarmer", "boss"]
@@ -8,185 +11,211 @@ AVAILABLE_TYPES = ["grunt", "swarmer", "boss"]
 
 class LevelEditor:
     def __init__(self):
-        # Grid settings.
-        self.grid_cols = 20
-        self.grid_rows = 25
-        self.grid = [[None for _ in range(self.grid_cols)] for _ in range(self.grid_rows)]
-        self.cell_size = None  # Will be computed based on screen dimensions.
-        self.offset_x = 0
-        self.offset_y = 0
+        self.screen_width = 800
+        self.screen_height = 600
+        self.screen = pygame.display.set_mode((self.screen_width, self.screen_height))
+        pygame.display.set_caption("Level Editor")
 
-        # Path editing: list of finalized paths and current path being drawn.
-        # Each path is stored as a dictionary: {"points": [ (rel_x, rel_y), ... ], "group_speed": speed }
-        self.paths = []
-        self.current_path = []  # Points in absolute coordinates.
+        self.current_level = None
+        self.selected_group = None
+        self.editing_path = False
+        self.current_path = []
 
-        # Modes: "grid" or "path".
-        self.mode = "grid"
-        self.selected_type = AVAILABLE_TYPES[0]  # Default type.
-        self.selected_speed = 2  # Default speed for objects.
+        # UI elements
+        self.buttons = self.create_buttons()
+        self.load_level(1)  # Start with level 1
 
-        # For level selection / editing:
-        self.level_number = None  # Current level number (if editing an existing level).
-        self.level_data = None  # Loaded level data.
+    def create_buttons(self):
+        buttons = {
+            "load": pygame.Rect(10, 10, 100, 30),
+            "save": pygame.Rect(120, 10, 100, 30),
+            "add_group": pygame.Rect(230, 10, 100, 30),
+            "edit_path": pygame.Rect(340, 10, 100, 30)
+        }
+        return buttons
 
-        # Font for on-screen text.
-        self.font = pygame.font.Font(None, 20)
+    def json_to_level_data(self, data) -> LevelData:
+        """Convert JSON data to LevelData object."""
+        alien_groups = []
+        for group_data in data.get('alien_groups', []):
+            path_points = [
+                PathPoint(p['x'], p['y'], p.get('wait_time', 0), p.get('shoot', False))
+                for p in group_data.get('path', [])
+            ]
+            
+            group = AlienGroup(
+                alien_type=group_data['alien_type'],
+                count=group_data['count'],
+                formation=group_data['formation'],
+                spacing=group_data['spacing'],
+                entry_point=EntryPoint(group_data['entry_point']),
+                path=path_points,
+                movement_pattern=MovementPattern(group_data['movement_pattern']),
+                speed=group_data['speed'],
+                health=group_data['health'],
+                shoot_interval=group_data['shoot_interval'],
+                group_behavior=group_data.get('group_behavior', False)
+            )
+            alien_groups.append(group)
 
-    def calculate_grid(self, screen):
-        sw, sh = screen.get_size()
-        # Fit grid into the screen.
-        self.cell_size = min(sw / self.grid_cols, sh / self.grid_rows)
-        # Center the grid.
-        self.offset_x = (sw - (self.cell_size * self.grid_cols)) / 2
-        self.offset_y = (sh - (self.cell_size * self.grid_rows)) / 2
+        return LevelData(
+            level_number=data['level_number'],
+            name=data['name'],
+            difficulty=data['difficulty'],
+            alien_groups=alien_groups,
+            boss_data=data.get('boss_data'),
+            background_speed=data.get('background_speed', 1.0),
+            music_track=data.get('music_track'),
+            special_effects=data.get('special_effects', [])
+        )
 
-    def update(self):
-        # This method is called every frame.
-        # Currently, there's no dynamic update logic required in the editor,
-        # but you can add animations or other functionality here if needed.
-        pass
+    def level_data_to_json(self):
+        """Convert LevelData object to JSON-serializable dict."""
+        if not self.current_level:
+            return {}
+            
+        return {
+            'level_number': self.current_level.level_number,
+            'name': self.current_level.name,
+            'difficulty': self.current_level.difficulty,
+            'alien_groups': [
+                {
+                    'alien_type': group.alien_type,
+                    'count': group.count,
+                    'formation': group.formation,
+                    'spacing': group.spacing,
+                    'entry_point': group.entry_point.value,
+                    'path': [
+                        {
+                            'x': point.x,
+                            'y': point.y,
+                            'wait_time': point.wait_time,
+                            'shoot': point.shoot
+                        }
+                        for point in group.path
+                    ],
+                    'movement_pattern': group.movement_pattern.value,
+                    'speed': group.speed,
+                    'health': group.health,
+                    'shoot_interval': group.shoot_interval,
+                    'group_behavior': group.group_behavior
+                }
+                for group in self.current_level.alien_groups
+            ],
+            'boss_data': self.current_level.boss_data,
+            'background_speed': self.current_level.background_speed,
+            'music_track': self.current_level.music_track,
+            'special_effects': self.current_level.special_effects
+        }
+
+    def load_level(self, level_number):
+        try:
+            with open(f"assets/levels/{level_number:03d}.json", "r") as f:
+                data = json.load(f)
+                self.current_level = self.json_to_level_data(data)
+        except FileNotFoundError:
+            self.current_level = LevelData(level_number, f"Level {level_number}", 1, [])
+
+    def save_level(self):
+        if self.current_level:
+            with open(f"assets/levels/{self.current_level.level_number:03d}.json", "w") as f:
+                json.dump(self.level_data_to_json(), f, indent=2)
 
     def handle_event(self, event):
-        screen = pygame.display.get_surface()
-        if not screen:
-            return
-        self.calculate_grid(screen)
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_1:
-                self.selected_type = AVAILABLE_TYPES[0]
-            elif event.key == pygame.K_2:
-                self.selected_type = AVAILABLE_TYPES[1]
-            elif event.key == pygame.K_3:
-                self.selected_type = AVAILABLE_TYPES[2]
-            elif event.key == pygame.K_p:
-                # Toggle mode between grid and path.
-                self.mode = "path" if self.mode == "grid" else "grid"
-                if self.mode == "path":
-                    self.current_path = []
-            elif event.key == pygame.K_RETURN:
-                # In path mode, finalize current path.
-                if self.mode == "path" and len(self.current_path) > 0:
-                    sw, sh = screen.get_size()
-                    rel_points = [[pt[0] / sw, pt[1] / sh] for pt in self.current_path]
-                    self.paths.append({
-                        "points": rel_points,
-                        "group_speed": self.selected_speed
-                    })
-                    self.current_path = []
-            elif event.key == pygame.K_s:
-                self.save_level("custom_level")
-            elif event.key == pygame.K_l:
-                level_num_str = input("Enter level number to load: ")
-                try:
-                    self.level_number = int(level_num_str)
-                    self.load_level(f"{self.level_number:02d}.json")
-                except ValueError:
-                    print("Invalid level number.")
-        elif event.type == pygame.MOUSEBUTTONDOWN:
-            x, y = event.pos
-            if self.mode == "grid":
-                col = int((x - self.offset_x) // self.cell_size)
-                row = int((y - self.offset_y) // self.cell_size)
-                if 0 <= row < self.grid_rows and 0 <= col < self.grid_cols:
-                    if event.button == 1:
-                        self.grid[row][col] = {"type": self.selected_type, "speed": self.selected_speed}
-                    elif event.button == 3:
-                        self.grid[row][col] = None
-            elif self.mode == "path":
-                if event.button == 1:
-                    self.current_path.append((x, y))
-                elif event.button == 3:
-                    if self.current_path:
-                        self.current_path.pop()
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            if event.button == 1:  # Left click
+                pos = event.pos
+                for button_name, rect in self.buttons.items():
+                    if rect.collidepoint(pos):
+                        self.handle_button_click(button_name)
+                
+                if self.editing_path:
+                    # Convert screen coordinates to relative coordinates
+                    rel_x = pos[0] / self.screen_width
+                    rel_y = pos[1] / self.screen_height
+                    self.current_path.append(PathPoint(rel_x, rel_y, 0, False))
 
-    def draw(self, screen):
-        sw, sh = screen.get_size()
-        self.calculate_grid(screen)
-        info_text = f"Mode: {self.mode.upper()} | Selected Type: {self.selected_type}"
-        mode_surface = self.font.render(info_text, True, (255, 255, 255))
-        screen.blit(mode_surface, (10, 10))
+    def handle_button_click(self, button_name):
+        if button_name == "load":
+            root = tk.Tk()
+            root.withdraw()
+            file_path = filedialog.askopenfilename(
+                initialdir="assets/levels",
+                filetypes=[("JSON files", "*.json")]
+            )
+            if file_path:
+                level_number = int(file_path.split("/")[-1].split(".")[0])
+                self.load_level(level_number)
 
-        # Draw grid.
-        for row in range(self.grid_rows):
-            for col in range(self.grid_cols):
-                rect = pygame.Rect(self.offset_x + col * self.cell_size,
-                                   self.offset_y + row * self.cell_size,
-                                   self.cell_size, self.cell_size)
-                pygame.draw.rect(screen, (50, 50, 50), rect, 1)
-                cell_obj = self.grid[row][col]
-                if cell_obj:
-                    text = f"{cell_obj['type']}({cell_obj['speed']})"
-                    text_surface = self.font.render(text, True, (255, 255, 255))
-                    screen.blit(text_surface, (rect.x + 2, rect.y + 2))
+        elif button_name == "save":
+            self.save_level()
 
-        # Draw current path (if in path mode).
-        if self.mode == "path":
-            if len(self.current_path) > 1:
-                pygame.draw.lines(screen, (0, 255, 0), False, self.current_path, 3)
-            for pt in self.current_path:
-                pygame.draw.circle(screen, (255, 0, 0), pt, 4)
+        elif button_name == "add_group":
+            if self.current_level:
+                new_group = AlienGroup(
+                    alien_type="grunt",
+                    count=5,
+                    formation="line",
+                    spacing=40,
+                    entry_point=EntryPoint.TOP,
+                    path=[],
+                    movement_pattern=MovementPattern.STRAIGHT,
+                    speed=1.0,
+                    health=1,
+                    shoot_interval=2.0
+                )
+                self.current_level.alien_groups.append(new_group)
+                self.selected_group = len(self.current_level.alien_groups) - 1
 
-        # Draw finalized paths.
-        for path_obj in self.paths:
-            abs_points = [[pt[0] * sw, pt[1] * sh] for pt in path_obj["points"]]
-            if len(abs_points) > 1:
-                pygame.draw.lines(screen, (0, 0, 255), False, abs_points, 3)
-            for pt in abs_points:
-                pygame.draw.circle(screen, (0, 255, 255), (int(pt[0]), int(pt[1])), 4)
+        elif button_name == "edit_path":
+            self.editing_path = not self.editing_path
+            if self.editing_path:
+                self.current_path = []
+            elif self.selected_group is not None and self.current_path:
+                self.current_level.alien_groups[self.selected_group].path = self.current_path
 
-        instructions = [
-            "Level Editor Mode:",
-            "Left Click: Place object (in grid mode) / Add point (in path mode)",
-            "Right Click: Remove object (grid) / Remove last point (path)",
-            "Press 1-3: Select object type (grunt, swarmer, boss)",
-            "Press P: Toggle between GRID and PATH mode",
-            "Press Enter (in path mode): Finalize current path",
-            "Press S: Save level, L: Load level (via console)"
-        ]
-        y_offset = 40
-        for line in instructions:
-            line_surface = self.font.render(line, True, (255, 255, 255))
-            screen.blit(line_surface, (10, y_offset))
-            y_offset += line_surface.get_height() + 2
+    def draw(self):
+        self.screen.fill((0, 0, 0))
+        
+        # Draw buttons
+        for name, rect in self.buttons.items():
+            pygame.draw.rect(self.screen, (100, 100, 100), rect)
+            # Add text to buttons...
 
-    def save_level(self, filename):
-        level_data = {
-            "grid_objects": [],
-            "paths": self.paths
-        }
-        for row in range(self.grid_rows):
-            for col in range(self.grid_cols):
-                obj = self.grid[row][col]
-                if obj is not None:
-                    level_data["grid_objects"].append({
-                        "row": row,
-                        "col": col,
-                        "type": obj["type"],
-                        "speed": obj["speed"]
-                    })
-        filepath = os.path.join("assets", "levels", filename)
-        os.makedirs(os.path.dirname(filepath), exist_ok=True)
-        with open(filepath, "w") as f:
-            json.dump(level_data, f, indent=4)
-        print(f"Level saved as {filepath}")
+        # Draw current level data
+        if self.current_level:
+            # Draw alien groups and paths
+            for i, group in enumerate(self.current_level.alien_groups):
+                color = (0, 255, 0) if i == self.selected_group else (255, 0, 0)
+                
+                # Draw path
+                if group.path:
+                    points = [(p.x * self.screen_width, p.y * self.screen_height) 
+                             for p in group.path]
+                    if len(points) > 1:
+                        pygame.draw.lines(self.screen, color, False, points, 2)
 
-    def load_level(self, filename):
-        filepath = os.path.join("assets", "levels", filename)
-        if not os.path.exists(filepath):
-            print(f"Level file {filepath} not found.")
-            return
-        with open(filepath, "r") as f:
-            level_data = json.load(f)
-        self.grid = [[None for _ in range(self.grid_cols)] for _ in range(self.grid_rows)]
-        self.paths = []
-        self.current_path = []
-        if "grid_objects" in level_data:
-            for obj in level_data["grid_objects"]:
-                row = obj["row"]
-                col = obj["col"]
-                self.grid[row][col] = {"type": obj["type"], "speed": obj["speed"]}
-        if "paths" in level_data:
-            self.paths = level_data["paths"]
-        self.level_data = level_data
-        print(f"Level {filename} loaded.")
+        # Draw current path being edited
+        if self.editing_path and self.current_path:
+            points = [(p.x * self.screen_width, p.y * self.screen_height) 
+                     for p in self.current_path]
+            if len(points) > 1:
+                pygame.draw.lines(self.screen, (0, 255, 255), False, points, 2)
+
+        pygame.display.flip()
+
+    def run(self):
+        running = True
+        while running:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    running = False
+                self.handle_event(event)
+            
+            self.draw()
+
+if __name__ == "__main__":
+    pygame.init()
+    editor = LevelEditor()
+    editor.run()
+    pygame.quit()
