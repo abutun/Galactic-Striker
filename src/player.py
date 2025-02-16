@@ -2,7 +2,7 @@ import pygame
 import logging
 from src.utils import ResourceManager, load_image
 from src.weapon.weapon_factory import WeaponFactory
-from src.weapons import Missile
+from src.weapons import Missile, Bullet
 
 logger = logging.getLogger(__name__)
 
@@ -88,22 +88,28 @@ class Player(pygame.sprite.Sprite):
         """Update player state with proper error handling."""
         try:
             keys = pygame.key.get_pressed()
+            
+            # Keep player within play area bounds
+            play_area_left = int(pygame.display.get_surface().get_width() * 0.12)
+            play_area_right = int(pygame.display.get_surface().get_width() * 0.88)
+            
             dx = (keys[pygame.K_RIGHT] - keys[pygame.K_LEFT]) * self.speed
             self.rect.x += dx
             
-            # Keep player in bounds
-            surface = pygame.display.get_surface()
-            if surface:
-                sw, sh = surface.get_size()
-                self.rect.clamp_ip(pygame.Rect(0, 0, sw, sh))
-                
+            # Clamp to play area
+            self.rect.clamp_ip(pygame.Rect(
+                play_area_left, 0,
+                play_area_right - play_area_left,
+                pygame.display.get_surface().get_height()
+            ))
+            
             # Handle firing
             now = pygame.time.get_ticks()
-            if keys[pygame.K_SPACE] and now - self.last_fire >= self.fire_delay:
+            if (keys[pygame.K_SPACE] or self.autofire) and now - self.last_fire >= self.fire_delay:
                 self.fire_bullet()
                 self.last_fire = now
                 
-            # Secondary fire with left shift.
+            # Secondary fire with left shift
             if keys[pygame.K_LSHIFT]:
                 self.fire_secondary()
                 
@@ -114,15 +120,24 @@ class Player(pygame.sprite.Sprite):
     def fire_bullet(self) -> None:
         """Fire the current weapon."""
         try:
-            weapon = WeaponFactory.create_weapon(self.primary_weapon)
-            weapon.fire(self, self.bullet_group)
+            weapon = WeaponFactory.create_weapon(self.primary_weapon, self.bullet_group)
+            bullet = weapon.fire(self.rect.centerx, self.rect.top)
+            if bullet:  # If bullet was created successfully
+                self.bullet_group.add(bullet)
+                self.all_sprites.add(bullet)  # Add to all_sprites too
+            
+            # Play sound if available
+            if hasattr(self, 'laser_sound') and self.laser_sound:
+                self.laser_sound.play()
         except Exception as e:
             logger.error(f"Error firing weapon: {e}")
 
     def fire_secondary(self):
-        from weapon.secondary_weapon import SecondaryWeapon
-        sec = SecondaryWeapon()
-        sec.fire(self, self.bullet_group)
+        """Fire secondary weapon (missiles)."""
+        if self.rockets > 0:
+            missile = Missile(self.rect.centerx, self.rect.top)
+            self.bullet_group.add(missile)
+            self.rockets -= 1
 
     def take_damage(self, damage: int) -> None:
         """Handle taking damage with proper error checking."""

@@ -1,15 +1,17 @@
 # src/weapon/weapon2.py
-from .base_weapon import PrimaryWeapon
+import pygame
 from src.weapons import Bullet
+from src.weapon.base_weapon import PrimaryWeapon
+from src.utils import load_image
 
 class Weapon2(PrimaryWeapon):
-    def fire(self, player, bullet_group):
-        # Double Shot: fires two bullets in a slight spread.
-        spacing = 5
-        x = player.rect.centerx
-        y = player.rect.top
-        damage = 1 * player.weapon_level
-        bullet_left = Bullet(x - spacing, y, 0, -player.bullet_speed, damage)
-        bullet_right = Bullet(x + spacing, y, 0 , -player.bullet_speed, damage)
-        bullet_group.add(bullet_left)
-        bullet_group.add(bullet_right)
+    def __init__(self, bullet_group):
+        super().__init__(bullet_group)
+        self.bullet_damage = 2  # Override default damage
+
+    def fire(self, x, y):
+        now = pygame.time.get_ticks()
+        if now - self.last_fire > self.fire_delay:
+            bullet = Bullet(x, y, 0, -self.bullet_speed, self.bullet_damage)
+            self.bullet_group.add(bullet)
+            self.last_fire = now

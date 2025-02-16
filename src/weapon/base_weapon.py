@@ -1,9 +1,15 @@
 # src/weapon/base_weapon.py
 
 class PrimaryWeapon:
-    def fire(self, player, bullet_group):
-        """
-        Fire method to be implemented by each weapon subclass.
-        Should create one or more bullets and add them to bullet_group.
-        """
-        raise NotImplementedError("Subclasses must implement fire()")
+    """Base class for primary weapons."""
+    def __init__(self, bullet_group):
+        self.bullet_group = bullet_group
+        self.level = 1
+        self.bullet_speed = 7
+        self.bullet_damage = 1
+        self.fire_delay = 250
+        self.last_fire = 0
+
+    def fire(self, x, y):
+        """Fire the weapon. To be implemented by subclasses."""
+        raise NotImplementedError("Subclasses must implement fire method")

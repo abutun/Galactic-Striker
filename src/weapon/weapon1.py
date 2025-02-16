@@ -1,19 +1,16 @@
 # src/weapon/weapon1.py
-from weapons import Bullet
-from .base_weapon import PrimaryWeapon
-import logging
-
-logger = logging.getLogger(__name__)
+import pygame
+from src.weapons import Bullet
+from src.weapon.base_weapon import PrimaryWeapon
+from src.utils import load_image
 
 class Weapon1(PrimaryWeapon):
-    def fire(self, player, bullet_group):
-        try:
-            x = player.rect.centerx
-            y = player.rect.top
-            vx = 0
-            vy = -player.bullet_speed
-            damage = max(1, 1 * player.weapon_level)  # Ensure minimum damage of 1
-            bullet = Bullet(x, y, vx, vy, damage)
-            bullet_group.add(bullet)
-        except Exception as e:
-            logger.error(f"Error firing weapon: {e}")
+    def __init__(self, bullet_group):
+        super().__init__(bullet_group)
+
+    def fire(self, x, y):
+        now = pygame.time.get_ticks()
+        if now - self.last_fire > self.fire_delay:
+            bullet = Bullet(x, y, 0, -self.bullet_speed, self.bullet_damage)
+            self.bullet_group.add(bullet)
+            self.last_fire = now

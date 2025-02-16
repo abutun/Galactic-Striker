@@ -35,3 +35,14 @@ class FormationController:
     def update(self, formation_type):
         if formation_type in self.formations:
             self.formations[formation_type]() 
+
+class AlienBehavior:
+    def __init__(self, alien):
+        self.alien = alien
+        self.shoot_patterns = {
+            "single": self._single_shot,
+            "spread": self._spread_shot,
+            "multi_directional": self._multi_directional_shot
+        }
+        # Use settings for timing
+        self.shot_cooldown = ALIEN_SETTINGS[alien.category.value]["shoot_interval"] 

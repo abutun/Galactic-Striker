@@ -1,8 +1,8 @@
 # src/weapon/weapon8.py
-from .base_weapon import PrimaryWeapon
-from src.weapons import Bullet
 import pygame
-
+from src.weapons import Bullet
+from src.weapon.base_weapon import PrimaryWeapon
+from src.utils import load_image
 class Weapon8(PrimaryWeapon):
     def fire(self, player, bullet_group):
         # Laser Beam: fires a thin beam bullet.

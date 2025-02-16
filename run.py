@@ -1,10 +1,12 @@
 import os
 import sys
 
-# Add the src directory to Python path
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "src")))
+# Add the project root directory to Python path
+project_root = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, project_root)
 
-from src.main import main
+from src.main import Game
 
 if __name__ == "__main__":
-    main() 
+    game = Game()
+    game.run()  # We need to add this method to Game class 

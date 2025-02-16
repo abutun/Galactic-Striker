@@ -1,20 +1,28 @@
 import pygame
-from utils import load_image
+from src.utils import load_image
 
-class BaseBonus(pygame.sprite.Sprite):
-    def __init__(self, x, y, image_path, fallback_color, size):
+class Bonus(pygame.sprite.Sprite):
+    def __init__(self, x, y, image_path=None, fallback_color=(255, 255, 255), size=(20, 20), speed=2):
         super().__init__()
-        self.image = load_image(image_path, fallback_color, size)
+        self.speed = speed
+        
+        # Load image if path provided, otherwise use fallback
+        if image_path:
+            try:
+                self.image = load_image(image_path, (0, 0, 0), size)
+            except:
+                self.image = pygame.Surface(size)
+                self.image.fill(fallback_color)
+        else:
+            self.image = pygame.Surface(size)
+            self.image.fill(fallback_color)
+            
         self.rect = self.image.get_rect(center=(x, y))
-        self.speed = 1.25
-
+        
     def update(self):
         self.rect.y += self.speed
-        screen = pygame.display.get_surface()
-        if screen:
-            _, sh = screen.get_size()
-            if self.rect.top > sh:
-                self.kill()
+        if self.rect.top > pygame.display.get_surface().get_height():
+            self.kill()
 
     def apply(self, player, game_context=None):
         raise NotImplementedError("Subclasses must implement apply()")

@@ -1,6 +1,10 @@
 from enum import Enum
 from dataclasses import dataclass
 from typing import Optional, List
+import os
+import logging
+
+logger = logging.getLogger(__name__)
 
 class AlienCategory(Enum):
     SMALL = "small"
@@ -15,15 +19,31 @@ class AlienSubType(Enum):
 class AlienType:
     type_number: int  # 1-25
     category: AlienCategory
-    subtype: AlienSubType = None  # Not used in new structure
+    subtype: AlienSubType
+
+    def __post_init__(self):
+        """Validate alien type after initialization."""
+        if not 1 <= self.type_number <= 25:
+            raise ValueError(f"Invalid alien type number: {self.type_number}")
+            
+        if self.category == AlienCategory.BOSS and self.subtype is not None:
+            raise ValueError("Boss aliens should not have subtypes")
+            
+        if self.category != AlienCategory.BOSS and self.subtype not in [AlienSubType.TYPE1, AlienSubType.TYPE2]:
+            raise ValueError(f"Invalid subtype for non-boss alien: {self.subtype}")
 
     @property
     def sprite_path(self) -> str:
-        """Get the path to the sprite file."""
-        if self.category == AlienCategory.BOSS:
-            return f"assets/aliens/boss_{self.type_number:02d}.png"
-        else:
-            return f"assets/aliens/alien_{self.type_number:02d}_{self.category.value}_1.png"
+        """Get the path to the sprite file with validation."""
+        try:
+            path = self._generate_sprite_path()
+            if not os.path.exists(path):
+                logger.error(f"Sprite file not found: {path}")
+                raise FileNotFoundError(f"Missing sprite file: {path}")
+            return path
+        except Exception as e:
+            logger.error(f"Error getting sprite path: {e}")
+            raise
 
     @property
     def sprite_frames(self) -> List[str]:
@@ -31,15 +51,15 @@ class AlienType:
         if self.category == AlienCategory.BOSS:
             return [f"assets/aliens/boss_{self.type_number:02d}.png"]
         else:
-            base = f"assets/aliens/alien_{self.type_number:02d}_{self.category.value}"
-            return [f"{base}_{i}.png" for i in range(1, 3)]
+            base = f"assets/aliens/alien_{self.type_number:02d}_{self.category.value}_{self.subtype:02d}.png"
+            #return [f"{base}_{i:02d}.png" for i in range(1, 3)]
 
     @property
     def base_name(self) -> str:
         """Get the base name without path and frame number."""
         if self.category == AlienCategory.BOSS:
-            return f"boss{self.type_number:02d}"
-        return f"type{self.type_number:02d}_{self.category.value}_sub{self.subtype.value}"
+            return f"boss_{self.type_number:02d}"
+        return f"alien_{self.type_number:02d}_{self.category.value}_{self.subtype.value:02d}"
 
     @property
     def points(self) -> int:
@@ -88,3 +108,7 @@ class AlienType:
     def score_multiplier(self) -> float:
         """Dynamic score multiplier based on difficulty."""
         return 1.0 + (self.type_number * 0.1) 
+
+    def _generate_sprite_path(self) -> str:
+        """Generate the sprite path based on the type."""
+        return f"assets/aliens/{self.base_name}.png" 

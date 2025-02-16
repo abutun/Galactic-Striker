@@ -1,9 +1,10 @@
 import os
 import json
 import pygame
-from enemy.alien import NonBossAlien, BossAlien
-from level.level_data import *
+from src.enemy.alien import NonBossAlien, BossAlien
+from src.level.level_data import *
 import logging
+from src.config.game_settings import MOVEMENT_PATTERNS
 
 logger = logging.getLogger(__name__)
 
@@ -16,15 +17,18 @@ def load_level_json(level_number):
 
 class LevelManager:
     def __init__(self, level_number, enemy_group, all_sprites, enemy_bullets):
-        self.level_number = level_number
+        self.level_data = None
         self.enemy_group = enemy_group
         self.all_sprites = all_sprites
         self.enemy_bullets = enemy_bullets
-        self.start_time = pygame.time.get_ticks()
-        
-        self.load_level(level_number)
         self.active_groups = []
-        self.spawn_next_group()
+        
+        # Load level data
+        self.load_level(level_number)  # Make sure we call load_level
+        
+        # Spawn first group of aliens
+        if self.level_data:
+            self.spawn_next_group()  # Spawn initial group
 
     def json_to_level_data(self, data) -> LevelData:
         """Convert JSON data to LevelData object."""
@@ -92,22 +96,34 @@ class LevelManager:
                 group.spacing
             )
 
+            # Create aliens above the screen
+            screen = pygame.display.get_surface()
+            start_y = -50  # Start above screen
+            
+            # Adjust start position based on entry point
+            if group.entry_point == EntryPoint.TOP:
+                start_x = screen.get_width() // 2
+            elif group.entry_point == EntryPoint.TOP_LEFT:
+                start_x = screen.get_width() * 0.2
+            elif group.entry_point == EntryPoint.TOP_RIGHT:
+                start_x = screen.get_width() * 0.8
+            else:
+                start_x = screen.get_width() // 2
+
             # Create aliens
             for pos in positions:
                 alien = NonBossAlien(
-                    pos[0], -50,  # Start above screen
+                    start_x + pos[0], start_y + pos[1],  # Offset from start position
                     self.enemy_bullets,
-                    group.alien_type,
-                    1 if group.alien_type == "grunt" else 2
+                    group.alien_type
                 )
-                alien.health = group.health
-                alien.speed = group.speed
+                # Set additional properties
+                alien.shoot_interval = group.shoot_interval
                 alien.path = [
-                    (p.x * pygame.display.get_surface().get_width(),
-                     p.y * pygame.display.get_surface().get_height())
+                    (p.x * screen.get_width(),
+                     p.y * screen.get_height())
                     for p in group.path
                 ]
-                alien.shoot_interval = group.shoot_interval
                 aliens.append(alien)
 
             self.active_groups.append({

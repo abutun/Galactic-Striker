@@ -2,24 +2,27 @@
 
 import pygame
 import math
-from utils import load_image
+from src.utils import load_image
 from .behavior_tree import *
 import logging
-from utils import ResourceManager
+from src.utils import ResourceManager
+from src.config.game_settings import ALIEN_SETTINGS
 
 logger = logging.getLogger(__name__)
 
 class BaseEnemy(pygame.sprite.Sprite):
-    def __init__(self, x: int, y: int, bullet_group: pygame.sprite.Group, 
-                 health: int, speed: float, points: int):
+    def __init__(self, x: int, y: int, bullet_group: pygame.sprite.Group, health=1, speed=2, points=100):
         super().__init__()
         try:
             self.bullet_group = bullet_group
             self.health = health
             self.speed = speed
             self.points = points
+            self.rect = pygame.Rect(x, y, 32, 32)  # Default size
+            self.shoot_interval = 2000  # Default shoot interval
+            self.last_shot = 0
             self.path = None
-            self.target_index = 0
+            self.path_index = 0
             
             # Setup behavior tree
             self.behavior_tree = Selector([
@@ -69,18 +72,18 @@ class BaseEnemy(pygame.sprite.Sprite):
     def follow_path(self):
         if self.path and len(self.path) > 0:
             # Ensure target_index is valid.
-            if self.target_index >= len(self.path):
+            if self.path_index >= len(self.path):
                 # Finished path—clear the path so that normal movement resumes.
                 self.path = None
                 return
-            target = self.path[self.target_index]
+            target = self.path[self.path_index]
             current_x, current_y = self.rect.center
             dx = target[0] - current_x
             dy = target[1] - current_y
             dist = math.hypot(dx, dy)
             if dist < 5:
                 # Move to next target.
-                self.target_index += 1
+                self.path_index += 1
             else:
                 # Move toward the target point.
                 move_x = self.speed * dx / dist

@@ -1,17 +1,23 @@
 # src/weapon/weapon3.py
-from .base_weapon import PrimaryWeapon
+import pygame
 from src.weapons import Bullet
+from src.weapon.base_weapon import PrimaryWeapon
+import math
 
 class Weapon3(PrimaryWeapon):
-    def fire(self, player, bullet_group):
-        # Triple Shot: one bullet straight, one left, one right.
-        spacing = 5
-        x = player.rect.centerx
-        y = player.rect.top
-        damage = 1 * player.weapon_level
-        bullet_center = Bullet(x, y, 0, -player.bullet_speed, damage)
-        bullet_left = Bullet(x - spacing, y, -1, -player.bullet_speed, damage)
-        bullet_right = Bullet(x + spacing, y, 1, -player.bullet_speed, damage)
-        bullet_group.add(bullet_center)
-        bullet_group.add(bullet_left)
-        bullet_group.add(bullet_right)
+    def __init__(self, bullet_group):
+        super().__init__(bullet_group)
+        self.bullet_damage = 1
+        self.spread = 15  # Spread angle in degrees
+
+    def fire(self, x, y):
+        now = pygame.time.get_ticks()
+        if now - self.last_fire > self.fire_delay:
+            # Triple shot with spread
+            for angle in [-self.spread, 0, self.spread]:
+                rad = math.radians(angle)
+                vx = self.bullet_speed * math.sin(rad)
+                vy = -self.bullet_speed * math.cos(rad)
+                bullet = Bullet(x, y, vx, vy, self.bullet_damage)
+                self.bullet_group.add(bullet)
+            self.last_fire = now

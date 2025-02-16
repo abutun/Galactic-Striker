@@ -1,26 +1,25 @@
 import json
 import random
-import math
 import os
 import sys
+import logging
 
-# Add the src directory to Python path
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+# Add the project root directory to Python path
+project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.insert(0, project_root)
 
-from level.level_data import *
-from enemy.alien_types import AlienCategory, AlienSubType, AlienType
+from src.level.level_data import *
+from src.enemy.alien_types import AlienCategory, AlienSubType, AlienType
+from src.config.game_settings import (
+    LEVEL_PROGRESSION, ALIEN_SETTINGS, 
+    FORMATIONS, SPECIAL_EFFECTS
+)
+
+logger = logging.getLogger(__name__)
 
 class LevelGenerator:
     def __init__(self):
-        self.difficulty_progression = {
-            # Level ranges and their difficulty settings
-            (1, 25): {"diff_range": (1, 3), "alien_types": (1, 5)},
-            (26, 50): {"diff_range": (2, 4), "alien_types": (4, 8)},
-            (51, 100): {"diff_range": (3, 5), "alien_types": (7, 12)},
-            (101, 150): {"diff_range": (4, 7), "alien_types": (10, 15)},
-            (151, 200): {"diff_range": (6, 8), "alien_types": (13, 20)},
-            (201, 250): {"diff_range": (7, 10), "alien_types": (15, 25)}
-        }
+        self.difficulty_progression = LEVEL_PROGRESSION
         
         # Ensure the levels directory exists
         os.makedirs(os.path.join(os.path.dirname(__file__), "../../assets/levels"), exist_ok=True)
@@ -50,21 +49,60 @@ class LevelGenerator:
         paths.append(PathPoint(random.random(), 0, 0, False))
         return paths
 
+    def validate_alien_type(self, type_num: int, category: AlienCategory, 
+                           subtype: AlienSubType) -> bool:
+        """Validate alien type combination."""
+        try:
+            # Check type number range
+            if not 1 <= type_num <= 25:
+                logger.error(f"Invalid type number: {type_num}")
+                return False
+
+            # Check category/subtype combination
+            if category == AlienCategory.BOSS and subtype is not None:
+                logger.error(f"Boss aliens should not have subtypes")
+                return False
+            
+            if category != AlienCategory.BOSS and subtype not in [AlienSubType.TYPE1, AlienSubType.TYPE2]:
+                logger.error(f"Invalid subtype for non-boss alien: {subtype}")
+                return False
+
+            # Verify asset exists
+            asset_path = os.path.join("assets/aliens", 
+                f"alien_{type_num:02d}_{category.value}_{subtype.value:02d}.png" 
+                if category != AlienCategory.BOSS else f"boss_{type_num:02d}.png")
+            
+            if not os.path.exists(asset_path):
+                logger.error(f"Missing asset file: {asset_path}")
+                return False
+
+            return True
+        except Exception as e:
+            logger.error(f"Error validating alien type: {e}")
+            return False
+
     def create_alien_group(self, type_num: int, category: AlienCategory, 
-                          count: int, difficulty: int) -> AlienGroup:
-        alien_type = AlienType(type_num, category)
+                          subtype: AlienSubType, count: int, difficulty: int) -> AlienGroup:
+        """Create an alien group with validation."""
+        # Validate inputs
+        if not self.validate_alien_type(type_num, category, subtype):
+            raise ValueError(f"Invalid alien type combination: type={type_num}, category={category}, subtype={subtype}")
+        
+        if count < 1:
+            raise ValueError(f"Invalid alien count: {count}")
+        
+        if difficulty < 1:
+            raise ValueError(f"Invalid difficulty: {difficulty}")
+
+        alien_type = AlienType(type_num, category, subtype)
         entry_point = self._get_strategic_entry_point(difficulty)
         
-        # Get base name without extension and frame number
-        base_name = f"alien_{type_num:02d}_{category.value}" if category != AlienCategory.BOSS else f"boss_{type_num:02d}"
-        
-        # Define formation first so we can use it in group_behavior calculation
         formation = random.choice(["line", "v", "circle", "diamond", "wave"])
         
         return AlienGroup(
-            alien_type=base_name,
+            alien_type=alien_type.base_name,
             count=count,
-            formation=formation,  # Use the selected formation
+            formation=formation,
             spacing=random.randint(30, 50),
             entry_point=entry_point,
             path=self._generate_strategic_path(entry_point, difficulty),
@@ -72,7 +110,7 @@ class LevelGenerator:
             speed=self._calculate_speed(category, difficulty),
             health=alien_type.health,
             shoot_interval=self._calculate_shoot_interval(category, difficulty),
-            group_behavior=self._should_use_group_behavior(formation, difficulty)  # Now formation is defined
+            group_behavior=self._should_use_group_behavior(formation, difficulty)
         )
 
     def _get_strategic_entry_point(self, difficulty: int) -> EntryPoint:
@@ -103,7 +141,7 @@ class LevelGenerator:
         if is_boss_level:
             # Create boss level
             boss_num = level_number // 25
-            boss_type = AlienType(boss_num, AlienCategory.BOSS)
+            boss_type = AlienType(boss_num, AlienCategory.BOSS, None)
             
             alien_groups.append(AlienGroup(
                 alien_type=f"boss_{boss_num:02d}",
@@ -123,7 +161,7 @@ class LevelGenerator:
             for _ in range(2):
                 type_num = random.randint(*alien_type_range)
                 alien_groups.append(self.create_alien_group(
-                    type_num, AlienCategory.SMALL, 
+                    type_num, AlienCategory.SMALL, random.choice([AlienSubType.TYPE1, AlienSubType.TYPE2]), 
                     random.randint(2, 4), difficulty
                 ))
 
@@ -135,13 +173,14 @@ class LevelGenerator:
             for _ in range(group_count):
                 type_num = random.randint(*alien_type_range)
                 category = random.choice([AlienCategory.SMALL, AlienCategory.LARGE])
+                sub_type = random.choice([AlienSubType.TYPE1, AlienSubType.TYPE2])
                 
                 count = random.randint(3, 8 + difficulty)
                 if category == AlienCategory.LARGE:
                     count = count // 2  # Fewer large enemies
                 
                 alien_groups.append(self.create_alien_group(
-                    type_num, category, count, difficulty
+                    type_num, category, sub_type, count, difficulty
                 ))
 
         return LevelData(
@@ -233,55 +272,20 @@ class LevelGenerator:
     def _calculate_speed(self, category: AlienCategory, difficulty: int) -> float:
         """Calculate appropriate speed based on alien type and difficulty."""
         base_speed = 1.0
-        
-        # Category modifiers
-        speed_modifiers = {
-            AlienCategory.SMALL: 1.2,
-            AlienCategory.LARGE: 0.8,
-            AlienCategory.BOSS: 0.6
-        }
-        
-        # Apply category modifier
-        base_speed *= speed_modifiers[category]
-        
-        # Apply difficulty scaling
-        difficulty_bonus = 0.1 * difficulty
-        
-        return base_speed + difficulty_bonus
+        speed_modifier = ALIEN_SETTINGS[category.value]["speed_modifier"]
+        difficulty_bonus = SPECIAL_EFFECTS["difficulty_scaling"] * difficulty
+        return base_speed * speed_modifier + difficulty_bonus
 
     def _calculate_shoot_interval(self, category: AlienCategory, difficulty: int) -> float:
         """Calculate shooting interval based on alien type and difficulty."""
-        base_interval = 3.0
-        
-        # Category modifiers
-        interval_modifiers = {
-            AlienCategory.SMALL: 1.0,
-            AlienCategory.LARGE: 0.8,
-            AlienCategory.BOSS: 0.5
-        }
-        
-        # Apply category modifier
-        base_interval *= interval_modifiers[category]
-        
-        # Reduce interval with difficulty (faster shooting)
-        difficulty_reduction = 0.2 * difficulty
-        
+        base_interval = ALIEN_SETTINGS[category.value]["shoot_interval"]
+        difficulty_reduction = SPECIAL_EFFECTS["difficulty_scaling"] * difficulty
         return max(0.5, base_interval - difficulty_reduction)
 
     def _should_use_group_behavior(self, formation: str, difficulty: int) -> bool:
         """Determine if aliens should move as a group."""
-        # Group behavior more likely with certain formations
-        formation_weights = {
-            "line": 0.4,
-            "v": 0.6,
-            "circle": 0.7,
-            "diamond": 0.8,
-            "wave": 0.5
-        }
-        
-        base_chance = formation_weights.get(formation, 0.3)
-        difficulty_bonus = difficulty * 0.05
-        
+        base_chance = FORMATIONS[formation]["group_behavior_chance"]
+        difficulty_bonus = SPECIAL_EFFECTS["difficulty_scaling"] * difficulty
         return random.random() < (base_chance + difficulty_bonus)
 
 if __name__ == "__main__":
