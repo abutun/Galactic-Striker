@@ -1,5 +1,6 @@
 import os
 import sys
+from venv import logger
 
 
 # Add the project root directory to Python path
@@ -23,6 +24,7 @@ from src.config.game_settings import (
     MOVEMENT_PATTERNS,
     SPECIAL_EFFECTS
 )
+from src.sound_manager import SoundManager
 
 
 # Developer mode overlay function.
@@ -60,6 +62,7 @@ def draw_dev_info(screen, player, level_manager, score_manager):
 class Game:
     def __init__(self):
         pygame.init()
+        pygame.mixer.init()  # Initialize sound system
         
         # Get the display info
         display_info = pygame.display.Info()
@@ -87,17 +90,19 @@ class Game:
         
         # Create player at the bottom center of the screen
         player_x = self.screen.get_width() // 2
-        player_y = self.screen.get_height() - 100  # 100 pixels from bottom
+        player_y = self.screen.get_height() - 30  # 100 pixels from bottom
         self.player = Player(player_x, player_y, self.player_bullets)
         self.all_sprites.add(self.player)
         
         # Initialize managers
-        self.level_manager = LevelManager(1, self.enemies, self.all_sprites, self.enemy_bullets)
         self.score_manager = ScoreManager()
+        self.sound_manager = SoundManager()
+        self.level_manager = LevelManager(1, self.enemies, self.all_sprites, self.enemy_bullets)
         
-        # Set initial game state
+        # Pass sound manager to objects that need it
+        self.player.sound_manager = self.sound_manager
+        
         self.running = True
-        self.level_manager.spawn_next_group()
 
     def load_settings(self):
         """Load game settings from config."""
@@ -143,70 +148,18 @@ class Game:
         if self.explosion_sound:
             self.explosion_sound.set_volume(0.7)
 
-    def run(self):
-        """Main game loop."""
-        running = True
-        dev_mode = False
-        level_intro_duration = 3000
-        previous_time = pygame.time.get_ticks()
-
-        while running:
-            current_time = pygame.time.get_ticks()
-            dt = (current_time - previous_time) / 1000.0
-            previous_time = current_time
-
-            # Event handling
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    running = False
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_ESCAPE:
-                        running = False
-                    if event.key == pygame.K_d:
-                        dev_mode = not dev_mode
-
-            # Game update logic
-            self.update(dt)
-            
-            # Drawing
-            self.draw(dev_mode)
-            
-            # Cap the frame rate
-            pygame.time.Clock().tick(60)
-
-        pygame.quit()
-        sys.exit()
-
-    def update(self, dt):
-        """Update game state."""
-        self.background.update()
-        
-        # Update all sprite groups
-        self.all_sprites.update()
-        self.player_bullets.update()
-        self.enemy_bullets.update()
-        self.enemies.update()
-        
-        # Update level
-        if self.level_manager.update():  # Returns True when level is complete
-            next_level = self.level_manager.level_data.level_number + 1
-            # Show level intro before starting new level
-            self.show_level_intro(next_level)
-            self.level_manager.load_level(next_level)
-            self.level_manager.spawn_next_group()
-        
-        # Check collisions
+    def handle_collisions(self):
+        """Handle all game collisions."""
         # Player bullets hitting enemies
         hits = pygame.sprite.groupcollide(self.enemies, self.player_bullets, False, True)
         for enemy, bullets in hits.items():
             for bullet in bullets:
                 enemy.take_damage(bullet.damage)
                 if enemy.health <= 0:
-                    # Spawn rewards when enemy is destroyed
                     self.spawn_rewards(enemy.rect.center)
                     enemy.kill()
                     self.score_manager.add_score(enemy.points)
-        
+
         # Enemy bullets hitting player
         hits = pygame.sprite.spritecollide(self.player, self.enemy_bullets, True)
         for bullet in hits:
@@ -215,87 +168,76 @@ class Game:
         # Player collecting bonuses
         hits = pygame.sprite.spritecollide(self.player, self.bonus_group, True)
         for bonus in hits:
-            bonus.apply(self.player)
+            # Check if bonus accepts game_context
+            if 'game_context' in bonus.apply.__code__.co_varnames:
+                bonus.apply(self.player, {"score_manager": self.score_manager, "enemy_group": self.enemies})
+            else:
+                bonus.apply(self.player)  # For bonuses that don't use game_context
 
-    def spawn_rewards(self, pos):
-        """Spawn rewards when an enemy is destroyed."""
-        # Random chance to spawn different rewards
-        chance = random.random()
-        
-        # Common bonuses (40% total chance)
-        if chance < 0.15:  # 15% chance for money bonuses
-            money_choices = [
-                (MoneyBonus10, 0.4),    # 6%
-                (MoneyBonus50, 0.3),    # 4.5%
-                (MoneyBonus100, 0.2),   # 3%
-                (MoneyBonus200, 0.1)    # 1.5%
-            ]
-            bonus_class = random.choices([b[0] for b in money_choices], 
-                                       weights=[b[1] for b in money_choices])[0]
-            reward = bonus_class(pos[0], pos[1])
-        
-        elif chance < 0.25:  # 10% chance for shot upgrades
-            shot_choices = [
-                SingleShotBonus, DoubleShotBonus, 
-                TripleShotBonus, QuadShotBonus
-            ]
-            reward = random.choice(shot_choices)(pos[0], pos[1])
-        
-        elif chance < 0.40:  # 15% chance for stat bonuses
-            stat_choices = [
-                ExtraSpeedBonus, ExtraBulletBonus,
-                ExtraTimeBonus, ExtraBulletSpeedBonus
-            ]
-            reward = random.choice(stat_choices)(pos[0], pos[1])
-        
-        # Uncommon bonuses (15% total chance)
-        elif chance < 0.45:  # 5% chance for rank marker
-            reward = RankMarker(pos[0], pos[1], "red")
-        
-        elif chance < 0.50:  # 5% chance for life bonus
-            reward = ExtraLifeBonus(pos[0], pos[1])
-        
-        elif chance < 0.55:  # 5% chance for special bonuses
-            special_choices = [
-                ShipAutofireBonus, AlienScoopBonus,
-                MoneyBombBonus, GemBombBonus
-            ]
-            reward = random.choice(special_choices)(pos[0], pos[1])
-        
-        # Rare bonuses (10% total chance)
-        elif chance < 0.60:  # 5% chance for letter bonus
-            letters = 'EXTRA'
-            reward = LetterBonus(pos[0], pos[1], random.choice(letters))
-        
-        elif chance < 0.65:  # 5% chance for bonus level triggers
-            bonus_choices = [
-                BonusMeteorstormBonus,
-                BonusMemorystationBonus
-            ]
-            reward = random.choice(bonus_choices)(pos[0], pos[1])
-        
-        # Very rare bonuses (5% total chance)
-        elif chance < 0.70:  # 5% chance for hidden/special effects
-            hidden_choices = [
-                (DecreaseStrengthRedBonus, 0.1),
-                (DecreaseStrengthGreenBonus, 0.1),
-                (DecreaseStrengthBlueBonus, 0.1),
-                (X2ScoreMultiplierBonus, 0.15),
-                (X5ScoreMultiplierBonus, 0.1),
-                (CashDoublerBonus, 0.15),
-                (MirrorModeBonus, 0.1),
-                (DrunkModeBonus, 0.1),
-                (FreezeModeBonus, 0.05),
-                (WarpForwardBonus, 0.05)
-            ]
-            bonus_class = random.choices([b[0] for b in hidden_choices], 
-                                       weights=[b[1] for b in hidden_choices])[0]
-            reward = bonus_class(pos[0], pos[1])
-        
-        # If a reward was chosen, add it to the game
-        if 'reward' in locals():
+    def update(self, dt):
+        """Update game state."""
+        # Update all game objects
+        self.background.update()
+        self.all_sprites.update()
+        self.player_bullets.update()
+        self.enemy_bullets.update()
+        self.enemies.update()
+        self.bonus_group.update()
+        self.level_manager.update()
+
+        # Handle collisions
+        self.handle_collisions()
+
+    def spawn_rewards(self, position):
+        """Spawn rewards at the given position."""
+        try:
+            # Random chance to spawn different rewards
+            chance = random.random()
+            
+            if chance < 0.3:  # 30% chance for money bonuses
+                reward_class = random.choice([MoneyBonus10, MoneyBonus50, MoneyBonus100, MoneyBonus200])
+                reward = reward_class(position[0], position[1])
+                
+            elif chance < 0.5:  # 20% chance for shot upgrades
+                reward_class = random.choice([SingleShotBonus, DoubleShotBonus, TripleShotBonus, QuadShotBonus])
+                reward = reward_class(position[0], position[1])
+                
+            elif chance < 0.7:  # 20% chance for rank marker
+                reward = RankMarker(position[0], position[1])
+                
+            elif chance < 0.9:  # 20% chance for letter bonus
+                letters = 'EXTRA'  # or 'EXTRA' or whatever letters you want to use
+                reward = LetterBonus(position[0], position[1], random.choice(letters))
+                
+            else:  # 10% chance for special bonuses
+                reward_class = random.choice([
+                    ShipAutofireBonus, AlienScoopBonus,
+                    MoneyBombBonus, GemBombBonus
+                ])
+                reward = reward_class(position[0], position[1])
+
+            # Set sound manager for the reward if it needs sounds
+            if hasattr(reward, 'sound_manager'):
+                reward.sound_manager = self.sound_manager
+            
             self.bonus_group.add(reward)
             self.all_sprites.add(reward)
+            
+        except Exception as e:
+            logger.error(f"Error spawning rewards: {e}")
+
+    def spawn_alien_group(self, group_data):
+        """Spawn a group of aliens."""
+        try:
+            aliens = []
+            for pos in group_data['positions']:
+                alien = NonBossAlien(pos[0], pos[1], self.enemy_bullets, group_data['alien_type'])
+                alien.sound_manager = self.sound_manager  # Set sound manager for each alien
+                aliens.append(alien)
+                self.enemies.add(alien)
+                self.all_sprites.add(alien)
+        except Exception as e:
+            logger.error(f"Error spawning alien group: {e}")
 
     def draw(self, dev_mode):
         """Draw game state."""
@@ -315,29 +257,21 @@ class Game:
         pygame.display.flip()
 
     def show_level_intro(self, level_number):
-        """Display level introduction screen with countdown."""
+        """Display level introduction screen with countdown while game continues."""
         font_large = pygame.font.Font(None, 74)
         font_small = pygame.font.Font(None, 36)
         
         # Create text surfaces
         level_text = font_large.render(f"LEVEL {level_number}", True, (255, 255, 255))
-        level_pos = level_text.get_rect(center=(self.screen.get_width()//2, self.screen.get_height()//2 - 50))
+        level_rect = level_text.get_rect(center=(self.screen.get_width()//2, self.screen.get_height()//2 - 50))
         
+        countdown = 5
         start_time = pygame.time.get_ticks()
-        countdown = 3
-        last_update = start_time
-        dt = 0
-
+        
         while countdown > 0:
             current_time = pygame.time.get_ticks()
-            dt = (current_time - last_update) / 1000.0  # Delta time in seconds
-            last_update = current_time
+            dt = self.clock.tick(60) / 1000.0
             
-            elapsed = (current_time - start_time) / 1000  # Convert to seconds
-            if elapsed >= 1.0:
-                countdown -= 1
-                start_time = current_time
-
             # Handle events
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -347,55 +281,75 @@ class Game:
                     if event.key == pygame.K_ESCAPE:
                         return  # Allow skipping the intro
             
+            # Update countdown
+            elapsed = (current_time - start_time) / 1000  # Convert to seconds
+            if elapsed >= 1.0:
+                countdown -= 1
+                start_time = current_time
+            
             # Update game state
-            self.background.update()
-            self.all_sprites.update()
-            self.player_bullets.update()
-            self.enemy_bullets.update()
-            self.enemies.update()
-            self.bonus_group.update()
+            self.update(dt)  # Use existing update method
             
-            # Check collisions
-            # Player bullets hitting enemies
-            hits = pygame.sprite.groupcollide(self.enemies, self.player_bullets, False, True)
-            for enemy, bullets in hits.items():
-                for bullet in bullets:
-                    enemy.take_damage(bullet.damage)
-                    if enemy.health <= 0:
-                        self.spawn_rewards(enemy.rect.center)
-                        enemy.kill()
-                        self.score_manager.add_score(enemy.points)
-            
-            # Enemy bullets hitting player
-            hits = pygame.sprite.spritecollide(self.player, self.enemy_bullets, True)
-            for bullet in hits:
-                self.player.take_damage(bullet.damage)
-
-            # Player collecting bonuses
-            hits = pygame.sprite.spritecollide(self.player, self.bonus_group, True)
-            for bonus in hits:
-                bonus.apply(self.player, {"score_manager": self.score_manager, "enemy_group": self.enemies})
-            
-            # Draw everything
+            # Draw game state
             self.background.draw(self.screen)
             self.all_sprites.draw(self.screen)
             self.player_bullets.draw(self.screen)
             self.enemy_bullets.draw(self.screen)
+            self.bonus_group.draw(self.screen)
             self.score_manager.draw(self.screen, 10, 10)
             
-            # Draw level intro overlay
+            # Draw semi-transparent overlay
             overlay = pygame.Surface(self.screen.get_size(), pygame.SRCALPHA)
-            overlay.fill((0, 0, 0, 128))  # Semi-transparent black overlay
+            overlay.fill((0, 0, 0, 128))  # Semi-transparent black
             self.screen.blit(overlay, (0, 0))
             
             # Draw level text and countdown
-            self.screen.blit(level_text, level_pos)
+            self.screen.blit(level_text, level_rect)
             countdown_text = font_large.render(str(countdown), True, (255, 255, 255))
-            countdown_pos = countdown_text.get_rect(center=(self.screen.get_width()//2, self.screen.get_height()//2 + 50))
-            self.screen.blit(countdown_text, countdown_pos)
+            countdown_rect = countdown_text.get_rect(center=(self.screen.get_width()//2, self.screen.get_height()//2 + 50))
+            self.screen.blit(countdown_text, countdown_rect)
             
             pygame.display.flip()
-            self.clock.tick(60)
+
+    def run(self):
+        """Main game loop."""
+        try:
+            # Show intro and load first level
+            self.show_level_intro(1)
+            self.level_manager.spawn_next_group()  # Spawn first group after countdown
+            
+            while self.running:
+                dt = self.clock.tick(60) / 1000.0
+                
+                # Handle events
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        self.running = False
+                    elif event.type == pygame.KEYDOWN:
+                        if event.key == pygame.K_ESCAPE:
+                            self.running = False
+                        elif event.key == pygame.K_F3:
+                            self.settings['debug'] = not self.settings['debug']
+                
+                # Update game state
+                self.update(dt)
+                
+                # Check if level is complete
+                if self.level_manager.level_complete:
+                    next_level = self.level_manager.current_level + 1
+                    self.show_level_intro(next_level)  # Show intro while game continues
+                    self.level_manager.load_next_level()  # Load next level after countdown
+                    self.level_manager.spawn_next_group()  # Spawn first group of new level
+                
+                # Draw everything
+                self.draw(self.settings['debug'])
+                pygame.display.flip()
+            
+            pygame.quit()
+        except Exception as e:
+            logger.error(f"Error in game loop: {e}")
+            pygame.quit()
+            raise
 
 if __name__ == '__main__':
     game = Game()

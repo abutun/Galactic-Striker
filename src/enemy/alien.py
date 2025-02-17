@@ -79,6 +79,18 @@ class Alien(BaseEnemy):
         bullet.image.fill((255, 0, 0))  # Red for enemy bullets
         self.bullet_group.add(bullet)
 
+    def take_damage(self, damage):
+        self.health -= damage
+        
+        # Play hit sound based on alien type
+        if hasattr(self, 'sound_manager') and self.sound_manager:
+            sound_suffix = '1' if hasattr(self, 'enemy_type') and 'small' in self.enemy_type else '2'
+            self.sound_manager.play(f'alien_hit_{sound_suffix}')
+            
+            if self.health <= 0:
+                self.sound_manager.play(f'alien_death_{sound_suffix}')
+                self.kill()
+
 class NonBossAlien(Alien):
     def __init__(self, x, y, bullet_group, enemy_type="small", enemy_subtype=1):
         # Set up base stats based on enemy type
@@ -106,6 +118,9 @@ class NonBossAlien(Alien):
             self.image = pygame.Surface(size)
             self.image.fill((255, 0, 0))
             self.rect = self.image.get_rect(center=(x, y))
+        
+        self.enemy_type = enemy_type  # Store the enemy type
+        self.enemy_subtype = enemy_subtype
 
 class BossAlien(Alien):
     def __init__(self, x, y, bullet_group, boss_type=1):

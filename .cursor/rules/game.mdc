@@ -6,5 +6,7 @@ globs:
 
 - ALWAYS run the game in full screen
 - ALWAYS obey the game rules and mechanics defined in README.MD file
-- NEVER break the game rules defined in README.MD file
+- NEVER break the game rules defined in README.MD file (Core Game Mechanics, Weapon Systems, Enemy System, Progression System, Bonus System)
 - ALWAYS obey the asset names in the code (NEVER use a different asset name for existing assets defined in "assets" folder)
+- Before starting every level there must be a delay mechanism which will show level name and a countdown from 5-1. After the delay the next level data must be loaded.
+  Apply this logic to the first level as well. While counting down do not freeze the game, just apply delay for loading level JSON file.

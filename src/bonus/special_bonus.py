@@ -2,7 +2,7 @@ from .base_bonus import Bonus
 
 class ShipAutofireBonus(Bonus):
     def __init__(self, x, y):
-        super().__init__(x, y, "assets/sprites/autofire.png", (255, 255, 0), (24, 24))
+        super().__init__(x, y, "assets/sprites/ship_autofire.png", (255, 255, 0), (24, 24))
     def apply(self, player, game_context=None):
         player.autofire = True
 

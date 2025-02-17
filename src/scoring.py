@@ -11,6 +11,9 @@ class ScoreManager:
         self.combo = 0
         self.combo_timer = 0
         self.combo_timeout = 2000  # 2 seconds to maintain combo
+        self.multiplier_duration = 0
+        self.multiplier_start_time = 0
+        self.font = pygame.font.Font(None, 36)
 
     def add_score(self, points):
         """Add points to the current score."""
@@ -33,6 +36,12 @@ class ScoreManager:
             logger.error(f"Error adding score: {e}")
             return 0
 
+    def activate_multiplier(self, multiplier_value, duration):
+        """Activate a score multiplier for a specified duration"""
+        self.multiplier = multiplier_value
+        self.multiplier_duration = duration * 1000  # Convert to milliseconds
+        self.multiplier_start_time = pygame.time.get_ticks()
+
     def update(self):
         """Update score-related mechanics."""
         try:
@@ -40,6 +49,13 @@ class ScoreManager:
             now = pygame.time.get_ticks()
             if now - self.combo_timer > self.combo_timeout:
                 self.combo = 0
+            
+            # Update multiplier status
+            if self.multiplier > 1 and self.multiplier_duration > 0:
+                current_time = pygame.time.get_ticks()
+                if current_time - self.multiplier_start_time > self.multiplier_duration:
+                    self.multiplier = 1
+                    self.multiplier_duration = 0
         except Exception as e:
             logger.error(f"Error updating score: {e}")
 
@@ -49,6 +65,8 @@ class ScoreManager:
         self.multiplier = 1
         self.combo = 0
         self.combo_timer = 0
+        self.multiplier_duration = 0
+        self.multiplier_start_time = 0
 
     def load_high_score(self):
         """Load high score from file."""
@@ -69,16 +87,20 @@ class ScoreManager:
     def draw(self, surface, x, y):
         """Draw score information."""
         try:
-            font = pygame.font.Font(None, 36)
-            score_text = font.render(f"Score: {self.score}", True, (255, 255, 255))
-            high_score_text = font.render(f"High Score: {self.high_score}", True, (255, 255, 255))
+            score_text = self.font.render(f"Score: {self.score}", True, (255, 255, 255))
+            high_score_text = self.font.render(f"High Score: {self.high_score}", True, (255, 255, 255))
             
             if self.combo > 1:
-                combo_text = font.render(f"Combo: x{self.combo}", True, (255, 255, 0))
+                combo_text = self.font.render(f"Combo: x{self.combo}", True, (255, 255, 0))
                 surface.blit(combo_text, (x, y + 60))
                 
             surface.blit(score_text, (x, y))
             surface.blit(high_score_text, (x, y + 30))
+            
+            # Draw multiplier if active
+            if self.multiplier > 1:
+                multiplier_text = self.font.render(f"x{self.multiplier}", True, (255, 255, 0))
+                surface.blit(multiplier_text, (x, y + 60))
         except Exception as e:
             logger.error(f"Error drawing score: {e}")
 

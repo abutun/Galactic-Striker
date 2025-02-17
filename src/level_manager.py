@@ -44,6 +44,9 @@ class LevelManager:
         self.level_transition_time = 2000  # 2 seconds between levels
         self.last_level_time = 0
         
+        if not self.level_data:
+            raise ValueError(f"Could not load level {start_level}")
+
     def _load_level_data(self, level_number: int) -> LevelData:
         try:
             with open(f"assets/levels/{level_number:03d}.json") as f:
@@ -220,17 +223,11 @@ class LevelManager:
                     continue
 
                 if group["group_behavior"]:
-                    # Update group movement pattern
                     self.update_group_pattern(aliens_alive, group["pattern"])
 
             # Check if level is complete
             if not self.active_groups and not self.level_data.alien_groups:
-                current_time = pygame.time.get_ticks()
-                if not self.level_complete:
-                    self.level_complete = True
-                    self.last_level_time = current_time
-                elif current_time - self.last_level_time > self.level_transition_time:
-                    self.load_next_level()
+                self.level_complete = True
 
         except Exception as e:
             logger.error(f"Error updating level: {e}")

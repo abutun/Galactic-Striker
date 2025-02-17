@@ -142,10 +142,22 @@ class Player(pygame.sprite.Sprite):
     def take_damage(self, damage: int) -> None:
         """Handle taking damage with proper error checking."""
         try:
+            if self.shield_active:
+                self.shield_active = False
+                self.sound_manager.play('player_hit')
+                return
+            
             self.health -= damage
-            if self.health <= 0 and self.lives > 0:
-                self.lives -= 1
-                self.health = 100
-                self.primary_weapon = 1  # Reset to basic weapon
+            self.sound_manager.play('player_hit')
+            
+            if self.health <= 0:
+                self.sound_manager.play('player_death')
+                self.kill()
         except Exception as e:
             logger.error(f"Error handling damage: {e}")
+
+    def fire(self):
+        if pygame.time.get_ticks() - self.last_fire > self.fire_delay:
+            self.weapon.fire(self.rect.centerx, self.rect.top)
+            self.sound_manager.play('player_fire')
+            self.last_fire = pygame.time.get_ticks()
