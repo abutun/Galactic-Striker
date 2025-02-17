@@ -72,17 +72,32 @@ class Game:
         
         pygame.display.set_caption("Galactic Striker")
         
-        # Initialize sprite groups
+        # Initialize clock for controlling frame rate
+        self.clock = pygame.time.Clock()
+        
+        # Create sprite groups
         self.all_sprites = pygame.sprite.Group()
-        self.enemies = pygame.sprite.Group()
         self.player_bullets = pygame.sprite.Group()
         self.enemy_bullets = pygame.sprite.Group()
-
+        self.enemies = pygame.sprite.Group()
+        self.bonus_group = pygame.sprite.Group()
+        
         # Create background with borders
         self.background = Background(self.screen.get_width(), self.screen.get_height(), scroll_speed=1)
         
-        # Initialize other game objects
-        self.init_game_objects()
+        # Create player at the bottom center of the screen
+        player_x = self.screen.get_width() // 2
+        player_y = self.screen.get_height() - 100  # 100 pixels from bottom
+        self.player = Player(player_x, player_y, self.player_bullets)
+        self.all_sprites.add(self.player)
+        
+        # Initialize managers
+        self.level_manager = LevelManager(1, self.enemies, self.all_sprites, self.enemy_bullets)
+        self.score_manager = ScoreManager()
+        
+        # Set initial game state
+        self.running = True
+        self.level_manager.spawn_next_group()
 
     def load_settings(self):
         """Load game settings from config."""
@@ -175,6 +190,8 @@ class Game:
         # Update level
         if self.level_manager.update():  # Returns True when level is complete
             next_level = self.level_manager.level_data.level_number + 1
+            # Show level intro before starting new level
+            self.show_level_intro(next_level)
             self.level_manager.load_level(next_level)
             self.level_manager.spawn_next_group()
         
@@ -296,6 +313,89 @@ class Game:
             draw_dev_info(self.screen, self.player, self.level_manager, self.score_manager)
         
         pygame.display.flip()
+
+    def show_level_intro(self, level_number):
+        """Display level introduction screen with countdown."""
+        font_large = pygame.font.Font(None, 74)
+        font_small = pygame.font.Font(None, 36)
+        
+        # Create text surfaces
+        level_text = font_large.render(f"LEVEL {level_number}", True, (255, 255, 255))
+        level_pos = level_text.get_rect(center=(self.screen.get_width()//2, self.screen.get_height()//2 - 50))
+        
+        start_time = pygame.time.get_ticks()
+        countdown = 3
+        last_update = start_time
+        dt = 0
+
+        while countdown > 0:
+            current_time = pygame.time.get_ticks()
+            dt = (current_time - last_update) / 1000.0  # Delta time in seconds
+            last_update = current_time
+            
+            elapsed = (current_time - start_time) / 1000  # Convert to seconds
+            if elapsed >= 1.0:
+                countdown -= 1
+                start_time = current_time
+
+            # Handle events
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+                elif event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_ESCAPE:
+                        return  # Allow skipping the intro
+            
+            # Update game state
+            self.background.update()
+            self.all_sprites.update()
+            self.player_bullets.update()
+            self.enemy_bullets.update()
+            self.enemies.update()
+            self.bonus_group.update()
+            
+            # Check collisions
+            # Player bullets hitting enemies
+            hits = pygame.sprite.groupcollide(self.enemies, self.player_bullets, False, True)
+            for enemy, bullets in hits.items():
+                for bullet in bullets:
+                    enemy.take_damage(bullet.damage)
+                    if enemy.health <= 0:
+                        self.spawn_rewards(enemy.rect.center)
+                        enemy.kill()
+                        self.score_manager.add_score(enemy.points)
+            
+            # Enemy bullets hitting player
+            hits = pygame.sprite.spritecollide(self.player, self.enemy_bullets, True)
+            for bullet in hits:
+                self.player.take_damage(bullet.damage)
+
+            # Player collecting bonuses
+            hits = pygame.sprite.spritecollide(self.player, self.bonus_group, True)
+            for bonus in hits:
+                bonus.apply(self.player, {"score_manager": self.score_manager, "enemy_group": self.enemies})
+            
+            # Draw everything
+            self.background.draw(self.screen)
+            self.all_sprites.draw(self.screen)
+            self.player_bullets.draw(self.screen)
+            self.enemy_bullets.draw(self.screen)
+            self.score_manager.draw(self.screen, 10, 10)
+            
+            # Draw level intro overlay
+            overlay = pygame.Surface(self.screen.get_size(), pygame.SRCALPHA)
+            overlay.fill((0, 0, 0, 128))  # Semi-transparent black overlay
+            self.screen.blit(overlay, (0, 0))
+            
+            # Draw level text and countdown
+            self.screen.blit(level_text, level_pos)
+            countdown_text = font_large.render(str(countdown), True, (255, 255, 255))
+            countdown_pos = countdown_text.get_rect(center=(self.screen.get_width()//2, self.screen.get_height()//2 + 50))
+            self.screen.blit(countdown_text, countdown_pos)
+            
+            pygame.display.flip()
+            self.clock.tick(60)
 
 if __name__ == '__main__':
     game = Game()

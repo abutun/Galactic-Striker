@@ -1,0 +1,91 @@
+## Key Principles
+
+- **Conciseness & Clarity:**  
+  Write clear, technically precise code with a focus on maintainability. Keep functions short and focused, using functional paradigms wherever possible.
+
+- **Modular Design:**  
+  Organize code into modules and packages (e.g., `entities`, `levels`, `utilities`) to separate concerns such as game logic, rendering, and asset management.
+
+- **Declarative & Functional Style:**  
+  Favor pure functions and immutable data structures when possible. Use functional patterns (e.g., map/filter/reduce) and avoid unnecessary object state mutations.
+
+- **Descriptive Naming:**  
+  Use descriptive variable and function names (e.g., `is_game_over`, `update_score`) to improve code readability. Adhere to snake_case for functions and variables, and lowercase for module names.
+
+---
+
+## Python/Pygame-Specific Guidelines
+
+- **Pygame Initialization & Loop:**  
+  - Structure your game with clear initialization, event handling, update, and render phases.
+  - Use a main game loop that cleanly separates these phases and handles timing (e.g., using `pygame.time.Clock`).
+
+- **Event Handling:**  
+  - Process events in a loop using `pygame.event.get()`.
+  - Use guard clauses to filter out irrelevant events early in your handlers.
+
+- **Rendering & Updates:**  
+  - Keep update logic and rendering code separate.
+  - Use Pygame’s `Surface` objects for drawing and blitting, and ensure proper screen refreshes with `pygame.display.flip()` or `pygame.display.update()`.
+
+- **Asset Management:**  
+  - Load assets (images, sounds) at the start and reuse them to avoid performance overhead.
+  - Organize assets in a structured directory (e.g., `assets/images`, `assets/sounds`).
+
+- **Collision Detection & Physics:**  
+  - Use Pygame's sprite and group classes for collision detection and sprite management.
+  - For simple physics, integrate your game loop with mathematical functions rather than complex physics engines unless needed.
+
+---
+
+## Error Handling and Validation
+
+- **Early Returns & Guard Clauses:**  
+  - Validate inputs (e.g., asset paths, configurations) early and return errors to avoid deep nesting.
+  - Implement custom exceptions for game-specific errors (e.g., `AssetLoadError`).
+
+- **Logging & Debugging:**  
+  - Integrate logging for debugging runtime issues. Use Python’s `logging` module to log errors, warnings, and info messages.
+  - Leverage Pygame’s error messages to catch and handle common pitfalls (e.g., missing assets, initialization errors).
+
+- **Resilient Game Loop:**  
+  - Ensure that exceptions in one frame do not crash the entire game. Consider a try-except block around critical sections in the game loop to log and handle unexpected errors gracefully.
+
+---
+
+## Performance Optimization
+
+- **Efficient Rendering:**  
+  - Minimize unnecessary screen redraws. Use dirty rects or only update parts of the screen that have changed.
+  - Batch render similar sprites when possible.
+
+- **Asset Caching:**  
+  - Cache loaded assets to prevent repeated disk I/O.
+  - Preload and cache level data and configurations.
+
+- **Frame Rate Management:**  
+  - Use `pygame.time.Clock` to manage frame rate and ensure smooth gameplay.
+  - Profile and optimize hot code paths using profiling tools (e.g., cProfile).
+
+- **Optimized Loops & Data Structures:**  
+  - Prefer list comprehensions and built-in functions for fast iteration.
+  - Use appropriate data structures (e.g., dictionaries for lookup) to manage game state and entities.
+
+---
+
+## Key Conventions
+
+1. **State Management:**  
+   - Manage game state via immutable or well-isolated data structures. Use a central game state manager to handle transitions between states (menu, gameplay, pause, game over).
+
+2. **Configuration & Constants:**  
+   - Centralize game settings and constants in a dedicated module (e.g., `config.py`).
+   - Use descriptive names for constants (e.g., `SCREEN_WIDTH`, `PLAYER_SPEED`).
+
+3. **Testing & Debugging:**  
+   - Write unit tests for non-graphical components (game logic, utility functions) using frameworks like `pytest`.
+   - Use debugging tools and logging to quickly diagnose issues during development.
+
+4. **Performance Monitoring:**  
+   - Regularly profile game performance and refactor bottlenecks.
+   - Consider asynchronous asset loading if initial load times become a bottleneck.

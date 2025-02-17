@@ -25,8 +25,8 @@ class Player(pygame.sprite.Sprite):
     def __init__(self, x: int, y: int, bullet_group: pygame.sprite.Group):
         super().__init__()
         try:
-            # Load the base player image first
-            self.base_image = load_image("assets/sprites/player.png", (0, 255, 0), (32, 32))
+            # Load the base player image first with 50% larger size (48x48 instead of 32x32)
+            self.base_image = load_image("assets/sprites/player.png", (0, 255, 0), (48, 48))
             self.image = self.base_image.copy()  # Create initial copy
             self.rect = self.image.get_rect(center=(x, y))
             

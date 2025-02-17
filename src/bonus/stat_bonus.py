@@ -4,36 +4,64 @@ from .base_bonus import Bonus
 
 class ExtraSpeedBonus(Bonus):
     def __init__(self, x, y):
-        super().__init__(x, y, "assets/sprites/extra_speed.png", (0, 0, 255), (24, 24))
+        super().__init__(
+            x, y,
+            image_path="assets/sprites/extra_speed.png",
+            fallback_color=(0, 255, 255),  # Cyan
+            size=(24, 24)
+        )
+        
     def apply(self, player, game_context=None):
-        player.speed += 2
+        if hasattr(player, 'speed'):
+            player.speed = min(player.speed + 1, 8)  # Cap at 8
+        else:
+            player.speed = 5
 
 class ExtraBulletBonus(Bonus):
     def __init__(self, x, y):
-        super().__init__(x, y, "assets/sprites/extra_bullet.png", (255, 165, 0), (24, 24))
+        super().__init__(
+            x, y,
+            image_path="assets/sprites/extra_bullet.png",
+            fallback_color=(255, 255, 0),  # Yellow
+            size=(24, 24)
+        )
+        
     def apply(self, player, game_context=None):
         if hasattr(player, 'bullet_count'):
-            player.bullet_count += 1
+            player.bullet_count = min(player.bullet_count + 1, 4)  # Cap at 4
         else:
-            player.bullet_count = 1
+            player.bullet_count = 2
 
 class ExtraTimeBonus(Bonus):
     def __init__(self, x, y):
-        super().__init__(x, y, "assets/sprites/extra_time.png", (0, 255, 0), (24, 24))
+        super().__init__(
+            x, y,
+            image_path="assets/sprites/extra_time.png",
+            fallback_color=(0, 255, 0),  # Green
+            size=(24, 24)
+        )
+        
     def apply(self, player, game_context=None):
         if hasattr(player, 'time_stat'):
-            player.time_stat += 5
+            player.time_stat = min(player.time_stat + 30, 300)  # Cap at 300 seconds
         else:
-            player.time_stat = 5
+            player.time_stat = 30
 
 class ExtraBulletSpeedBonus(Bonus):
     def __init__(self, x, y):
-        super().__init__(x, y, "assets/sprites/extra_bullet_speed.png", (255, 0, 0), (24, 24))
+        super().__init__(
+            x, y, 
+            image_path="assets/sprites/extra_bullet_speed.png",
+            fallback_color=(255, 128, 0),  # Orange
+            size=(24, 24)
+        )
+        
     def apply(self, player, game_context=None):
+        """Increase player's bullet speed"""
         if hasattr(player, 'bullet_speed'):
-            player.bullet_speed += 2
+            player.bullet_speed = min(player.bullet_speed + 1, 10)  # Cap at 10
         else:
-            player.bullet_speed = 2
+            player.bullet_speed = 7  # Default value
 
 class PowerUp(Bonus):
     def __init__(self, x, y):

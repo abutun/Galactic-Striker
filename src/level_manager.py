@@ -5,6 +5,8 @@ from src.enemy.alien import NonBossAlien, BossAlien
 from src.level.level_data import *
 import logging
 from src.config.game_settings import MOVEMENT_PATTERNS
+from typing import List, Dict, Optional
+from dataclasses import dataclass
 
 logger = logging.getLogger(__name__)
 
@@ -15,20 +17,55 @@ def load_level_json(level_number):
         return json.load(f)
 
 
+@dataclass
+class LevelData:
+    level_number: int
+    name: str
+    difficulty: int
+    alien_groups: List[Dict]  # Changed from enemy_formations
+    boss_data: Optional[Dict] = None
+    background_speed: float = 1.0
+    music_track: Optional[str] = None
+    special_effects: List[str] = None
+    power_up_frequency: float = 0.2
+    minimum_clear_time: float = 30.0
+
+
 class LevelManager:
-    def __init__(self, level_number, enemy_group, all_sprites, enemy_bullets):
-        self.level_data = None
+    def __init__(self, start_level: int, enemy_group, sprite_group, bullet_group):
+        self.current_level = start_level
         self.enemy_group = enemy_group
-        self.all_sprites = all_sprites
-        self.enemy_bullets = enemy_bullets
+        self.sprite_group = sprite_group
+        self.bullet_group = bullet_group
         self.active_groups = []
+        self.level_data = self._load_level_data(start_level)
+        self.formation_index = 0
+        self.level_complete = False
+        self.level_transition_time = 2000  # 2 seconds between levels
+        self.last_level_time = 0
         
-        # Load level data
-        self.load_level(level_number)  # Make sure we call load_level
-        
-        # Spawn first group of aliens
-        if self.level_data:
-            self.spawn_next_group()  # Spawn initial group
+    def _load_level_data(self, level_number: int) -> LevelData:
+        try:
+            with open(f"assets/levels/{level_number:03d}.json") as f:
+                data = json.load(f)
+                return LevelData(
+                    level_number=level_number,
+                    name=data.get('name', f'Level {level_number}'),
+                    difficulty=data.get('difficulty', 1),
+                    alien_groups=data.get('alien_groups', []),
+                    boss_data=data.get('boss_data'),
+                    background_speed=data.get('background_speed', 1.0),
+                    music_track=data.get('music_track'),
+                    special_effects=data.get('special_effects', []),
+                    power_up_frequency=data.get('power_up_frequency', 0.2),
+                    minimum_clear_time=data.get('minimum_clear_time', 30.0)
+                )
+        except FileNotFoundError:
+            logger.error(f"Level {level_number} data not found")
+            return None
+        except Exception as e:
+            logger.error(f"Error loading level {level_number}: {e}")
+            return None
 
     def json_to_level_data(self, data) -> LevelData:
         """Convert JSON data to LevelData object."""
@@ -82,6 +119,7 @@ class LevelManager:
             self.level_data = None
 
     def spawn_next_group(self):
+        """Spawn next group of aliens"""
         if not self.level_data or not self.level_data.alien_groups:
             return
 
@@ -91,51 +129,48 @@ class LevelManager:
 
             # Calculate formation positions
             positions = self.calculate_formation_positions(
-                group.formation, 
-                group.count, 
-                group.spacing
+                group['formation'], 
+                group['count'], 
+                group['spacing']
             )
 
             # Create aliens above the screen
             screen = pygame.display.get_surface()
-            start_y = -50  # Start above screen
+            start_y = -50  # Always start above screen
             
             # Adjust start position based on entry point
-            if group.entry_point == EntryPoint.TOP:
+            if group['entry_point'] == "top_center":
                 start_x = screen.get_width() // 2
-            elif group.entry_point == EntryPoint.TOP_LEFT:
-                start_x = screen.get_width() * 0.2
-            elif group.entry_point == EntryPoint.TOP_RIGHT:
-                start_x = screen.get_width() * 0.8
+            elif group['entry_point'] == "top_left":
+                start_x = int(screen.get_width() * 0.2)
+            elif group['entry_point'] == "top_right":
+                start_x = int(screen.get_width() * 0.8)
             else:
                 start_x = screen.get_width() // 2
 
-            # Create aliens
+            # Create aliens with adjusted positions
             for pos in positions:
                 alien = NonBossAlien(
-                    start_x + pos[0], start_y + pos[1],  # Offset from start position
-                    self.enemy_bullets,
-                    group.alien_type
+                    start_x + pos[0], start_y + pos[1],
+                    self.bullet_group,
+                    group['alien_type']
                 )
-                # Set additional properties
-                alien.shoot_interval = group.shoot_interval
-                alien.path = [
-                    (p.x * screen.get_width(),
-                     p.y * screen.get_height())
-                    for p in group.path
-                ]
+                alien.health = group['health']
+                alien.speed = group['speed']
                 aliens.append(alien)
-
-            self.active_groups.append({
-                "aliens": aliens,
-                "pattern": group.movement_pattern,
-                "group_behavior": group.group_behavior
-            })
 
             # Add aliens to sprite groups
             for alien in aliens:
                 self.enemy_group.add(alien)
-                self.all_sprites.add(alien)
+                self.sprite_group.add(alien)
+
+            # Add to active groups
+            self.active_groups.append({
+                "aliens": aliens,
+                "pattern": group['movement_pattern'],
+                "group_behavior": group.get('group_behavior', False)
+            })
+
         except Exception as e:
             logger.error(f"Error spawning alien group: {e}")
 
@@ -173,6 +208,7 @@ class LevelManager:
         return positions
 
     def update(self):
+        """Update level state"""
         try:
             # Update active groups
             for group in self.active_groups[:]:
@@ -189,11 +225,15 @@ class LevelManager:
 
             # Check if level is complete
             if not self.active_groups and not self.level_data.alien_groups:
-                return True
-            return False
+                current_time = pygame.time.get_ticks()
+                if not self.level_complete:
+                    self.level_complete = True
+                    self.last_level_time = current_time
+                elif current_time - self.last_level_time > self.level_transition_time:
+                    self.load_next_level()
+
         except Exception as e:
             logger.error(f"Error updating level: {e}")
-            return False
 
     def update_group_pattern(self, aliens, pattern):
         try:
@@ -210,7 +250,31 @@ class LevelManager:
     def is_level_complete(self):
         return not self.active_groups and not self.level_data.alien_groups
 
-    def load_next_level(self, next_level_number):
-        self.level_number = next_level_number
-        self.load_level(next_level_number)
-        self.start_time = pygame.time.get_ticks()
+    def load_next_level(self):
+        """Load the next level"""
+        self.current_level += 1
+        self.level_data = self._load_level_data(self.current_level)
+        self.level_complete = False
+        self.active_groups = []
+        
+        # Spawn first group of new level
+        if self.level_data and self.level_data.alien_groups:
+            self.spawn_next_group()
+        else:
+            logger.error(f"Failed to load level {self.current_level}")
+
+    def spawn_alien_group(self, group_data):
+        """Spawn a group of aliens according to formation and entry point."""
+        screen_width = pygame.display.get_surface().get_width()
+        screen_height = pygame.display.get_surface().get_height()
+        
+        # Adjust entry points to always start from top
+        entry_points = {
+            "top_left": (screen_width * 0.2, -50),
+            "top_center": (screen_width * 0.5, -50),
+            "top_right": (screen_width * 0.8, -50)
+        }
+        
+        # Get entry position
+        entry_point = group_data.get("entry_point", "top_center")
+        base_x, base_y = entry_points[entry_point]

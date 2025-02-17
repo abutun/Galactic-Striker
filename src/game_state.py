@@ -2,8 +2,33 @@ from typing import Dict, Any, Optional
 from abc import ABC, abstractmethod
 import pygame
 import logging
+from enum import Enum
+from dataclasses import dataclass
 
 logger = logging.getLogger(__name__)
+
+class GameState(Enum):
+    MENU = "menu"
+    PLAYING = "playing"
+    PAUSED = "paused"
+    GAME_OVER = "game_over"
+    LEVEL_COMPLETE = "level_complete"
+    BONUS_LEVEL = "bonus_level"
+
+@dataclass
+class GameStateManager:
+    current_state: GameState = GameState.MENU
+    previous_state: GameState = None
+    state_data: Dict[str, Any] = None
+
+    def change_state(self, new_state: GameState, **kwargs):
+        self.previous_state = self.current_state
+        self.current_state = new_state
+        self.state_data = kwargs
+
+    def revert_state(self):
+        if self.previous_state:
+            self.current_state, self.previous_state = self.previous_state, self.current_state
 
 class GameState(ABC):
     @abstractmethod

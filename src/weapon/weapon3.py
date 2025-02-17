@@ -14,7 +14,7 @@ class Weapon3(PrimaryWeapon):
         now = pygame.time.get_ticks()
         if now - self.last_fire > self.fire_delay:
             # Triple shot with spread
-            for angle in [-self.spread, 0, self.spread]:
+            for angle in [-self.spread/2, 0, self.spread]:
                 rad = math.radians(angle)
                 vx = self.bullet_speed * math.sin(rad)
                 vy = -self.bullet_speed * math.cos(rad)

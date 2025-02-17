@@ -1,103 +1,95 @@
 {
   "level_number": 24,
   "name": "Level 24",
-  "difficulty": 3,
+  "difficulty": 2,
   "alien_groups": [
     {
-      "alien_type": "alien_03_large_02",
-      "count": 5,
-      "formation": "diamond",
-      "spacing": 44,
-      "entry_point": "top_right",
+      "alien_type": "alien_01_small_01",
+      "count": 6,
+      "formation": "line",
+      "spacing": 40,
+      "entry_point": "top_left",
       "path": [
         {
-          "x": 1,
-          "y": 0,
+          "x": 0.2,
+          "y": 0.1,
           "wait_time": 0,
           "shoot": false
         },
         {
-          "x": 0.2945806505676517,
-          "y": 0.5965891836158463,
-          "wait_time": 0.7227715171036793,
-          "shoot": false
-        },
-        {
-          "x": 0.7672082842960001,
-          "y": 0.6917903352870607,
-          "wait_time": 1.9571719825451468,
-          "shoot": false
-        },
-        {
-          "x": 0.915817563167306,
-          "y": 0.30676701822479957,
-          "wait_time": 0.5057681879292466,
-          "shoot": false
-        },
-        {
-          "x": 0.9996305089318155,
-          "y": 0,
-          "wait_time": 0,
-          "shoot": false
-        }
-      ],
-      "movement_pattern": "straight",
-      "speed": 1.1,
-      "health": 6,
-      "shoot_interval": 1.2,
-      "group_behavior": true
-    },
-    {
-      "alien_type": "alien_02_small_01",
-      "count": 10,
-      "formation": "v",
-      "spacing": 31,
-      "entry_point": "top",
-      "path": [
-        {
-          "x": 0.9454284756570743,
-          "y": 0,
-          "wait_time": 0,
-          "shoot": false
-        },
-        {
-          "x": 0.03397729087702284,
-          "y": 0.36366758837464913,
-          "wait_time": 1.921889294575715,
-          "shoot": false
-        },
-        {
-          "x": 0.9943307109794978,
-          "y": 0.5488270280712317,
-          "wait_time": 0.2209776359754192,
+          "x": 0.8596833887781583,
+          "y": 0.27293183443170893,
+          "wait_time": 1.567252232128249,
           "shoot": true
         },
         {
-          "x": 0.19056766595681573,
-          "y": 0.251619092485714,
-          "wait_time": 0.10489469722867262,
-          "shoot": false
+          "x": 0.7926260610399671,
+          "y": 0.5656444855940577,
+          "wait_time": 1.153991461087304,
+          "shoot": true
         },
         {
-          "x": 0.6153757288989422,
-          "y": 0,
+          "x": 0.3916023693929196,
+          "y": 0.4162875608729778,
+          "wait_time": 0.7677712388509659,
+          "shoot": true
+        },
+        {
+          "x": 0.783063049591254,
+          "y": 0.29758168745798386,
+          "wait_time": 1.7629843693665102,
+          "shoot": true
+        },
+        {
+          "x": 0.32083494855267347,
+          "y": 0.1,
           "wait_time": 0,
           "shoot": false
         }
       ],
       "movement_pattern": "straight",
-      "speed": 1.5,
+      "speed": 2.1436364473922955,
       "health": 2,
-      "shoot_interval": 1.7,
-      "group_behavior": true
+      "shoot_interval": 2.7000789272280548,
+      "group_behavior": false
+    },
+    {
+      "alien_type": "alien_01_large_01",
+      "count": 4,
+      "formation": "line",
+      "spacing": 50,
+      "entry_point": "top_center",
+      "path": [
+        {
+          "x": 0.5,
+          "y": 0.1,
+          "wait_time": 0,
+          "shoot": false
+        },
+        {
+          "x": 0.1893680441780833,
+          "y": 0.2614414992265507,
+          "wait_time": 0.8551965123613519,
+          "shoot": true
+        },
+        {
+          "x": 0.5813532538237369,
+          "y": 0.1,
+          "wait_time": 0,
+          "shoot": false
+        }
+      ],
+      "movement_pattern": "wave",
+      "speed": 2.2679182996356486,
+      "health": 3,
+      "shoot_interval": 2.853532668528648,
+      "group_behavior": false
     }
   ],
   "boss_data": null,
-  "background_speed": 1.3,
-  "music_track": "level_4.mp3",
+  "background_speed": 1.0,
+  "music_track": "level1.mp3",
   "special_effects": [],
   "power_up_frequency": 0.2,
-  "minimum_clear_time": 30.0,
-  "bonus_objectives": null,
-  "hazard_types": null
+  "minimum_clear_time": 30.0
 }

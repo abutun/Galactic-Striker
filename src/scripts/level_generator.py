@@ -3,6 +3,8 @@ import random
 import os
 import sys
 import logging
+from typing import List, Dict, Any
+from dataclasses import dataclass
 
 # Add the project root directory to Python path
 project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -17,281 +19,248 @@ from src.config.game_settings import (
 
 logger = logging.getLogger(__name__)
 
+@dataclass
+class LevelConfig:
+    min_groups: int
+    max_groups: int
+    min_aliens: int
+    max_aliens: int
+    alien_types: List[str]
+    formations: List[str]
+    movement_patterns: List[str]
+    entry_points: List[str]
+    difficulty: int
+    boss_enabled: bool
+
 class LevelGenerator:
     def __init__(self):
-        self.difficulty_progression = LEVEL_PROGRESSION
+        self.difficulty_configs = {
+            # Tutorial levels (1-10)
+            (1, 10): LevelConfig(
+                min_groups=1,
+                max_groups=3,
+                min_aliens=3,
+                max_aliens=5,
+                alien_types=["alien_01_small_01", "alien_01_small_02"],
+                formations=["line", "v"],
+                movement_patterns=["straight", "wave"],
+                entry_points=["top_center"],
+                difficulty=1,
+                boss_enabled=False
+            ),
+            # Early game (11-25)
+            (11, 25): LevelConfig(
+                min_groups=2,
+                max_groups=4,
+                min_aliens=4,
+                max_aliens=6,
+                alien_types=["alien_01_small_01", "alien_02_small_01", "alien_01_large_01"],
+                formations=["line", "v", "circle"],
+                movement_patterns=["straight", "wave", "zigzag"],
+                entry_points=["top_center", "top_left", "top_right"],
+                difficulty=2,
+                boss_enabled=True
+            ),
+            # Mid game (26-50)
+            (26, 50): LevelConfig(
+                min_groups=3,
+                max_groups=5,
+                min_aliens=5,
+                max_aliens=8,
+                alien_types=[f"alien_{i:02d}_{'small' if j < 2 else 'large'}_{k:02d}" 
+                           for i in range(1,4) for j in range(3) for k in range(1,3)],
+                formations=["line", "v", "circle", "diamond"],
+                movement_patterns=["straight", "wave", "zigzag", "swarm"],
+                entry_points=["top_center", "top_left", "top_right"],
+                difficulty=3,
+                boss_enabled=True
+            ),
+            # Late game (51-75)
+            (51, 75): LevelConfig(
+                min_groups=4,
+                max_groups=6,
+                min_aliens=6,
+                max_aliens=10,
+                alien_types=[f"alien_{i:02d}_{'small' if j < 2 else 'large'}_{k:02d}" 
+                           for i in range(3,6) for j in range(3) for k in range(1,3)],
+                formations=["line", "v", "circle", "diamond", "wave"],
+                movement_patterns=["straight", "wave", "zigzag", "swarm", "circular"],
+                entry_points=["top_center", "top_left", "top_right"],
+                difficulty=4,
+                boss_enabled=True
+            ),
+            # Expert game (76-100)
+            (76, 100): LevelConfig(
+                min_groups=5,
+                max_groups=7,
+                min_aliens=7,
+                max_aliens=12,
+                alien_types=[f"alien_{i:02d}_{'small' if j < 2 else 'large'}_{k:02d}" 
+                           for i in range(4,7) for j in range(3) for k in range(1,3)],
+                formations=["line", "v", "circle", "diamond", "wave", "cross"],
+                movement_patterns=["straight", "wave", "zigzag", "swarm", "circular", "random"],
+                entry_points=["top_center", "top_left", "top_right"],
+                difficulty=5,
+                boss_enabled=True
+            ),
+            # Master game (101-150)
+            (101, 150): LevelConfig(
+                min_groups=6,
+                max_groups=8,
+                min_aliens=8,
+                max_aliens=15,
+                alien_types=[f"alien_{i:02d}_{'small' if j < 2 else 'large'}_{k:02d}" 
+                           for i in range(5,9) for j in range(3) for k in range(1,3)],
+                formations=["line", "v", "circle", "diamond", "wave", "cross", "spiral"],
+                movement_patterns=["straight", "wave", "zigzag", "swarm", "circular", "random", "chase"],
+                entry_points=["top_center", "top_left", "top_right"],
+                difficulty=6,
+                boss_enabled=True
+            ),
+            # Legend game (151-200)
+            (151, 200): LevelConfig(
+                min_groups=7,
+                max_groups=10,
+                min_aliens=10,
+                max_aliens=20,
+                alien_types=[f"alien_{i:02d}_{'small' if j < 2 else 'large'}_{k:02d}" 
+                           for i in range(7,11) for j in range(3) for k in range(1,3)],
+                formations=["line", "v", "circle", "diamond", "wave", "cross", "spiral", "star"],
+                movement_patterns=["straight", "wave", "zigzag", "swarm", "circular", "random", "chase", "teleport"],
+                entry_points=["top_center", "top_left", "top_right"],
+                difficulty=7,
+                boss_enabled=True
+            )
+        }
+
+    def generate_path(self, entry_point: str, complexity: int) -> List[Dict]:
+        """Generate a movement path for an alien group."""
+        path = []
+        points = random.randint(3, 5 + complexity)
         
-        # Ensure the levels directory exists
-        os.makedirs(os.path.join(os.path.dirname(__file__), "../../assets/levels"), exist_ok=True)
-
-    def generate_path(self, entry_point: EntryPoint, complexity: int) -> List[PathPoint]:
-        paths = []
-        screen_width = 1.0  # Using relative coordinates (0-1)
-        screen_height = 1.0
-
-        if entry_point == EntryPoint.TOP:
-            start_x = random.random()
-            paths.append(PathPoint(start_x, 0, 0, False))
-        elif entry_point == EntryPoint.TOP_LEFT:
-            paths.append(PathPoint(0, 0, 0, False))
-        elif entry_point == EntryPoint.TOP_RIGHT:
-            paths.append(PathPoint(1, 0, 0, False))
-
-        # Generate middle points based on complexity
-        for _ in range(complexity):
-            x = random.random()
-            y = random.random() * 0.7  # Keep in top 70% of screen
-            wait = random.random() * 2  # 0-2 seconds wait
-            shoot = random.random() < 0.3  # 30% chance to shoot
-            paths.append(PathPoint(x, y, wait, shoot))
-
-        # Add return path to top
-        paths.append(PathPoint(random.random(), 0, 0, False))
-        return paths
-
-    def validate_alien_type(self, type_num: int, category: AlienCategory, 
-                           subtype: AlienSubType) -> bool:
-        """Validate alien type combination."""
-        try:
-            # Check type number range
-            if not 1 <= type_num <= 25:
-                logger.error(f"Invalid type number: {type_num}")
-                return False
-
-            # Check category/subtype combination
-            if category == AlienCategory.BOSS and subtype is not None:
-                logger.error(f"Boss aliens should not have subtypes")
-                return False
-            
-            if category != AlienCategory.BOSS and subtype not in [AlienSubType.TYPE1, AlienSubType.TYPE2]:
-                logger.error(f"Invalid subtype for non-boss alien: {subtype}")
-                return False
-
-            # Verify asset exists
-            asset_path = os.path.join("assets/aliens", 
-                f"alien_{type_num:02d}_{category.value}_{subtype.value:02d}.png" 
-                if category != AlienCategory.BOSS else f"boss_{type_num:02d}.png")
-            
-            if not os.path.exists(asset_path):
-                logger.error(f"Missing asset file: {asset_path}")
-                return False
-
-            return True
-        except Exception as e:
-            logger.error(f"Error validating alien type: {e}")
-            return False
-
-    def create_alien_group(self, type_num: int, category: AlienCategory, 
-                          subtype: AlienSubType, count: int, difficulty: int) -> AlienGroup:
-        """Create an alien group with validation."""
-        # Validate inputs
-        if not self.validate_alien_type(type_num, category, subtype):
-            raise ValueError(f"Invalid alien type combination: type={type_num}, category={category}, subtype={subtype}")
-        
-        if count < 1:
-            raise ValueError(f"Invalid alien count: {count}")
-        
-        if difficulty < 1:
-            raise ValueError(f"Invalid difficulty: {difficulty}")
-
-        alien_type = AlienType(type_num, category, subtype)
-        entry_point = self._get_strategic_entry_point(difficulty)
-        
-        formation = random.choice(["line", "v", "circle", "diamond", "wave"])
-        
-        return AlienGroup(
-            alien_type=alien_type.base_name,
-            count=count,
-            formation=formation,
-            spacing=random.randint(30, 50),
-            entry_point=entry_point,
-            path=self._generate_strategic_path(entry_point, difficulty),
-            movement_pattern=self._get_appropriate_pattern(category, difficulty),
-            speed=self._calculate_speed(category, difficulty),
-            health=alien_type.health,
-            shoot_interval=self._calculate_shoot_interval(category, difficulty),
-            group_behavior=self._should_use_group_behavior(formation, difficulty)
-        )
-
-    def _get_strategic_entry_point(self, difficulty: int) -> EntryPoint:
-        """Choose entry point based on difficulty and strategy."""
-        if difficulty > 7:
-            # More complex entry points for higher difficulties
-            return random.choice([EntryPoint.TOP_LEFT, EntryPoint.TOP_RIGHT])
-        return random.choice(list(EntryPoint))
-
-    def generate_level(self, level_number: int) -> LevelData:
-        """Generate a level with appropriate difficulty and alien types."""
-        # Find appropriate difficulty settings
-        settings = next((config for (start, end), config in self.difficulty_progression.items() 
-                        if start <= level_number <= end), None)
-        
-        if not settings:
-            raise ValueError(f"Invalid level number: {level_number}")
-
-        difficulty = random.randint(*settings["diff_range"])
-        alien_type_range = settings["alien_types"]
-        
-        # Determine if this is a boss or bonus level
-        is_boss_level = level_number % 25 == 0
-        is_bonus_level = level_number % 10 == 0 and not is_boss_level
-
-        alien_groups = []
-
-        if is_boss_level:
-            # Create boss level
-            boss_num = level_number // 25
-            boss_type = AlienType(boss_num, AlienCategory.BOSS, None)
-            
-            alien_groups.append(AlienGroup(
-                alien_type=f"boss_{boss_num:02d}",
-                count=1,
-                formation="single",
-                spacing=0,
-                entry_point=EntryPoint.TOP,
-                path=self._generate_strategic_path(EntryPoint.TOP, difficulty),
-                movement_pattern=MovementPattern.BOSS,
-                speed=0.8,
-                health=boss_type.health,
-                shoot_interval=1.0,
-                group_behavior=False
-            ))
-            
-            # Add some small support enemies
-            for _ in range(2):
-                type_num = random.randint(*alien_type_range)
-                alien_groups.append(self.create_alien_group(
-                    type_num, AlienCategory.SMALL, random.choice([AlienSubType.TYPE1, AlienSubType.TYPE2]), 
-                    random.randint(2, 4), difficulty
-                ))
-
-        else:
-            # Regular or bonus level
-            group_count = random.randint(2, 4 + difficulty)
-            points_multiplier = 3 if is_bonus_level else 1
-
-            for _ in range(group_count):
-                type_num = random.randint(*alien_type_range)
-                category = random.choice([AlienCategory.SMALL, AlienCategory.LARGE])
-                sub_type = random.choice([AlienSubType.TYPE1, AlienSubType.TYPE2])
-                
-                count = random.randint(3, 8 + difficulty)
-                if category == AlienCategory.LARGE:
-                    count = count // 2  # Fewer large enemies
-                
-                alien_groups.append(self.create_alien_group(
-                    type_num, category, sub_type, count, difficulty
-                ))
-
-        return LevelData(
-            level_number=level_number,
-            name=f"Level {level_number}",
-            difficulty=difficulty,
-            alien_groups=alien_groups,
-            boss_data=None if not is_boss_level else {
-                "type": f"boss_{level_number // 25}",
-                "health": 50 + (level_number // 25) * 25,
-                "patterns": random.randint(2, 4 + (level_number // 50))
-            },
-            background_speed=1.0 + (difficulty * 0.1),
-            music_track=f"level_{random.randint(1,5)}.mp3",
-            special_effects=["bonus_multiplier"] if is_bonus_level else []
-        )
-
-    def generate_all_levels(self):
-        """Generate all 250 levels."""
-        for level in range(1, 251):
-            level_data = self.generate_level(level)
-            # Update path to be relative to script location
-            level_path = os.path.join(os.path.dirname(__file__), 
-                                    f"../../assets/levels/{level:03d}.json")
-            with open(level_path, "w") as f:
-                json.dump(level_data.__dict__, f, indent=2, 
-                         default=lambda x: x.value if isinstance(x, Enum) else x.__dict__)
-
-    def _generate_strategic_path(self, entry_point: EntryPoint, difficulty: int) -> List[PathPoint]:
-        """Generate a strategic path based on entry point and difficulty."""
-        paths = []
-        screen_width = 1.0
-        screen_height = 1.0
-
         # Starting point based on entry point
-        if entry_point == EntryPoint.TOP:
-            start_x = random.random()
-            paths.append(PathPoint(start_x, 0, 0, False))
-        elif entry_point == EntryPoint.TOP_LEFT:
-            paths.append(PathPoint(0, 0, 0, False))
-        elif entry_point == EntryPoint.TOP_RIGHT:
-            paths.append(PathPoint(1, 0, 0, False))
-        elif entry_point == EntryPoint.LEFT:
-            start_y = random.random() * 0.3  # Top third of screen
-            paths.append(PathPoint(0, start_y, 0, False))
-        elif entry_point == EntryPoint.RIGHT:
-            start_y = random.random() * 0.3
-            paths.append(PathPoint(1, start_y, 0, False))
-
-        # Number of waypoints increases with difficulty
-        num_points = 2 + difficulty // 2
-
-        # Generate strategic waypoints
-        for i in range(num_points):
-            x = random.random()
-            y = random.random() * 0.7  # Keep in top 70% of screen
-            
-            # Higher difficulty means more complex paths
-            if difficulty > 5:
-                # Add more waiting points and shooting opportunities
-                wait = random.random() * (difficulty * 0.5)  # More waiting time
-                shoot = random.random() < (0.2 + difficulty * 0.05)  # More shooting
-            else:
-                wait = random.random() * 2
-                shoot = random.random() < 0.3
-                
-            paths.append(PathPoint(x, y, wait, shoot))
-
-        # Add exit point
-        paths.append(PathPoint(random.random(), 0, 0, False))
-        return paths
-
-    def _get_appropriate_pattern(self, category: AlienCategory, difficulty: int) -> MovementPattern:
-        """Choose appropriate movement pattern based on alien type and difficulty."""
-        if category == AlienCategory.BOSS:
-            return MovementPattern.BOSS
+        if entry_point == "top_center":
+            start_x = 0.5
+        elif entry_point == "top_left":
+            start_x = 0.2
+        elif entry_point == "top_right":
+            start_x = 0.8
         
-        # Available patterns based on difficulty
-        patterns = [MovementPattern.STRAIGHT]
-        if difficulty > 3:
-            patterns.extend([MovementPattern.ZIGZAG, MovementPattern.WAVE])
-        if difficulty > 5:
-            patterns.extend([MovementPattern.CIRCULAR, MovementPattern.SWARM])
-        if difficulty > 7:
-            patterns.append(MovementPattern.RANDOM)
-            
-        return random.choice(patterns)
+        path.append({
+            "x": start_x,
+            "y": 0.1,
+            "wait_time": 0,
+            "shoot": False
+        })
 
-    def _calculate_speed(self, category: AlienCategory, difficulty: int) -> float:
-        """Calculate appropriate speed based on alien type and difficulty."""
-        base_speed = 1.0
-        speed_modifier = ALIEN_SETTINGS[category.value]["speed_modifier"]
-        difficulty_bonus = SPECIAL_EFFECTS["difficulty_scaling"] * difficulty
-        return base_speed * speed_modifier + difficulty_bonus
+        # Generate middle points
+        for _ in range(points - 2):
+            path.append({
+                "x": random.uniform(0.1, 0.9),
+                "y": random.uniform(0.2, 0.6),
+                "wait_time": random.uniform(0.5, 2.0),
+                "shoot": random.random() > 0.5
+            })
 
-    def _calculate_shoot_interval(self, category: AlienCategory, difficulty: int) -> float:
-        """Calculate shooting interval based on alien type and difficulty."""
-        base_interval = ALIEN_SETTINGS[category.value]["shoot_interval"]
-        difficulty_reduction = SPECIAL_EFFECTS["difficulty_scaling"] * difficulty
-        return max(0.5, base_interval - difficulty_reduction)
+        # End point (return to top)
+        path.append({
+            "x": random.uniform(0.2, 0.8),
+            "y": 0.1,
+            "wait_time": 0,
+            "shoot": False
+        })
 
-    def _should_use_group_behavior(self, formation: str, difficulty: int) -> bool:
-        """Determine if aliens should move as a group."""
-        base_chance = FORMATIONS[formation]["group_behavior_chance"]
-        difficulty_bonus = SPECIAL_EFFECTS["difficulty_scaling"] * difficulty
-        return random.random() < (base_chance + difficulty_bonus)
+        return path
+
+    def generate_alien_group(self, config: LevelConfig) -> Dict:
+        """Generate a single alien group configuration."""
+        count = random.randint(config.min_aliens, config.max_aliens)
+        formation = random.choice(config.formations)
+        
+        # Adjust spacing based on formation
+        if formation == "line":
+            spacing = random.randint(30, 50)
+        elif formation == "v":
+            spacing = random.randint(35, 55)
+        else:
+            spacing = random.randint(40, 60)
+
+        entry_point = random.choice(config.entry_points)
+        
+        return {
+            "alien_type": random.choice(config.alien_types),
+            "count": count,
+            "formation": formation,
+            "spacing": spacing,
+            "entry_point": entry_point,
+            "path": self.generate_path(entry_point, config.difficulty),
+            "movement_pattern": random.choice(config.movement_patterns),
+            "speed": random.uniform(1.5, 2.5),
+            "health": random.randint(1, config.difficulty + 1),
+            "shoot_interval": random.uniform(1.5, 3.0),
+            "group_behavior": random.random() > 0.7
+        }
+
+    def generate_boss_data(self, level_number: int) -> Dict:
+        """Generate boss configuration for milestone levels."""
+        return {
+            "type": f"boss_{(level_number // 25):02d}",
+            "health": 100 + (level_number // 25) * 50,
+            "speed": 1.0,
+            "attack_patterns": ["pattern1", "pattern2", "pattern3"],
+            "phase_count": 3
+        }
+
+    def generate_level(self, level_number: int) -> Dict:
+        """Generate a complete level configuration."""
+        # Find the appropriate difficulty config for this level
+        config = next((conf for (start, end), conf in self.difficulty_configs.items() 
+                      if start <= level_number <= end), None)
+        
+        if not config:
+            raise ValueError(f"No configuration found for level {level_number}")
+
+        # Generate groups
+        group_count = random.randint(config.min_groups, config.max_groups)
+        alien_groups = [self.generate_alien_group(config) for _ in range(group_count)]
+
+        # Determine if this is a boss level
+        is_boss_level = config.boss_enabled and level_number % 25 == 0
+        boss_data = self.generate_boss_data(level_number) if is_boss_level else None
+
+        return {
+            "level_number": level_number,
+            "name": f"Level {level_number}",
+            "difficulty": config.difficulty,
+            "alien_groups": alien_groups,
+            "boss_data": boss_data,
+            "background_speed": 1.0 + (level_number // 25) * 0.2,
+            "music_track": f"level{(level_number // 25) + 1}.mp3",
+            "special_effects": [],
+            "power_up_frequency": 0.2,
+            "minimum_clear_time": 30.0
+        }
+
+    def generate_all_levels(self, start_level: int = 1, end_level: int = 100):
+        """Generate all level files."""
+        output_dir = os.path.join("assets", "levels")
+        os.makedirs(output_dir, exist_ok=True)
+
+        for level in range(start_level, end_level + 1):
+            try:
+                level_data = self.generate_level(level)
+                filename = os.path.join(output_dir, f"{level:03d}.json")
+                
+                with open(filename, 'w') as f:
+                    json.dump(level_data, f, indent=2)
+                    
+                logger.info(f"Generated level {level}")
+            except Exception as e:
+                logger.error(f"Error generating level {level}: {e}")
 
 if __name__ == "__main__":
-    # Print current directory and Python path for debugging
-    print(f"Current directory: {os.getcwd()}")
-    print(f"Python path: {sys.path}")
-    
+    logging.basicConfig(level=logging.INFO)
     generator = LevelGenerator()
-    generator.generate_all_levels() 
+    
+    # Generate first 100 levels by default
+    generator.generate_all_levels(1, 200) 
