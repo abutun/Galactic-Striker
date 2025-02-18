@@ -14,6 +14,7 @@ from src.background import Background
 from src.scoring import ScoreManager
 from src.sound_manager import SoundManager
 from src.level.level_manager import LevelManager
+from src.level.level_editor import LevelEditor
 from src.utils.asset_loader import AssetLoader
 
 # Game settings and state
@@ -79,7 +80,7 @@ def draw_dev_info(screen, player, level_manager, score_manager):
         f"Score: {score_manager.score}",
         f"Letters: {', '.join(player.letters) if player.letters else 'None'}"
     ]
-    overlay = pygame.Surface((270, 400))
+    overlay = pygame.Surface((210, 300))
     overlay.set_alpha(200)
     overlay.fill((0, 0, 0))
     font = pygame.font.Font(None, 20)
@@ -130,12 +131,16 @@ class Game:
         self.score_manager = ScoreManager()
         self.sound_manager = SoundManager()
         self.level_manager = LevelManager(1, self.enemies, self.all_sprites, self.enemy_bullets)
-        
+        self.editor = LevelEditor()
+
         # Pass sound manager to objects that need it
         self.player.sound_manager = self.sound_manager
         self.level_manager.sound_manager = self.sound_manager
         
         self.running = True
+        self.dev_mode = False  # developer mode toggle
+        self.editing = False  # editing mode toggle
+
 
     def load_settings(self):
         """Load game settings from config."""
@@ -261,9 +266,9 @@ class Game:
                 self.enemies.add(alien)
                 self.all_sprites.add(alien)
         except Exception as e:
-            logger.error(f"Error spawning alien group: {e}")
+            logger.error(f"Error spawning alien group 0x0001: {e.with_traceback}")
 
-    def draw(self, dev_mode):
+    def draw(self, dev_mode, editing):
         """Draw game state."""
         self.background.draw(self.screen)
         
@@ -277,6 +282,9 @@ class Game:
         
         if dev_mode:
             draw_dev_info(self.screen, self.player, self.level_manager, self.score_manager)
+
+        if editing:
+            self.editor.draw()           
         
         pygame.display.flip()
 
@@ -354,7 +362,11 @@ class Game:
                             self.running = False
                         elif event.key == pygame.K_F3:
                             self.settings['debug'] = not self.settings['debug']
-                
+                        elif event.key == pygame.K_e:
+                            self.editing = not self.editing
+                        elif event.key == pygame.K_d:
+                            self.dev_mode = not self.dev_mode
+
                 # Update game state
                 self.update(dt)
                 
@@ -364,9 +376,9 @@ class Game:
                     self.show_level_intro(next_level)  # Show intro while game continues
                     self.level_manager.load_next_level()  # Load next level after countdown
                     self.level_manager.spawn_next_group()  # Spawn first group of new level
-                
+
                 # Draw everything
-                self.draw(self.settings['debug'])
+                self.draw(self.dev_mode, self.editing)
                 pygame.display.flip()
             
             pygame.quit()

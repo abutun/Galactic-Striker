@@ -39,13 +39,13 @@ class LevelGenerator:
             (1, 10): LevelConfig(
                 min_groups=1,
                 max_groups=3,
-                min_aliens=3,
-                max_aliens=5,
+                min_aliens=5,
+                max_aliens=10,
                 alien_types=[f"alien_{i:02d}_{'small' if j < 2 else 'large'}_{k:02d}" 
                            for i in range(1,4) for j in range(3) for k in range(1,3)],
                 formations=["line", "v", "circle", "diamond", "wave", "cross"],
                 movement_patterns=["straight", "wave", "zigzag", "swarm", "circular"],
-                entry_points=["top_center", "top_left", "top_right"],
+                entry_points=["top_center", "top_left", "top_right", "left_top", "right_top"],
                 difficulty=1,
                 boss_enabled=False
             ),
@@ -53,13 +53,13 @@ class LevelGenerator:
             (11, 25): LevelConfig(
                 min_groups=2,
                 max_groups=4,
-                min_aliens=4,
-                max_aliens=6,
+                min_aliens=5,
+                max_aliens=10,
                 alien_types=[f"alien_{i:02d}_{'small' if j < 2 else 'large'}_{k:02d}" 
                            for i in range(4,7) for j in range(3) for k in range(1,3)],
                 formations=["line", "v", "circle", "diamond", "wave", "cross", "spiral"],
                 movement_patterns=["straight", "wave", "zigzag", "swarm", "circular"],
-                entry_points=["top_center", "top_left", "top_right"],
+                entry_points=["top_center", "top_left", "top_right", "left_top", "right_top"],
                 difficulty=2,
                 boss_enabled=True
             ),
@@ -67,13 +67,13 @@ class LevelGenerator:
             (26, 50): LevelConfig(
                 min_groups=3,
                 max_groups=5,
-                min_aliens=5,
-                max_aliens=8,
+                min_aliens=10,
+                max_aliens=15,
                 alien_types=[f"alien_{i:02d}_{'small' if j < 2 else 'large'}_{k:02d}" 
                            for i in range(7,11) for j in range(3) for k in range(1,3)],
                 formations=["line", "v", "circle", "diamond", "wave", "cross", "spiral"],
                 movement_patterns=["straight", "wave", "zigzag", "swarm", "circular", "random"],
-                entry_points=["top_center", "top_left", "top_right"],
+                entry_points=["top_center", "top_left", "top_right", "left_top", "right_top"],
                 difficulty=3,
                 boss_enabled=True
             ),
@@ -81,13 +81,13 @@ class LevelGenerator:
             (51, 75): LevelConfig(
                 min_groups=4,
                 max_groups=6,
-                min_aliens=6,
-                max_aliens=10,
+                min_aliens=10,
+                max_aliens=15,
                 alien_types=[f"alien_{i:02d}_{'small' if j < 2 else 'large'}_{k:02d}" 
                            for i in range(11,15) for j in range(3) for k in range(1,3)],
                 formations=["line", "v", "circle", "diamond", "wave", "cross", "spiral"],
                 movement_patterns=["straight", "wave", "zigzag", "swarm", "circular", "random"],
-                entry_points=["top_center", "top_left", "top_right"],
+                entry_points=["top_center", "top_left", "top_right", "left_top", "right_top"],
                 difficulty=4,
                 boss_enabled=True
             ),
@@ -95,13 +95,13 @@ class LevelGenerator:
             (76, 100): LevelConfig(
                 min_groups=5,
                 max_groups=7,
-                min_aliens=7,
-                max_aliens=12,
+                min_aliens=10,
+                max_aliens=20,
                 alien_types=[f"alien_{i:02d}_{'small' if j < 2 else 'large'}_{k:02d}" 
                            for i in range(15,18) for j in range(3) for k in range(1,3)],
                 formations=["line", "v", "circle", "diamond", "wave", "cross", "spiral"],
                 movement_patterns=["straight", "wave", "zigzag", "swarm", "circular", "random", "chase"],
-                entry_points=["top_center", "top_left", "top_right"],
+                entry_points=["top_center", "top_left", "top_right", "left_top", "right_top"],
                 difficulty=5,
                 boss_enabled=True
             ),
@@ -109,13 +109,13 @@ class LevelGenerator:
             (101, 150): LevelConfig(
                 min_groups=6,
                 max_groups=8,
-                min_aliens=8,
-                max_aliens=15,
+                min_aliens=15,
+                max_aliens=25,
                 alien_types=[f"alien_{i:02d}_{'small' if j < 2 else 'large'}_{k:02d}" 
                            for i in range(18,22) for j in range(3) for k in range(1,3)],
                 formations=["line", "v", "circle", "diamond", "wave", "cross", "spiral"],
                 movement_patterns=["straight", "wave", "zigzag", "swarm", "circular", "random", "chase"],
-                entry_points=["top_center", "top_left", "top_right"],
+                entry_points=["top_center", "top_left", "top_right", "left_top", "right_top"],
                 difficulty=6,
                 boss_enabled=True
             ),
@@ -123,13 +123,13 @@ class LevelGenerator:
             (151, 200): LevelConfig(
                 min_groups=7,
                 max_groups=10,
-                min_aliens=10,
-                max_aliens=20,
+                min_aliens=20,
+                max_aliens=30,
                 alien_types=[f"alien_{i:02d}_{'small' if j < 2 else 'large'}_{k:02d}" 
                            for i in range(22,26) for j in range(3) for k in range(1,3)],
                 formations=["line", "v", "circle", "diamond", "wave", "cross", "spiral", "star"],
                 movement_patterns=["straight", "wave", "zigzag", "swarm", "circular", "random", "chase", "teleport"],
-                entry_points=["top_center", "top_left", "top_right"],
+                entry_points=["top_center", "top_left", "top_right", "left_top", "right_top"],
                 difficulty=7,
                 boss_enabled=True
             )
@@ -143,14 +143,26 @@ class LevelGenerator:
         # Starting point based on entry point
         if entry_point == "top_center":
             start_x = 0.5
+            start_y = 0.1
         elif entry_point == "top_left":
             start_x = 0.2
+            start_y = 0.1
         elif entry_point == "top_right":
             start_x = 0.8
-        
+            start_y = 0.1
+        elif entry_point == "left_top":
+            start_x = 0.1
+            start_y = 0.1
+        elif entry_point == "right_top":
+            start_x = 0.9
+            start_y = 0.1
+        else:
+            start_x = 0.5
+            start_y = 0.1
+
         path.append({
             "x": start_x,
-            "y": 0.1,
+            "y": start_y,
             "wait_time": 0,
             "shoot": False
         })
@@ -264,5 +276,5 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
     generator = LevelGenerator()
     
-    # Generate first 100 levels by default
+    # Generate first 200 levels by default
     generator.generate_all_levels(1, 200) 

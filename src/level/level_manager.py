@@ -2,7 +2,6 @@ import os
 import json
 import pygame
 from src.enemy.alien import NonBossAlien, BossAlien
-from src.level.level_data import LevelData, AlienGroup
 from src.level.level_data import *
 import logging
 from src.config.game_settings import MOVEMENT_PATTERNS
@@ -18,6 +17,20 @@ def load_level_json(level_number):
         return json.load(f)
 
 
+@dataclass
+class LevelData:
+    level_number: int
+    name: str
+    difficulty: int
+    alien_groups: List[Dict]  # Changed from enemy_formations
+    boss_data: Optional[Dict] = None
+    background_speed: float = 1.0
+    music_track: Optional[str] = None
+    special_effects: List[str] = None
+    power_up_frequency: float = 0.2
+    minimum_clear_time: float = 30.0
+
+
 class LevelManager:
     def __init__(self, start_level: int, enemy_group, sprite_group, bullet_group):
         self.current_level = start_level
@@ -30,7 +43,7 @@ class LevelManager:
         self.level_complete = False
         self.level_transition_time = 2000  # 2 seconds between levels
         self.last_level_time = 0
-        
+
         if not self.level_data:
             raise ValueError(f"Could not load level {start_level}")
 
@@ -135,43 +148,30 @@ class LevelManager:
                 start_x = int(screen.get_width() * 0.2)
             elif group['entry_point'] == "top_right":
                 start_x = int(screen.get_width() * 0.8)
+            elif group['entry_point'] == "left_top":
+                start_x = int(screen.get_width() * 0.1)
+                start_y = 50
+            elif group['entry_point'] == "right_top":
+                start_x = int(screen.get_width() * 0.9)                                
+                start_y = 50
             else:
                 start_x = screen.get_width() // 2
 
-            parts = group['alien_type'].split('_')
-            type = parts[0]
-            id = parts[1]
-
             # Create aliens with adjusted positions
-            if type == "alien":
-                alien_type = parts[2]
-                alien_subtype = parts[3]
-                for pos in positions:
-                    alien = NonBossAlien(
-                        id, start_x + pos[0], start_y + pos[1],
-                        self.bullet_group,
-                        alien_type,
-                        alien_subtype
-                        )
-                    alien.health = group['health']
-                    alien.speed = group['speed']
-                    alien.sound_manager = self.sound_manager
-                    aliens.append(alien)
-            elif type == "boss":
-                boss = BossAlien(
-                    id, start_x + pos[0], start_y + pos[1],
-                    self.bullet_group
+            for pos in positions:
+                alien = NonBossAlien(
+                    start_x + pos[0], start_y + pos[1],
+                    self.bullet_group,
+                    group['alien_type']
                 )
-                boss.health = group['health']
-                boss.speed = group['speed']
-                boss.sound_manager = self.sound_manager
-                aliens.append(boss)
-
+                alien.health = group['health']
+                alien.speed = group['speed']
+                aliens.append(alien)
 
             # Add aliens to sprite groups
-            for enemy in aliens:
-                self.enemy_group.add(enemy)
-                self.sprite_group.add(enemy)
+            for alien in aliens:
+                self.enemy_group.add(alien)
+                self.sprite_group.add(alien)
 
             # Add to active groups
             self.active_groups.append({
@@ -181,7 +181,7 @@ class LevelManager:
             })
 
         except Exception as e:
-            logger.error(f"Error spawning alien group: {e}")
+            logger.error(f"Error spawning alien group 0x0002: {e}")
 
     def calculate_formation_positions(self, formation, count, spacing):
         positions = []
