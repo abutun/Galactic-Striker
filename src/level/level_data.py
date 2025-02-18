@@ -4,16 +4,25 @@ from enum import Enum
 import pygame
 import json
 
-class MovementPattern(Enum):
+class Movement(Enum):
     STRAIGHT = "straight"
     ZIGZAG = "zigzag"
     CIRCULAR = "circular"
     WAVE = "wave"
     SWARM = "swarm"
     RANDOM = "random"
-    BOSS = "boss"
     CHASE = "chase"
     TELEPORT = "teleport"
+
+class Formation(Enum):
+    LINE = "line"
+    V = "v"
+    CIRCLE = "circle"
+    DIAMOND = "diamond"
+    WAVE = "wave"
+    CROSS = "cross"
+    SPIRAL = "spiral"
+    STAR = "star"
 
 class EntryPoint(Enum):
     TOP_CENTER = "top_center"
@@ -33,11 +42,11 @@ class PathPoint:
 class AlienGroup:
     alien_type: str
     count: int
-    formation: str  # "line", "v", "circle", etc.
+    formation: Formation
     spacing: int
     entry_point: EntryPoint
     path: List[PathPoint]
-    movement_pattern: MovementPattern
+    movement_pattern: Movement
     speed: float
     health: int
     shoot_interval: float

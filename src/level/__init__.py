@@ -1,1 +1,1 @@
-from .level_data import LevelData, PathPoint, AlienGroup, EntryPoint, MovementPattern 
+from .level_data import LevelData, PathPoint, AlienGroup, EntryPoint, Movement 

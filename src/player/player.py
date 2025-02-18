@@ -32,7 +32,7 @@ class Player(pygame.sprite.Sprite):
             
             # Initialize player attributes
             self.bullet_group = bullet_group
-            self.speed = 10
+            self.speed = 8
             self.health = 100
             self.shield = 0
             self.lives = 3

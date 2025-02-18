@@ -201,7 +201,7 @@ class Game:
             if 'game_context' in bonus.apply.__code__.co_varnames:
                 bonus.apply(self.player, {"score_manager": self.score_manager, "enemy_group": self.enemies})
             else:
-                bonus.apply(self.player)  # For bonuses that don't use game_context
+                bonus.apply(self.player)
 
     def update(self, dt):
         """Update game state."""
@@ -246,27 +246,13 @@ class Game:
                 reward = reward_class(position[0], position[1])
 
             # Set sound manager for the reward if it needs sounds
-            if hasattr(reward, 'sound_manager'):
-                reward.sound_manager = self.sound_manager
+            reward.sound_manager = self.sound_manager
             
             self.bonus_group.add(reward)
             self.all_sprites.add(reward)
             
         except Exception as e:
             logger.error(f"Error spawning rewards: {e}")
-
-    def spawn_alien_group(self, group_data):
-        """Spawn a group of aliens."""
-        try:
-            aliens = []
-            for pos in group_data['positions']:
-                alien = NonBossAlien(pos[0], pos[1], self.enemy_bullets, group_data['alien_type'])
-                alien.sound_manager = self.sound_manager  # Set sound manager for each alien
-                aliens.append(alien)
-                self.enemies.add(alien)
-                self.all_sprites.add(alien)
-        except Exception as e:
-            logger.error(f"Error spawning alien group 0x0001: {e}")
 
     def draw(self, dev_mode, editing):
         """Draw game state."""

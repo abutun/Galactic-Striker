@@ -26,6 +26,10 @@ class SoundManager:
             self.sounds['alien_hit_02'] = load_sound('assets/sounds/alien_hit_02.wav')
             self.sounds['alien_death_01'] = load_sound('assets/sounds/alien_death_01.wav')
             self.sounds['alien_death_02'] = load_sound('assets/sounds/alien_death_02.wav')
+
+            # Bonus sounds
+            self.sounds['bonus_reward'] = load_sound('assets/sounds/bonus_reward.wav')
+            self.sounds['collision'] = load_sound('assets/sounds/collision.wav')
             
             # Adjust volumes
             for sound in self.sounds.values():
