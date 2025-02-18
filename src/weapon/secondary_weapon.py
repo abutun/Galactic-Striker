@@ -1,5 +1,5 @@
 # src/weapon/secondary_weapon.py
-from src.weapons import Missile
+from src.weapon.weapons import Missile
 
 class SecondaryWeapon:
     def fire(self, player, bullet_group):

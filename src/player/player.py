@@ -2,7 +2,7 @@ import pygame
 import logging
 from src.utils.utils import ResourceManager, load_image
 from src.weapon.weapon_factory import WeaponFactory
-from src.weapons import Missile, Bullet
+from src.weapon.weapons import Missile, Bullet
 
 logger = logging.getLogger(__name__)
 

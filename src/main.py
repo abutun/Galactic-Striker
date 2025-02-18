@@ -8,12 +8,12 @@ import pygame
 logger = logging.getLogger(__name__)
 
 # Core game components
-from src.player import Player, RANK_NAMES
+from src.player.player import Player, RANK_NAMES
 from src.enemy.alien import NonBossAlien
-from src.background import Background
-from src.scoring import ScoreManager
-from src.sound_manager import SoundManager
-from src.level.level_manager import LevelManager
+from src.misc.background import Background
+from src.manager.score_manager import ScoreManager
+from src.manager.sound_manager import SoundManager
+from src.manager.level_manager import LevelManager
 from src.level.level_editor import LevelEditor
 from src.utils.asset_loader import AssetLoader
 
@@ -24,7 +24,7 @@ from src.config.game_settings import (
     MOVEMENT_PATTERNS,
     SPECIAL_EFFECTS
 )
-import src.config.global_state as global_state
+import src.state.global_state as global_state
 
 # Bonus system imports
 from src.bonus import (

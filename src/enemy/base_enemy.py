@@ -56,7 +56,7 @@ class BaseEnemy(pygame.sprite.Sprite):
         """Update enemy behavior."""
         try:
             # Update context with current game state
-            from src.config.global_state import global_player
+            from src.state.global_state import global_player
             self.context['player'] = global_player
             
             # Execute behavior tree

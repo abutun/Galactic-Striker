@@ -351,7 +351,7 @@ class LevelManager:
                 
             elif pattern == MovementPattern.CHASE:
                 # Chase player if available
-                from src.config.global_state import global_player
+                from src.state.global_state import global_player
                 if global_player:
                     for alien in aliens:
                         dx = global_player.rect.x - alien.rect.x

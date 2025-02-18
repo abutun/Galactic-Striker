@@ -1,6 +1,6 @@
 # src/weapon/weapon5.py
 import pygame
-from src.weapons import Bullet
+from src.weapon.weapons import Bullet
 from src.weapon.base_weapon import PrimaryWeapon
 
 class Weapon5(PrimaryWeapon):

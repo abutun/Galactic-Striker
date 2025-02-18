@@ -3,8 +3,8 @@ import math
 import random
 from src.enemy.base_enemy import BaseEnemy
 from src.utils.utils import load_image
-from src.config.global_state import global_player
-from src.weapons import Bullet
+from src.state.global_state import global_player
+from src.weapon.weapons import Bullet
 import logging
 
 from src.config.game_settings import ALIEN_SETTINGS
