@@ -1,25 +1,41 @@
-from .base_bonus import BaseBonus
+from .base_bonus import Bonus
 
-class SingleShotBonus(BaseBonus):
+class SingleShotBonus(Bonus):
     def __init__(self, x, y):
-        super().__init__(x, y, "assets/sprites/single_shot.png", (200, 200, 200), (24, 24))
-    def apply(self, player, game_context=None):
-        player.shot_count = 1
+        super().__init__(x, y, 
+                        image_path="assets/sprites/single_shot.png",
+                        fallback_color=(200, 200, 200),
+                        size=(24, 24))
 
-class DoubleShotBonus(BaseBonus):
-    def __init__(self, x, y):
-        super().__init__(x, y, "assets/sprites/double_shot.png", (200, 200, 200), (24, 24))
-    def apply(self, player, game_context=None):
-        player.shot_count = 2
+    def apply(self, player):
+        player.primary_weapon = 1
 
-class TripleShotBonus(BaseBonus):
+class DoubleShotBonus(Bonus):
     def __init__(self, x, y):
-        super().__init__(x, y, "assets/sprites/triple_shot.png", (200, 200, 200), (24, 24))
-    def apply(self, player, game_context=None):
-        player.shot_count = 3
+        super().__init__(x, y, 
+                        image_path="assets/sprites/double_shot.png",
+                        fallback_color=(200, 200, 200),
+                        size=(24, 24))
 
-class QuadShotBonus(BaseBonus):
+    def apply(self, player):
+        player.primary_weapon = 2
+
+class TripleShotBonus(Bonus):
     def __init__(self, x, y):
-        super().__init__(x, y, "assets/sprites/quad_shot.png", (200, 200, 200), (24, 24))
-    def apply(self, player, game_context=None):
-        player.shot_count = 4
+        super().__init__(x, y, 
+                        image_path="assets/sprites/triple_shot.png",
+                        fallback_color=(200, 200, 200),
+                        size=(24, 24))
+
+    def apply(self, player):
+        player.primary_weapon = 3
+
+class QuadShotBonus(Bonus):
+    def __init__(self, x, y):
+        super().__init__(x, y, 
+                        image_path="assets/sprites/quad_shot.png",
+                        fallback_color=(200, 200, 200),
+                        size=(24, 24))
+
+    def apply(self, player):
+        player.primary_weapon = 4

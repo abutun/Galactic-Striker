@@ -2,18 +2,21 @@ import pygame
 import math
 import random
 from src.enemy.base_enemy import BaseEnemy
-from src.utils import load_image
-from src.global_state import global_player
+from src.utils.utils import load_image
+from src.config.global_state import global_player
+from src.weapons import Bullet
+import logging
+
+from src.config.game_settings import ALIEN_SETTINGS
+
+logger = logging.getLogger(__name__)
 
 class Alien(BaseEnemy):
-    def __init__(self, x, y, bullet_group, health, speed, points, image_file, size):
-        super().__init__(x, y, bullet_group, health, speed, points)
-        # Load the image as a PNG now.
-        self.image = load_image(image_file, (255, 255, 255), size)
-        self.rect = self.image.get_rect(center=(x, y))
+    def __init__(self, id, x, y, bullet_group, health, speed, points, type, sub_type):
+        super().__init__(id, x, y, bullet_group, health, speed, points, type, sub_type)
         self.fire_delay = 2000  # milliseconds delay between shots
         self.last_fire = pygame.time.get_ticks()
-        self.path = None  # For enemy group movement (absolute coordinates)
+        self.path = None
         self.path_index = 0
 
     def follow_path(self):
@@ -71,48 +74,73 @@ class Alien(BaseEnemy):
             vy = bullet_speed * math.sin(angle)
         else:
             vx, vy = 0, 5
-        bullet = pygame.sprite.Sprite()
-        bullet.image = pygame.Surface((5, 10))
-        bullet.image.fill((255, 0, 0))
-        bullet.rect = bullet.image.get_rect(center=self.rect.midbottom)
-        bullet.vx = vx
-        bullet.vy = vy
-        bullet.damage = 1
-        def update_bullet(self):
-            self.rect.x += self.vx
-            self.rect.y += self.vy
-            scr = pygame.display.get_surface()
-            if scr:
-                sw, sh = scr.get_size()
-                if self.rect.top > sh or self.rect.left < 0 or self.rect.right > sw:
-                    self.kill()
-        bullet.update = update_bullet.__get__(bullet)
+
+        bullet = Bullet(self.rect.centerx, self.rect.bottom, vx, vy, 1)
+        bullet.image.fill((255, 0, 0))  # Red for enemy bullets
         self.bullet_group.add(bullet)
 
+        self.sound_manager.play(f'alien_fire_{self.sub_type}')
+
+    def take_damage(self, damage):
+        self.health -= damage
+        
+        # Play hit sound based on alien type
+        self.sound_manager.play(f'alien_hit_{self.sub_type}')
+            
+        if self.health <= 0:
+            self.sound_manager.play(f'alien_death_{self.sub_type}')
+            self.kill()
+
 class NonBossAlien(Alien):
-    def __init__(self, x, y, bullet_group, enemy_category="small", enemy_type=1, subtype=1):
-        """
-        enemy_category: "small" or "large"
-        enemy_type: integer 1..25
-        subtype: integer 1 or 2
-        """
-        if enemy_category == "small":
-            health = 1
-            points = 100
-            size = (32, 32)
-        else:
-            health = 3
-            points = 200
-            size = (48, 48)
-        # Construct image filename using PNG extension.
-        filename = f"assets/aliens/alien_{enemy_type:02d}_{enemy_category}_{subtype}.png"
-        super().__init__(x, y, bullet_group, health, speed=2, points=points, image_file=filename, size=size)
+    def __init__(self, id, x, y, bullet_group, enemy_type="small", enemy_subtype=1):
+        # Set up base stats based on enemy type
+        if enemy_type == "small":
+            health = ALIEN_SETTINGS["small"]["base_health"]
+            points = ALIEN_SETTINGS["small"]["base_points"]
+            size = ALIEN_SETTINGS["small"]["size"]
+            speed = ALIEN_SETTINGS["small"]["speed_modifier"]
+        else:  # large
+            health = ALIEN_SETTINGS["large"]["base_health"]
+            points = ALIEN_SETTINGS["large"]["base_points"]
+            size = ALIEN_SETTINGS["large"]["size"]
+            speed = ALIEN_SETTINGS["large"]["speed_modifier"]
+            
+        # Call parent constructor with base stats
+        super().__init__(id, x, y, bullet_group, health, speed, points, enemy_type, enemy_subtype)
+        
+        # Load sprite based on type and subtype
+        try:
+            self.image = load_image(f"assets/aliens/alien_{id}_{enemy_type}_{enemy_subtype}.png", fallback_color=(255, 0, 0),size=size)
+            self.rect = self.image.get_rect(center=(x, y))
+        except Exception as e:
+            logger.error(f"Error loading alien sprite: {e}")
+            # Create fallback surface
+            self.image = pygame.Surface(size)
+            self.image.fill((255, 0, 0))
+            self.rect = self.image.get_rect(center=(x, y))
+        
+        self.enemy_type = enemy_type  # Store the enemy type
+        self.enemy_subtype = enemy_subtype
 
 class BossAlien(Alien):
-    def __init__(self, x, y, bullet_group, boss_type=1):
-        health = 20
-        points = 1000
-        size = (96, 96)
-        filename = f"assets/aliens/boss_{boss_type:02d}.png"
-        super().__init__(x, y, bullet_group, health, speed=1, points=points, image_file=filename, size=size)
-        self.fire_delay = 1000
+    def __init__(self, id, x, y, bullet_group, boss_type=1):
+        health = ALIEN_SETTINGS["boss"]["base_health"] * boss_type
+        points = ALIEN_SETTINGS["boss"]["base_points"]
+        speed = ALIEN_SETTINGS["boss"]["speed_modifier"]
+        
+        super().__init__(id, x, y, bullet_group, health, speed, points, "boss", boss_type)
+        
+        # Load boss sprite
+        try:
+            size = ALIEN_SETTINGS["boss"]["size"]
+            self.image = load_image(
+                f"assets/aliens/boss_{id}_{boss_type}.png",
+                fallback_color=(255, 255, 0),
+                size=size
+            )
+            self.rect = self.image.get_rect(center=(x, y))
+        except Exception as e:
+            logger.error(f"Error loading boss sprite: {e}")
+            self.image = pygame.Surface(ALIEN_SETTINGS["boss"]["size"])
+            self.image.fill((255, 255, 0))
+            self.rect = self.image.get_rect(center=(x, y))

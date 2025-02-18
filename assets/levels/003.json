@@ -1,53 +1,51 @@
 {
-    "level_number": 3,
-    "level_type": "normal",
-    "difficulty": 3.0,
-    "individual_enemies": [
+  "level_number": 3,
+  "name": "Level 3",
+  "difficulty": 1,
+  "alien_groups": [
+    {
+      "alien_type": "alien_02_small_02",
+      "count": 3,
+      "formation": "diamond",
+      "spacing": 50,
+      "entry_point": "top_center",
+      "path": [
         {
-            "enemy_category": "small",
-            "enemy_type": 17,
-            "subtype": 2,
-            "x": 739,
-            "y": -100,
-            "spawn_time": 176,
-            "movement_pattern": "zigzag"
+          "x": 0.5,
+          "y": 0.1,
+          "wait_time": 0,
+          "shoot": false
         },
         {
-            "enemy_category": "large",
-            "enemy_type": 8,
-            "subtype": 1,
-            "x": 892,
-            "y": -100,
-            "spawn_time": 2275,
-            "movement_pattern": "zigzag"
+          "x": 0.7946284280063353,
+          "y": 0.45774311348349156,
+          "wait_time": 0.7337927880795537,
+          "shoot": false
         },
         {
-            "enemy_category": "large",
-            "enemy_type": 9,
-            "subtype": 1,
-            "x": -88,
-            "y": -100,
-            "spawn_time": 1317,
-            "movement_pattern": "random"
+          "x": 0.48493314725274617,
+          "y": 0.32853403511088003,
+          "wait_time": 1.183130478074288,
+          "shoot": false
         },
         {
-            "enemy_category": "large",
-            "enemy_type": 5,
-            "subtype": 2,
-            "x": -35,
-            "y": -100,
-            "spawn_time": 3838,
-            "movement_pattern": "direct"
-        },
-        {
-            "enemy_category": "small",
-            "enemy_type": 9,
-            "subtype": 1,
-            "x": 328,
-            "y": -100,
-            "spawn_time": 4880,
-            "movement_pattern": "circular"
+          "x": 0.7604050343725033,
+          "y": 0.1,
+          "wait_time": 0,
+          "shoot": false
         }
-    ],
-    "enemy_groups": []
+      ],
+      "movement_pattern": "straight",
+      "speed": 2.4845064348159474,
+      "health": 2,
+      "shoot_interval": 1.8235165828704534,
+      "group_behavior": false
+    }
+  ],
+  "boss_data": null,
+  "background_speed": 1.0,
+  "music_track": "level1.mp3",
+  "special_effects": [],
+  "power_up_frequency": 0.2,
+  "minimum_clear_time": 30.0
 }

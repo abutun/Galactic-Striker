@@ -1,7 +1,8 @@
 # src/weapon/weapon9.py
-from .base_weapon import PrimaryWeapon
-from src.weapons import Bullet
 import pygame
+from src.weapons import Bullet
+from src.weapon.base_weapon import PrimaryWeapon
+from src.utils.utils import load_image
 
 class Weapon9(PrimaryWeapon):
     def fire(self, player, bullet_group):

@@ -1,213 +1,305 @@
-# Galactic-Striker
+# 🚀 Galactic Striker
+A sophisticated vertical-scrolling space shooter built with Python and Pygame, featuring dynamic gameplay, extensive weapon systems, and procedurally generated content.
 
----
+## 📖 Table of Contents
+- [Features](#-features)
+- [Installation](#-installation)
+- [Gameplay](#-gameplay)
+- [Technical Details](#-technical-details)
+- [Development](#-development)
+- [Contributing](#-contributing)
+- [Testing](#-testing)
+- [Asset Management](#-asset-management)
+- [Known Issues](#-known-issues)
+- [Roadmap](#-roadmap)
+- [License](#-license)
 
-# **Game Design & Development Guide**  
-**Title**: *Galactic Striker* (Placeholder)  
-**Version**: 2.0  
-**Engine**: Python 3.x + pygame  
-**Target Platforms**: Windows, macOS, Linux, Android (via Pygame Subset for Android)  
+## 🎮 Features
 
----
+### Core Game Mechanics
+- **Dynamic Combat System**
+  - Real-time space combat with fluid controls
+  - Screen boundary system with play area borders
+  - Collision detection with pixel-perfect accuracy
+  - Particle effects for explosions and impacts
 
-## **1. Core Game Design**  
-### **1.1 Gameplay Overview**  
-- **Genre**: Vertical-scrolling arcade shooter.  
-- **Objective**: Survive waves of enemies, defeat bosses, and achieve high scores.  
-- **Key Features**:  
-  - Customizable ships and weapons.  
-  - User-generated levels via an in-game editor.  
-  - Retro pixel art and chiptune soundtrack.  
+### Weapon Systems
+1. **Primary Weapons**
+   - Weapon1: Basic single shot - Fast, reliable starter
+   - Weapon2: Double parallel - Two-way projectiles
+   - Weapon3: Triple spread - Three-way projectiles
+   - Weapon4: Quadriple parallel - Four-way projectiles
+   - Weapon5: Heavy shot - Maximum damage, slow rate
+   - Weapon6: Five-way spread - Wide area coverage
+   - Weapon7: Fireball - Explosive area damage
 
----
+2. **Secondary Systems**
+   - Missile system with lock-on capability
+   - Shield system with regeneration
+   - Special weapons (unlockable)
 
-## **2. Technical Architecture**  
-### **2.1 Framework & Tools**  
-- **Language**: Python 3.x  
-- **Libraries**:  
-  - **pygame**: Core rendering, input, and audio.  
-  - **pygame_gui**: Level editor UI.  
-  - **pytmx**: For importing Tiled map editor files (optional).  
-  - **numpy**: Efficient math operations (e.g., collision grids).  
-- **Tools**:  
-  - **Aseprite/Tiled**: Pixel art and level design.  
-  - **Bosca Ceoil/BFXR**: Music and SFX generation.  
+### Enemy System
+- **Types & Behaviors**
+  - Small Aliens: Fast, agile, basic attacks
+  - Large Aliens: Slower, tougher, complex attack patterns
+  - Boss Aliens: Unique mechanics and multiple phases
+  
+- **AI & Patterns**
+  - Advanced pathfinding
+  - Formation-based movement
+  - Dynamic difficulty adjustment
+  - Behavioral trees for complex enemy decisions
 
-### **2.2 Folder Structure**  
-```plaintext
-/galactic_striker  
-  ├── /assets  
-  │   ├── /sprites (ships, enemies, bullets)  
-  │   ├── /backgrounds (parallax layers)  
-  │   ├── /audio (music, SFX)  
-  │   └── /levels (pre-built and custom levels)  
-  ├── /src  
-  │   ├── main.py (game loop)  
-  │   ├── player.py (player logic)  
-  │   ├── enemies.py (enemy classes)  
-  │   ├── level_editor.py (editor logic)  
-  │   └── utils.py (helper functions)  
-  └── requirements.txt  
+### Progression System
+1. **Player Development**
+   - Experience-based ranking system
+   - Collectible rank markers
+   - Skill-based upgrades
+   - Permanent ship improvements
+
+2. **Level Structure**
+   - 250 handcrafted levels
+   - Boss encounters every 25 levels
+   - Increasing complexity and challenge
+   - Special bonus levels
+
+### Bonus System
+1. **Power-ups**
+   - Weapon upgrades
+   - Speed boosts
+   - Shield enhancements
+   - Extra lives
+   - Time bonuses
+
+2. **Special Items**
+   - Score multipliers
+   - Money bonuses (10, 50, 100, 200)
+   - Letter collection system
+   - Hidden bonus items
+
+3. **Unique Modifiers**
+   - Mirror mode
+   - Drunk mode
+   - Freeze mode
+   - Warp capability
+
+## 🛠️ Installation
+
+### Prerequisites
+- Python 3.8 or higher
+- Pygame 2.0 or higher
+- Additional dependencies listed in requirements.txt
+
+### Standard Installation
+```bash
+# Clone the repository
+git clone https://github.com/yourusername/galactic-striker.git
+cd galactic-striker
+
+# Create virtual environment (optional but recommended)
+python -m venv venv
+source venv/bin/activate  # Linux/Mac
+# or
+venv\Scripts\activate  # Windows
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Run the game
+python run.py
 ```
 
+### Development Installation
+```bash
+# Install development dependencies
+pip install -r requirements-dev.txt
+
+# Install pre-commit hooks
+pre-commit install
+```
+
+## 🎯 Gameplay
+
+### Controls
+- **Movement**
+  - Arrow keys: Ship movement
+  - WASD: Alternative movement controls
+  
+- **Combat**
+  - SPACE: Primary weapon
+  - LEFT SHIFT: Secondary weapon/missiles
+  - CTRL: Special ability
+  
+- **System**
+  - ESC: Pause/Menu
+  - P: Quick pause
+  - M: Mute audio
+  - F: Toggle fullscreen
+
+### Game Modes
+1. **Campaign Mode**
+   - Progressive level system
+   - Story-driven missions
+   - Boss encounters
+   - Achievement tracking
+
+2. **Arcade Mode**
+   - Endless gameplay
+   - High score focus
+   - Progressive difficulty
+   - Daily challenges
+
+3. **Practice Mode**
+   - Level selection
+   - Boss practice
+   - Weapon testing
+   - Pattern learning
+
+## 🔧 Technical Details
+
+### Engine Architecture
+- **Core Systems**
+  - Custom game loop
+  - Entity Component System
+  - Event management
+  - Resource management
+  
+- **Performance Features**
+  - Sprite batching
+  - Quadtree collision detection
+  - Asset preloading
+  - Memory management
+
+### Display System
+- Fullscreen support
+- Multiple resolution handling
+- Vsync support
+- Dynamic scaling
+
+### Audio System
+- Dynamic music system
+- Positional audio
+- Sound pooling
+- Real-time mixing
+
+## 💻 Development
+
+### Project Structure
+Detailed breakdown of the modular architecture:
+
+```plaintext
+galactic-striker/
+├── assets/              # Game resources
+│   ├── aliens/         # Enemy sprites
+│   ├── background/     # Background assets
+│   ├── bonuses/        # Bonus sprites
+│   ├── levels/         # Level definitions
+│   ├── music/          # Audio tracks
+│   ├── sounds/         # Sound effects
+│   └── sprites/        # General sprites
+│
+├── src/                # Source code
+│   ├── bonus/         # Bonus system
+│   ├── config/        # Configuration
+│   ├── enemy/         # Enemy system
+│   ├── level/         # Level system
+│   ├── scripts/       # Utility scripts
+│   ├── weapon/        # Weapon system
+│   └── ...            # Core modules
+│
+└── tests/             # Test suite
+```
+
+### Development Tools
+- **Level Editor**
+  ```bash
+  python src/level_editor.py
+  ```
+  
+- **Asset Verification**
+  ```bash
+  python src/scripts/verify_assets.py
+  ```
+  
+- **Sprite Generation**
+  ```bash
+  python src/scripts/generate_alien_sprites.py
+  ```
+
+## 🤝 Contributing
+
+### Getting Started
+1. Fork the repository
+2. Create a feature branch
+3. Implement changes
+4. Submit pull request
+
+### Coding Standards
+- Follow PEP 8
+- Use type hints
+- Document all functions
+- Write unit tests
+
+### Pull Request Process
+1. Update documentation
+2. Add tests
+3. Update CHANGELOG
+4. Request review
+
+## 🧪 Testing
+
+### Running Tests
+```bash
+# Run all tests
+pytest
+
+# Run specific test category
+pytest tests/test_weapons.py
+pytest tests/test_enemies.py
+```
+
+### Coverage Reports
+```bash
+pytest --cov=src tests/
+```
+
+## 📦 Asset Management
+
+### Required Assets
+- Sprite sheets
+- Sound effects
+- Music tracks
+- Level definitions
+
+### Asset Creation Guidelines
+- Sprite dimensions
+- Color palettes
+- Audio formats
+- File naming conventions
+
+## 🐛 Known Issues
+- See [GitHub Issues](https://github.com/yourusername/galactic-striker/issues)
+
+## 🗺️ Roadmap
+- Multiplayer support
+- Additional weapon types
+- Mobile port
+- Level editor improvements
+
+## 📄 License
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+- Pygame community
+- Asset contributors
+- Beta testers
+- Community feedback
+
+## 📞 Contact
+- GitHub Issues
+- Discord: [Join our server]()
+- Email: support@galacticstriker.com
+
 ---
 
-## **3. Core Mechanics**  
-### **3.1 Player Mechanics**  
-- **Movement**: 8-directional controls using arrow keys/WASD.  
-  ```python  
-  # pygame code snippet for movement  
-  def update(self):  
-      keys = pygame.key.get_pressed()  
-      self.rect.x += (keys[pygame.K_RIGHT] - keys[pygame.K_LEFT]) * self.speed  
-      self.rect.y += (keys[pygame.K_DOWN] - keys[pygame.K_UP]) * self.speed  
-  ```  
-- **Weapons**:  
-  - Primary fire: Auto-shooting lasers.  
-  - Secondary: Chargeable missiles (hold SPACE).  
-- **Health**: Shield (regenerates after 3 seconds of no damage) + 3 hit points.  
-
-### **3.2 Enemy Design**  
-| Type       | Behavior                          | Attack Pattern          |  
-|------------|-----------------------------------|-------------------------|  
-| Grunt      | Straight path, slow fire          | Single shots            |  
-| Swarmer    | Zigzag movement                   | Spread shots            |  
-| Boss       | Multi-phase (e.g., shield → core) | Homing missiles + lasers|  
-
-### **3.3 Level Editor**  
-- **Features**:  
-  - Drag-and-drop placement of enemies, power-ups, and obstacles.  
-  - Pathing tools for enemy movement.  
-  - Event scripting (e.g., spawn boss after 60 seconds).  
-  - Export/import levels as JSON files.  
-- **UI Layout**:  
-  ![Level Editor UI](https://via.placeholder.com/400x300?text=Grid+Workspace+%7C+Entity+Palette+%7C+Property+Panel)  
-
----
-
-## **4. Art & Audio**  
-### **4.1 Visual Style**  
-- **Resolution**: 640x800 (portrait mode for mobile).  
-- **Color Palette**: Retro 16-bit (e.g., #C0C0C0 for ships, #FF0000 for lasers).  
-- **Sprite Sheets**: 32x32px for enemies, 64x64px for player ships.  
-
-### **4.2 Audio Design**  
-- **Music**: Looping chiptune tracks (BOSS-1.ogg, LEVEL-3.ogg).  
-- **SFX**:  
-  - `laser.wav`: Short, high-pitched beep.  
-  - `explosion.wav`: Low-frequency boom.  
-
----
-
-## **5. Python/pygame Implementation**  
-### **5.1 Game Loop**  
-```python  
-def main():  
-    pygame.init()  
-    screen = pygame.display.set_mode((640, 800))  
-    clock = pygame.time.Clock()  
-
-    while running:  
-        # Handle input  
-        for event in pygame.event.get():  
-            if event.type == pygame.QUIT:  
-                running = False  
-
-        # Update sprites  
-        all_sprites.update()  
-
-        # Render  
-        screen.fill((0, 0, 0))  
-        all_sprites.draw(screen)  
-        pygame.display.flip()  
-        clock.tick(60)  
-```  
-
-### **5.2 Level Editor Code**  
-```python  
-class LevelEditor:  
-    def __init__(self):  
-        self.selected_tile = None  
-        self.grid = [[None for _ in range(20)] for _ in range(25)]  # 20x25 grid  
-
-    def place_tile(self, x, y, tile_type):  
-        grid_x = x // 32  # 32px grid snapping  
-        grid_y = y // 32  
-        self.grid[grid_y][grid_x] = tile_type  
-
-    def save_level(self, filename):  
-        with open(f"assets/levels/{filename}.json", "w") as f:  
-            json.dump(self.grid, f)  
-```  
-
-### **5.3 JSON Level Format**  
-```json  
-{  
-  "name": "Asteroid Belt",  
-  "enemies": [  
-    { "type": "grunt", "x": 320, "y": 200, "path": "straight" },  
-    { "type": "boss", "x": 320, "y": 600, "phases": 3 }  
-  ],  
-  "triggers": [  
-    { "condition": "time > 60", "action": "spawn_swarmers" }  
-  ]  
-}  
-```  
-
----
-
-## **6. Testing & Optimization**  
-### **6.1 Testing Phases**  
-1. **Prototype**: Validate movement, shooting, and collisions.  
-2. **Alpha**: Test first 3 levels + editor (ensure no memory leaks).  
-3. **Beta**: Community playtest for balancing and bug reports.  
-
-### **6.2 Performance Tips**  
-- Use `pygame.sprite.LayeredDirty()` for efficient rendering.  
-- Preload all assets during startup to avoid lag.  
-- Limit particle effects to 50 on screen.  
-
----
-
-## **7. Monetization & Distribution**  
-### **7.1 Models**  
-- **Free-to-Play**:  
-  - Ads between levels (optional rewarded ads for power-ups).  
-  - Cosmetic DLC (ship skins, bullet trails).  
-- **Paid**: $4.99 on Steam/itch.io with no ads.  
-
-### **7.2 Platforms**  
-- **PC**: Build executables via `pyinstaller`.  
-- **Mobile**: Use `pygame Subset for Android` (pgs4a).  
-
----
-
-## **8. Post-Launch Roadmap**  
-- **Month 1**: Bug fixes + 2 free levels.  
-- **Month 3**: Steam Workshop integration for sharing custom levels.  
-- **Month 6**: Co-op multiplayer update.  
-
----
-
-## **9. Appendix**  
-### **9.1 Code Examples**  
-- **Sprite Class**:  
-  ```python  
-  class Enemy(pygame.sprite.Sprite):  
-      def __init__(self, x, y):  
-          super().__init__()  
-          self.image = pygame.image.load("assets/sprites/enemy_grunt.png")  
-          self.rect = self.image.get_rect(center=(x, y))  
-  ```  
-
-### **9.2 Resources**  
-- **Tutorials**: [Pygame Docs](https://www.pygame.org/docs/), [KidsCanCode Game Tutorials](https://kidscancode.org/blog/)  
-- **Assets**: [OpenGameArt](https://opengameart.org/), [Kenney.nl](https://kenney.nl/)  
-
----
-
-**Deliverables**:  
-- Playable prototype with 1 level + editor (Week 4).  
-- Full game with 10 levels (Month 3).  
-
-Let me know if you need help with specific systems (e.g., collision, UI)! 🕹️
+**Note**: This is an active project under development. Features and documentation are regularly updated.

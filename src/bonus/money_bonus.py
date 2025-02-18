@@ -1,14 +1,23 @@
-from .base_bonus import BaseBonus
+import pygame
+from src.utils.utils import load_image
+from .base_bonus import Bonus
 
-class MoneyBonus(BaseBonus):
-    def __init__(self, x, y, amount):
-        super().__init__(x, y, "assets/sprites/money_bonus.png", (255, 215, 0), (24, 24))
+class MoneyBonus(Bonus):
+    def __init__(self, x, y, amount=100):
+        super().__init__(x, y)
         self.amount = amount
-    def apply(self, player, game_context=None):
-        if hasattr(player, 'money'):
-            player.money += self.amount
-        else:
-            player.money = self.amount
+        try:
+            self.image = load_image("assets/sprites/money_bonus.png", (0, 0, 0), (24, 24))
+        except:
+            self.image = pygame.Surface((20, 20))
+            self.image.fill((255, 223, 0))  # Gold
+            font = pygame.font.Font(None, 20)
+            text = font.render("$", True, (0, 0, 0))
+            self.image.blit(text, text.get_rect(center=self.image.get_rect().center))
+        self.rect = self.image.get_rect(center=(x, y))
+
+    def apply(self, player):
+        player.money += self.amount
 
 class MoneyBonus10(MoneyBonus):
     def __init__(self, x, y):

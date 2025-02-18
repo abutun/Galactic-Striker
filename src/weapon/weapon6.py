@@ -1,19 +1,26 @@
 # src/weapon/weapon6.py
-from .base_weapon import PrimaryWeapon
+import pygame
+import math
 from src.weapons import Bullet
+from src.weapon.base_weapon import PrimaryWeapon
 
 class Weapon6(PrimaryWeapon):
-    def fire(self, player, bullet_group):
-        # Plasma Shot: fires a denser spread of 4 bullets.
-        spacing = 5
-        x = player.rect.centerx
-        y = player.rect.top
-        damage = 2 * player.weapon_level
-        b1 = Bullet(x - spacing, y, -1, -player.bullet_speed, damage)
-        b2 = Bullet(x, y, 0, -player.bullet_speed, damage)
-        b3 = Bullet(x + spacing, y, 1, -player.bullet_speed, damage)
-        b4 = Bullet(x, y, 0, -player.bullet_speed - 1, damage)
-        bullet_group.add(b1)
-        bullet_group.add(b2)
-        bullet_group.add(b3)
-        bullet_group.add(b4)
+    def __init__(self, bullet_group):
+        super().__init__(bullet_group)
+        self.bullet_damage = 1
+        self.fire_delay = 400
+        self.num_bullets = 5  # 5-way spread
+
+    def fire(self, x, y):
+        now = pygame.time.get_ticks()
+        if now - self.last_fire > self.fire_delay:
+            # 5-way spread shot
+            angle_spread = 60  # Total spread angle
+            for i in range(self.num_bullets):
+                angle = -angle_spread/2 + (angle_spread/(self.num_bullets-1)) * i
+                rad = math.radians(angle)
+                vx = self.bullet_speed * math.sin(rad)
+                vy = -self.bullet_speed * math.cos(rad)
+                bullet = Bullet(x, y, vx, vy, self.bullet_damage)
+                self.bullet_group.add(bullet)
+            self.last_fire = now

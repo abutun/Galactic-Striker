@@ -1,17 +1,22 @@
 import pygame
 import math
 import random
-from enemy.base_enemy import BaseEnemy
-from utils import load_image
-from weapons import Bullet
-from global_state import global_player  # Updated import
+from src.enemy.base_enemy import BaseEnemy
+from src.utils.utils import load_image
+from src.config.global_state import global_player
+
+from src.config.game_settings import ALIEN_SETTINGS
 
 class BossEnemy(BaseEnemy):
-    def __init__(self, x, y, bullet_group, phases=3):
-        super().__init__(x, y, bullet_group, health=20 * phases, speed=1, points=1000)
-        self.image = load_image("assets/sprites/enemy_boss.png", (255, 255, 0), (64, 64))
+    def __init__(self, x, y, bullet_group):
+        super().__init__(x, y, bullet_group)
+        self.image = load_image(
+            f"assets/aliens/boss_{self.type_number:02d}.png",
+            fallback_color=(255, 255, 0),
+            size=ALIEN_SETTINGS["boss"]["size"]
+        )
         self.rect = self.image.get_rect(center=(x, y))
-        self.phases = phases
+        self.phases = 3
         self.current_phase = 1
         self.fire_delay = 1000
         self.last_fire = pygame.time.get_ticks()
