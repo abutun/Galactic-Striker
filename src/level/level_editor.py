@@ -1,20 +1,17 @@
-import pygame
 import json
-import os
-from src.level.level_data import *
+import pygame
+import logging
 import tkinter as tk
 from tkinter import filedialog
 
-# Available object types for grid mode.
-AVAILABLE_TYPES = ["grunt", "swarmer", "boss"]
+from src.level.level_data import AlienGroup, EntryPoint, LevelData, MovementPattern, PathPoint
 
+logger = logging.getLogger(__name__)
 
 class LevelEditor:
     def __init__(self):
-        self.screen_width = 800
-        self.screen_height = 600
-        self.screen = pygame.display.set_mode((self.screen_width, self.screen_height))
-        pygame.display.set_caption("Level Editor")
+        self.screen_width = 1024
+        self.screen_height = 768
 
         self.current_level = None
         self.selected_group = None
@@ -175,6 +172,9 @@ class LevelEditor:
                 self.current_level.alien_groups[self.selected_group].path = self.current_path
 
     def draw(self):
+        self.screen = pygame.display.set_mode((self.screen_width, self.screen_height))
+        pygame.display.set_caption("Level Editor")
+    
         self.screen.fill((0, 0, 0))
         
         # Draw buttons

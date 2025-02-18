@@ -12,13 +12,15 @@ class MovementPattern(Enum):
     SWARM = "swarm"
     RANDOM = "random"
     BOSS = "boss"
+    CHASE = "chase"
+    TELEPORT = "teleport"
 
 class EntryPoint(Enum):
-    TOP = "top"
+    TOP_CENTER = "top_center"
     TOP_LEFT = "top_left"
     TOP_RIGHT = "top_right"
-    LEFT = "left"
-    RIGHT = "right"
+    LEFT_TOP = "left_top"
+    RIGHT_TOP = "right_top"
 
 @dataclass
 class PathPoint:

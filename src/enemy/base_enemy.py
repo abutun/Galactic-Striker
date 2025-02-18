@@ -14,11 +14,14 @@ class BaseEnemy(pygame.sprite.Sprite):
     def __init__(self, id, x: int, y: int, bullet_group: pygame.sprite.Group, health=1, speed=2, points=100, type="small", sub_type=1):
         super().__init__()
         try:
+            logger.info(f"Initializing enemy: id={id}, type={type}, sub_type={sub_type}")
             self.bullet_group = bullet_group
             self.health = health
             self.speed = speed
             self.points = points
-            self.rect = pygame.Rect(x, y, 32, 32)  # Default size
+            self.image = pygame.Surface((32, 32))  # Default size surface
+            self.image.fill((255, 0, 0))  # Temporary red color
+            self.rect = self.image.get_rect(center=(x, y))
             self.shoot_interval = 2000  # Default shoot interval
             self.last_shot = 0
             self.path = None

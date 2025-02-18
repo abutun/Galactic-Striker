@@ -32,7 +32,7 @@ class Player(pygame.sprite.Sprite):
             
             # Initialize player attributes
             self.bullet_group = bullet_group
-            self.speed = 5
+            self.speed = 10
             self.health = 100
             self.shield = 0
             self.lives = 3
@@ -90,8 +90,8 @@ class Player(pygame.sprite.Sprite):
             keys = pygame.key.get_pressed()
             
             # Keep player within play area bounds
-            play_area_left = int(pygame.display.get_surface().get_width() * 0.12)
-            play_area_right = int(pygame.display.get_surface().get_width() * 0.88)
+            play_area_left = int(pygame.display.get_surface().get_width() * 0.11)
+            play_area_right = int(pygame.display.get_surface().get_width() * 0.89)
             
             dx = (keys[pygame.K_RIGHT] - keys[pygame.K_LEFT]) * self.speed
             self.rect.x += dx
@@ -105,7 +105,7 @@ class Player(pygame.sprite.Sprite):
             
             # Handle firing
             now = pygame.time.get_ticks()
-            if (keys[pygame.K_SPACE] or self.autofire) and now - self.last_fire >= self.fire_delay:
+            if keys[pygame.K_SPACE] and now - self.last_fire >= self.fire_delay:
                 self.fire_bullet()
                 self.last_fire = now
                 

@@ -51,20 +51,20 @@ ALIEN_SETTINGS = {
     "small": {
         "base_health": 1,
         "base_points": 100,
-        "size": (32, 32),
+        "size": (64, 64),
         "speed_modifier": 1.2,
         "shoot_interval": 2.0
     },
     "large": {
         "base_health": 2,
         "base_points": 200,
-        "size": (64, 64),
+        "size": (96, 96),
         "speed_modifier": 0.8,
         "shoot_interval": 1.5
     },
     "boss": {
         "base_points": 1000,
-        "size": (128, 128),
+        "size": (196, 196),
         "speed_modifier": 0.6,
         "shoot_interval": 1.0,
         "minion_count": (2, 4)
