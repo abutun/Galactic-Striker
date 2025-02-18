@@ -2,6 +2,8 @@ import os
 import sys
 from venv import logger
 
+from src.enemy.alien import NonBossAlien
+
 
 # Add the project root directory to Python path
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -14,10 +16,10 @@ from src.bonus import (
     RankMarker, LetterBonus, MoneyBonus10, MoneyBonus50, MoneyBonus100, MoneyBonus200, SingleShotBonus, DoubleShotBonus, TripleShotBonus, QuadShotBonus, ExtraSpeedBonus, ExtraBulletBonus, ExtraTimeBonus, ExtraBulletSpeedBonus, ExtraLifeBonus, ShipAutofireBonus, AlienScoopBonus, MoneyBombBonus, GemBombBonus, LetterBonus, BonusMeteorstormBonus, BonusMemorystationBonus, DecreaseStrengthRedBonus, DecreaseStrengthGreenBonus, DecreaseStrengthBlueBonus, X2ScoreMultiplierBonus, X5ScoreMultiplierBonus, CashDoublerBonus, MirrorModeBonus, DrunkModeBonus, FreezeModeBonus, WarpForwardBonus
 )  # Explicit imports from bonus module
 from src.scoring import ScoreManager
-from src.utils import load_sound
+from src.utils.utils import load_sound
 from src.background import Background
-from src.level_manager import LevelManager
-import src.global_state as global_state
+from src.level.level_manager import LevelManager
+import src.config.global_state as global_state
 from src.config.game_settings import (
     ALIEN_SETTINGS,
     FORMATIONS,

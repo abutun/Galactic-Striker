@@ -1,6 +1,6 @@
 import pygame
 import random
-from src.utils import load_image
+from src.utils.utils import load_image
 
 class Bonus(pygame.sprite.Sprite):
     def __init__(self, x, y, speed=2):

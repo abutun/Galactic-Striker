@@ -1,7 +1,7 @@
 import pygame
 import os
 import logging
-from src.utils import load_sound
+from src.utils.utils import load_sound
 
 logger = logging.getLogger(__name__)
 

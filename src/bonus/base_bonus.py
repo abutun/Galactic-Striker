@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 import pygame
-from src.utils import load_image
+from src.utils.utils import load_image
 
 class Bonus(pygame.sprite.Sprite, ABC):
     def __init__(self, x, y, image_path=None, fallback_color=(255, 255, 255), size=(24, 24)):

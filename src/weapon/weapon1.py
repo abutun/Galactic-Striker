@@ -2,7 +2,7 @@
 import pygame
 from src.weapons import Bullet
 from src.weapon.base_weapon import PrimaryWeapon
-from src.utils import load_image
+from src.utils.utils import load_image
 
 class Weapon1(PrimaryWeapon):
     def __init__(self, bullet_group):

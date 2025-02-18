@@ -14,7 +14,9 @@ class Weapon4(PrimaryWeapon):
         if now - self.last_fire > self.fire_delay:
             # Dual parallel shots
             spacing = 10
-            bullet_left = Bullet(x - spacing, y, 0, -self.bullet_speed, self.bullet_damage)
-            bullet_right = Bullet(x + spacing, y, 0, -self.bullet_speed, self.bullet_damage)
+            bullet_left = Bullet(x - spacing/2, y, 0, -self.bullet_speed, self.bullet_damage)
+            bullet_right = Bullet(x - spacing/4, y, 0, -self.bullet_speed, self.bullet_damage)
+            bullet_left = Bullet(x + spacing/4, y, 0, -self.bullet_speed, self.bullet_damage)
+            bullet_right = Bullet(x + spacing/2, y, 0, -self.bullet_speed, self.bullet_damage)
             self.bullet_group.add(bullet_left, bullet_right)
             self.last_fire = now

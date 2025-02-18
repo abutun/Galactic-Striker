@@ -2,8 +2,8 @@ import pygame
 import math
 import random
 from src.enemy.base_enemy import BaseEnemy
-from src.utils import load_image
-from src.global_state import global_player
+from src.utils.utils import load_image
+from src.config.global_state import global_player
 from src.weapons import Bullet
 import logging
 

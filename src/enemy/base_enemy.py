@@ -2,10 +2,10 @@
 
 import pygame
 import math
-from src.utils import load_image
+from src.utils.utils import load_image
 from .behavior_tree import *
 import logging
-from src.utils import ResourceManager
+from src.utils.utils import ResourceManager
 from src.config.game_settings import ALIEN_SETTINGS
 
 logger = logging.getLogger(__name__)
@@ -50,7 +50,7 @@ class BaseEnemy(pygame.sprite.Sprite):
         """Update enemy behavior."""
         try:
             # Update context with current game state
-            from global_state import global_player
+            from src.config.global_state import global_player
             self.context['player'] = global_player
             
             # Execute behavior tree

@@ -6,7 +6,7 @@ from typing import List, Set
 # Add the project root to Python path instead of src
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
-from src.utils import load_image, load_sound  # Now we can import from src
+from src.utils.utils import load_image, load_sound  # Now we can import from src
 from enemy.alien_types import AlienCategory
 from config.game_settings import (
     ALIEN_SETTINGS

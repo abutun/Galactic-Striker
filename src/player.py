@@ -1,6 +1,6 @@
 import pygame
 import logging
-from src.utils import ResourceManager, load_image
+from src.utils.utils import ResourceManager, load_image
 from src.weapon.weapon_factory import WeaponFactory
 from src.weapons import Missile, Bullet
 
@@ -41,7 +41,7 @@ class Player(pygame.sprite.Sprite):
             self.bullet_speed = 7
             self.bullet_count = 1
             self.time_stat = 0
-            self.primary_weapon = 1
+            self.primary_weapon = 4
             self.fire_delay = 250
             self.last_fire = 0
             

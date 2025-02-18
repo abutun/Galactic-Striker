@@ -1,5 +1,5 @@
 import pygame
-from src.utils import load_image
+from src.utils.utils import load_image
 import random
 
 class Background:
