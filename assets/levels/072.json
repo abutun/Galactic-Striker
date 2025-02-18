@@ -4,9 +4,77 @@
   "difficulty": 4,
   "alien_groups": [
     {
-      "alien_type": "alien_11_small_02",
-      "count": 9,
-      "formation": "wave",
+      "alien_type": "alien_11_small_01",
+      "count": 6,
+      "formation": "cross",
+      "spacing": 46,
+      "entry_point": "top_center",
+      "path": [
+        {
+          "x": 0.5,
+          "y": 0.1,
+          "wait_time": 0,
+          "shoot": false
+        },
+        {
+          "x": 0.43647281101052404,
+          "y": 0.3192434278671943,
+          "wait_time": 1.0276151228379926,
+          "shoot": false
+        },
+        {
+          "x": 0.8079377288129537,
+          "y": 0.28892232911051435,
+          "wait_time": 1.3188188491425659,
+          "shoot": false
+        },
+        {
+          "x": 0.6025400838204026,
+          "y": 0.4113490074210515,
+          "wait_time": 1.6949990207043515,
+          "shoot": true
+        },
+        {
+          "x": 0.42156225070803366,
+          "y": 0.5027621511741627,
+          "wait_time": 1.4997053679851398,
+          "shoot": true
+        },
+        {
+          "x": 0.47209642523240325,
+          "y": 0.4442721458777649,
+          "wait_time": 1.3717013749142979,
+          "shoot": true
+        },
+        {
+          "x": 0.5464350853196361,
+          "y": 0.49789825302900376,
+          "wait_time": 1.1463735560599595,
+          "shoot": true
+        },
+        {
+          "x": 0.8823413065532614,
+          "y": 0.2742078012323893,
+          "wait_time": 0.8637282275670726,
+          "shoot": false
+        },
+        {
+          "x": 0.641843425375751,
+          "y": 0.1,
+          "wait_time": 0,
+          "shoot": false
+        }
+      ],
+      "movement_pattern": "wave",
+      "speed": 2.0235318209892594,
+      "health": 3,
+      "shoot_interval": 2.7420645320602177,
+      "group_behavior": false
+    },
+    {
+      "alien_type": "alien_12_large_01",
+      "count": 7,
+      "formation": "circle",
       "spacing": 46,
       "entry_point": "top_right",
       "path": [
@@ -17,115 +85,35 @@
           "shoot": false
         },
         {
-          "x": 0.6011491791591832,
-          "y": 0.4863532720346198,
-          "wait_time": 0.9074511031548879,
+          "x": 0.8463513540296012,
+          "y": 0.4190392651253962,
+          "wait_time": 1.8639016885736077,
           "shoot": true
         },
         {
-          "x": 0.3726289510947379,
-          "y": 0.5670208524243076,
-          "wait_time": 1.3098197085319088,
-          "shoot": true
-        },
-        {
-          "x": 0.22792208045845108,
-          "y": 0.5950660909347993,
-          "wait_time": 0.6320146491938671,
+          "x": 0.8221074074116861,
+          "y": 0.21815440870849728,
+          "wait_time": 1.333922516031204,
           "shoot": false
         },
         {
-          "x": 0.4076038809006842,
-          "y": 0.49797820775930024,
-          "wait_time": 1.6675250792636735,
-          "shoot": true
-        },
-        {
-          "x": 0.14727548638395904,
-          "y": 0.2250332447445964,
-          "wait_time": 1.800660644530626,
-          "shoot": false
-        },
-        {
-          "x": 0.6505910535226507,
-          "y": 0.1,
-          "wait_time": 0,
-          "shoot": false
-        }
-      ],
-      "movement_pattern": "circular",
-      "speed": 1.8567426377641976,
-      "health": 5,
-      "shoot_interval": 2.256709693489975,
-      "group_behavior": true
-    },
-    {
-      "alien_type": "alien_12_small_02",
-      "count": 6,
-      "formation": "line",
-      "spacing": 36,
-      "entry_point": "top_right",
-      "path": [
-        {
-          "x": 0.8,
-          "y": 0.1,
-          "wait_time": 0,
-          "shoot": false
-        },
-        {
-          "x": 0.3530056022924358,
-          "y": 0.3626059324603041,
-          "wait_time": 1.1447752900654136,
-          "shoot": false
-        },
-        {
-          "x": 0.7985963401532279,
-          "y": 0.32209388980051096,
-          "wait_time": 1.951055856075627,
-          "shoot": true
-        },
-        {
-          "x": 0.35577358714901475,
-          "y": 0.29713785777086477,
-          "wait_time": 1.3603568484405548,
-          "shoot": false
-        },
-        {
-          "x": 0.13945016951467804,
-          "y": 0.4121120520863265,
-          "wait_time": 0.9773153361061094,
-          "shoot": true
-        },
-        {
-          "x": 0.5801524597963278,
-          "y": 0.41305399078778204,
-          "wait_time": 0.790181956720829,
-          "shoot": true
-        },
-        {
-          "x": 0.12737820639474853,
-          "y": 0.500331690859002,
-          "wait_time": 1.7736057011376694,
-          "shoot": false
-        },
-        {
-          "x": 0.5342704075716646,
+          "x": 0.3458141248396195,
           "y": 0.1,
           "wait_time": 0,
           "shoot": false
         }
       ],
       "movement_pattern": "straight",
-      "speed": 1.6825905471542852,
-      "health": 1,
-      "shoot_interval": 2.277290046209763,
+      "speed": 2.291803309871116,
+      "health": 4,
+      "shoot_interval": 2.67354697603788,
       "group_behavior": false
     },
     {
-      "alien_type": "alien_13_small_01",
-      "count": 8,
-      "formation": "spiral",
-      "spacing": 41,
+      "alien_type": "alien_13_small_02",
+      "count": 10,
+      "formation": "wave",
+      "spacing": 57,
       "entry_point": "top_right",
       "path": [
         {
@@ -135,85 +123,103 @@
           "shoot": false
         },
         {
-          "x": 0.7821830692197045,
-          "y": 0.527311285475579,
-          "wait_time": 1.3563593938998293,
+          "x": 0.3066408005442066,
+          "y": 0.23163733140582154,
+          "wait_time": 1.7258556372063047,
+          "shoot": true
+        },
+        {
+          "x": 0.6609908929142166,
+          "y": 0.43002536663982827,
+          "wait_time": 1.2223143546816246,
+          "shoot": true
+        },
+        {
+          "x": 0.5460288528041689,
+          "y": 0.3618649406595854,
+          "wait_time": 1.0211944282714807,
+          "shoot": true
+        },
+        {
+          "x": 0.7440624220950957,
+          "y": 0.24684827100815,
+          "wait_time": 0.6557450895415973,
           "shoot": false
         },
         {
-          "x": 0.17810245531845165,
-          "y": 0.40978518581326234,
-          "wait_time": 1.9369596537768952,
+          "x": 0.8127457838754168,
+          "y": 0.5546594439193109,
+          "wait_time": 1.7248346052464927,
           "shoot": true
         },
         {
-          "x": 0.7568788768586985,
-          "y": 0.44065137306642965,
-          "wait_time": 0.9064138821699599,
+          "x": 0.6469708040139633,
+          "y": 0.47762856511053325,
+          "wait_time": 0.585546364309663,
+          "shoot": false
+        },
+        {
+          "x": 0.575030668553694,
+          "y": 0.3257464652331318,
+          "wait_time": 1.488800840063957,
           "shoot": true
         },
         {
-          "x": 0.8147260170743795,
-          "y": 0.3763283859297988,
-          "wait_time": 1.1446753958643852,
-          "shoot": true
-        },
-        {
-          "x": 0.8319207617298002,
-          "y": 0.38891208957961854,
-          "wait_time": 1.4846361441086804,
-          "shoot": true
-        },
-        {
-          "x": 0.6855301595609693,
+          "x": 0.26819379919767244,
           "y": 0.1,
           "wait_time": 0,
           "shoot": false
         }
       ],
-      "movement_pattern": "zigzag",
-      "speed": 2.1803634759401485,
-      "health": 5,
-      "shoot_interval": 1.825514870201057,
+      "movement_pattern": "wave",
+      "speed": 2.491653582189962,
+      "health": 3,
+      "shoot_interval": 1.5390188898742836,
       "group_behavior": false
     },
     {
-      "alien_type": "alien_12_large_01",
+      "alien_type": "alien_13_small_02",
       "count": 9,
-      "formation": "spiral",
-      "spacing": 60,
-      "entry_point": "top_left",
+      "formation": "cross",
+      "spacing": 55,
+      "entry_point": "top_right",
       "path": [
         {
-          "x": 0.2,
+          "x": 0.8,
           "y": 0.1,
           "wait_time": 0,
           "shoot": false
         },
         {
-          "x": 0.8645531802873667,
-          "y": 0.38574299438790466,
-          "wait_time": 1.505980502414409,
+          "x": 0.381820030339757,
+          "y": 0.5300930760642314,
+          "wait_time": 0.8881887100181522,
+          "shoot": false
+        },
+        {
+          "x": 0.67394140187227,
+          "y": 0.39958261496486414,
+          "wait_time": 1.7962986938833887,
           "shoot": true
         },
         {
-          "x": 0.6981280510536865,
+          "x": 0.20488216592664,
           "y": 0.1,
           "wait_time": 0,
           "shoot": false
         }
       ],
-      "movement_pattern": "zigzag",
-      "speed": 1.8323771710614705,
-      "health": 4,
-      "shoot_interval": 1.8336916185182641,
-      "group_behavior": true
+      "movement_pattern": "random",
+      "speed": 1.6090312772978366,
+      "health": 5,
+      "shoot_interval": 2.351962563893885,
+      "group_behavior": false
     },
     {
-      "alien_type": "alien_11_small_01",
-      "count": 8,
-      "formation": "cross",
-      "spacing": 60,
+      "alien_type": "alien_14_large_01",
+      "count": 9,
+      "formation": "circle",
+      "spacing": 46,
       "entry_point": "top_left",
       "path": [
         {
@@ -223,46 +229,28 @@
           "shoot": false
         },
         {
-          "x": 0.2240872468277817,
-          "y": 0.47108007900866466,
-          "wait_time": 1.767704836603822,
-          "shoot": false
-        },
-        {
-          "x": 0.36720180900393984,
-          "y": 0.34326725891957666,
-          "wait_time": 1.5040555980640005,
-          "shoot": false
-        },
-        {
-          "x": 0.8894765517339828,
-          "y": 0.3397318466715205,
-          "wait_time": 1.9872690894007903,
-          "shoot": false
-        },
-        {
-          "x": 0.39314712078369374,
-          "y": 0.2533716939824016,
-          "wait_time": 0.6768889135163597,
+          "x": 0.8125132265656498,
+          "y": 0.20791274426897743,
+          "wait_time": 1.1131514372534417,
           "shoot": true
         },
         {
-          "x": 0.27780206978415534,
-          "y": 0.5553617439607161,
-          "wait_time": 1.2524011898749914,
+          "x": 0.5615343056322594,
+          "y": 0.42639560686114514,
+          "wait_time": 1.7399793560775245,
           "shoot": false
         },
         {
-          "x": 0.2578542052475985,
+          "x": 0.5432339662828447,
           "y": 0.1,
           "wait_time": 0,
           "shoot": false
         }
       ],
-      "movement_pattern": "zigzag",
-      "speed": 1.8276704136083979,
-      "health": 5,
-      "shoot_interval": 2.7849163249286955,
+      "movement_pattern": "straight",
+      "speed": 2.1471115424174063,
+      "health": 2,
+      "shoot_interval": 2.6582276178463973,
       "group_behavior": false
     }
   ],

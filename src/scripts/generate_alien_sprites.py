@@ -74,23 +74,32 @@ class AlienSpriteGenerator:
             # Draw base shape (same for both subtypes)
             pygame.draw.polygon(surface, color, points)
             
+            # List of RGB tuples for Red, Green, and Blue
+            colors = [(255, 0, 0), (0, 255, 0), (0, 0, 255), (255, 255, 0), (0, 255, 255), (255, 0, 255)]
+            
             # Add details based on type
             if type_num <= 25:  # Regular aliens
+                rgb = random.choice(colors)
+
                 # Add circular elements
                 radius = min(size) // 6
-                pygame.draw.circle(surface, (255, 255, 255), 
+                pygame.draw.circle(surface, rgb, 
                                  (size[0]//4, size[1]//4), radius)
-                pygame.draw.circle(surface, (255, 255, 255), 
+                pygame.draw.circle(surface, rgb, 
                                  (3*size[0]//4, size[1]//4), radius)
                 
                 # Add some variation in the details based on subtype
-                detail_color = (255, 255, 255) if subtype == 0 else color
+                detail_color = random.choice(colors)
+                if (rgb == detail_color):
+                    detail_color = random.choice(colors)
                 pygame.draw.line(surface, detail_color,
                                (size[0]//2, size[1]//3),
                                (size[0]//2, 2*size[1]//3), 2)
             else:  # Boss aliens
+                rgb = random.choice(colors)
+
                 # Boss-specific details
-                pygame.draw.polygon(surface, (255, 255, 255), [
+                pygame.draw.polygon(surface, rgb, [
                     (size[0]//4, size[1]//4),
                     (size[0]//3, size[1]//3),
                     (size[0]//4, size[1]//3)

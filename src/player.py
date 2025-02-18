@@ -26,13 +26,13 @@ class Player(pygame.sprite.Sprite):
         super().__init__()
         try:
             # Load the base player image first with 50% larger size (48x48 instead of 32x32)
-            self.base_image = load_image("assets/sprites/player.png", (0, 255, 0), (48, 48))
+            self.base_image = load_image("assets/sprites/player.png", (0, 255, 0), (64, 64))
             self.image = self.base_image.copy()  # Create initial copy
             self.rect = self.image.get_rect(center=(x, y))
             
             # Initialize player attributes
             self.bullet_group = bullet_group
-            self.speed = 5
+            self.speed = 10
             self.health = 100
             self.shield = 0
             self.lives = 3
@@ -105,7 +105,7 @@ class Player(pygame.sprite.Sprite):
             
             # Handle firing
             now = pygame.time.get_ticks()
-            if (keys[pygame.K_SPACE] or self.autofire) and now - self.last_fire >= self.fire_delay:
+            if keys[pygame.K_SPACE] and now - self.last_fire >= self.fire_delay:
                 self.fire_bullet()
                 self.last_fire = now
                 
