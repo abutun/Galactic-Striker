@@ -1,32 +1,62 @@
 import os
 import sys
-from venv import logger
-
-from src.enemy.alien import NonBossAlien
-
-
-# Add the project root directory to Python path
-project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, project_root)
-
-import pygame
+import logging
 import random
+import pygame
+
+# Configure logging
+logger = logging.getLogger(__name__)
+
+# Core game components
 from src.player import Player, RANK_NAMES
-from src.bonus import (
-    RankMarker, LetterBonus, MoneyBonus10, MoneyBonus50, MoneyBonus100, MoneyBonus200, SingleShotBonus, DoubleShotBonus, TripleShotBonus, QuadShotBonus, ExtraSpeedBonus, ExtraBulletBonus, ExtraTimeBonus, ExtraBulletSpeedBonus, ExtraLifeBonus, ShipAutofireBonus, AlienScoopBonus, MoneyBombBonus, GemBombBonus, LetterBonus, BonusMeteorstormBonus, BonusMemorystationBonus, DecreaseStrengthRedBonus, DecreaseStrengthGreenBonus, DecreaseStrengthBlueBonus, X2ScoreMultiplierBonus, X5ScoreMultiplierBonus, CashDoublerBonus, MirrorModeBonus, DrunkModeBonus, FreezeModeBonus, WarpForwardBonus
-)  # Explicit imports from bonus module
-from src.scoring import ScoreManager
-from src.utils.utils import load_sound
+from src.enemy.alien import NonBossAlien
 from src.background import Background
+from src.scoring import ScoreManager
+from src.sound_manager import SoundManager
 from src.level.level_manager import LevelManager
-import src.config.global_state as global_state
+from src.utils.asset_loader import AssetLoader
+
+# Game settings and state
 from src.config.game_settings import (
     ALIEN_SETTINGS,
     FORMATIONS,
     MOVEMENT_PATTERNS,
     SPECIAL_EFFECTS
 )
-from src.sound_manager import SoundManager
+import src.config.global_state as global_state
+
+# Bonus system imports
+from src.bonus import (
+    # Money bonuses
+    MoneyBonus10, MoneyBonus50, MoneyBonus100, MoneyBonus200,
+    
+    # Weapon bonuses
+    SingleShotBonus, DoubleShotBonus, TripleShotBonus, QuadShotBonus,
+    
+    # Special bonuses
+    RankMarker, LetterBonus, ShipAutofireBonus, AlienScoopBonus,
+    MoneyBombBonus, GemBombBonus,
+    
+    # Power-up bonuses
+    ExtraSpeedBonus, ExtraBulletBonus, ExtraTimeBonus,
+    ExtraBulletSpeedBonus, ExtraLifeBonus,
+    
+    # Special effects bonuses
+    BonusMeteorstormBonus, BonusMemorystationBonus,
+    
+    # Modifier bonuses
+    DecreaseStrengthRedBonus, DecreaseStrengthGreenBonus,
+    DecreaseStrengthBlueBonus, X2ScoreMultiplierBonus,
+    X5ScoreMultiplierBonus, CashDoublerBonus,
+    
+    # Game mode bonuses
+    MirrorModeBonus, DrunkModeBonus, FreezeModeBonus,
+    WarpForwardBonus
+)
+
+# Add project root to Python path
+project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, project_root)
 
 
 # Developer mode overlay function.

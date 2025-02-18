@@ -41,7 +41,7 @@ class Player(pygame.sprite.Sprite):
             self.bullet_speed = 7
             self.bullet_count = 1
             self.time_stat = 0
-            self.primary_weapon = 4
+            self.primary_weapon = 1
             self.fire_delay = 250
             self.last_fire = 0
             

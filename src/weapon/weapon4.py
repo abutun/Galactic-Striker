@@ -7,16 +7,17 @@ class Weapon4(PrimaryWeapon):
     def __init__(self, bullet_group):
         super().__init__(bullet_group)
         self.bullet_damage = 2
-        self.fire_delay = 200  # Faster firing rate
-
+        self.fire_delay = 250  # Balanced firing rate
+        self.spacing = 15  # Space between bullets
+        
     def fire(self, x, y):
         now = pygame.time.get_ticks()
         if now - self.last_fire > self.fire_delay:
-            # Dual parallel shots
-            spacing = 10
-            bullet_left = Bullet(x - spacing/2, y, 0, -self.bullet_speed, self.bullet_damage)
-            bullet_right = Bullet(x - spacing/4, y, 0, -self.bullet_speed, self.bullet_damage)
-            bullet_left = Bullet(x + spacing/4, y, 0, -self.bullet_speed, self.bullet_damage)
-            bullet_right = Bullet(x + spacing/2, y, 0, -self.bullet_speed, self.bullet_damage)
-            self.bullet_group.add(bullet_left, bullet_right)
+            # Four parallel shots in a symmetrical pattern
+            bullet1 = Bullet(x - self.spacing, y, 0, -self.bullet_speed, self.bullet_damage)
+            bullet2 = Bullet(x - self.spacing/3, y, 0, -self.bullet_speed, self.bullet_damage)
+            bullet3 = Bullet(x + self.spacing/3, y, 0, -self.bullet_speed, self.bullet_damage)
+            bullet4 = Bullet(x + self.spacing, y, 0, -self.bullet_speed, self.bullet_damage)
+            
+            self.bullet_group.add(bullet1, bullet2, bullet3, bullet4)
             self.last_fire = now

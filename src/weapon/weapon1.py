@@ -7,6 +7,7 @@ from src.utils.utils import load_image
 class Weapon1(PrimaryWeapon):
     def __init__(self, bullet_group):
         super().__init__(bullet_group)
+        self.fire_delay = 150
 
     def fire(self, x, y):
         now = pygame.time.get_ticks()
