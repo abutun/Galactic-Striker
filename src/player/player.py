@@ -90,8 +90,8 @@ class Player(pygame.sprite.Sprite):
             keys = pygame.key.get_pressed()
             
             # Keep player within play area bounds
-            play_area_left = int(pygame.display.get_surface().get_width() * 0.11)
-            play_area_right = int(pygame.display.get_surface().get_width() * 0.89)
+            play_area_left = int(pygame.display.get_surface().get_width() * 0.116)
+            play_area_right = int(pygame.display.get_surface().get_width() * 0.876)
             
             dx = (keys[pygame.K_RIGHT] - keys[pygame.K_LEFT]) * self.speed
             self.rect.x += dx

@@ -132,21 +132,55 @@ class LevelManager:
             return
 
         try:
+            screen = pygame.display.get_surface()
+            if not screen:
+                return
+            sw, sh = screen.get_size()
             group = self.level_data.alien_groups.pop(0)
-            logger.info(f"Spawning alien group: type={group['alien_type']}, count={group['count']}")
+
+            logger.info(f"Spawning alien group: type={group['alien_type']}, entry={group['entry_point']}, count={group['count']}")
+
+            # Calculate base positions based on entry point
+            enttry_point = EntryPoint[group['entry_point'].upper()]
+            base_y = -50  # Default starting y position above screen
+            if enttry_point == EntryPoint.TOP_CENTER:
+                base_x = sw // 2
+            elif enttry_point == EntryPoint.TOP_LEFT:
+                base_x = sw * 0.2  # 20% from left
+            elif enttry_point == EntryPoint.TOP_RIGHT:
+                base_x = sw * 0.8  # 20% from right
+            elif enttry_point == EntryPoint.LEFT_TOP:
+                base_x = sw * 0.1
+                base_y = sh * 0.2  # 20% from top
+            elif enttry_point == EntryPoint.RIGHT_TOP:
+                base_x = sw * 0.9
+                base_y = sh * 0.2  # 20% from to
 
             # Get alien type and id
             parts = group['alien_type'].split('_')
             type = parts[0]
             id = parts[1]
 
-            # Calculate formation positions
-            positions = self.calculate_formation_positions(
-                group['formation'], 
-                group['count'], 
+            # Calculate formation positions relative to entry point
+            raw_positions = self.calculate_formation_positions(
+                group['formation'],
+                group['count'],
                 group['spacing']
             )
-
+            
+            # Adjust positions based on entry point
+            positions = []
+            for pos in raw_positions:
+                if enttry_point in [EntryPoint.LEFT_TOP, EntryPoint.RIGHT_TOP]:
+                    # Adjust for side entry
+                    x = base_x + (pos[0] - base_x) * 0.2  # Compress formation width
+                    y = base_y + (pos[1] - base_y)
+                else:
+                    # Top entry points
+                    x = base_x + (pos[0] - (sw // 2))  # Center formation on entry point
+                    y = base_y + (pos[1] - (-50))
+                positions.append((x, y))
+            
             # Create aliens with adjusted positions
             aliens = []
             if type == "alien":
@@ -189,6 +223,8 @@ class LevelManager:
                 "pattern": group['movement_pattern'],
                 "group_behavior": group.get('group_behavior', False)
             })
+
+            logger.info(f"Spawned alien group: type={type}, count={len(aliens)}, entry={enttry_point.value}")    
                 
         except Exception as e:
             logger.error(f"Error spawning alien group 0x0002: {e}")
