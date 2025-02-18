@@ -49,6 +49,7 @@ class LevelManager:
 
     def _load_level_data(self, level_number: int) -> LevelData:
         try:
+            logger.info(f"Loading level {level_number} data")
             with open(f"assets/levels/{level_number:03d}.json") as f:
                 data = json.load(f)
                 return LevelData(
@@ -121,14 +122,21 @@ class LevelManager:
             logger.error(f"Error loading level {level_number}: {e}")
             self.level_data = None
 
-    def spawn_next_group(self):
-        """Spawn next group of aliens"""
+    def spawn_next_group(self) -> None:
+        """Spawn the next group of aliens."""
+        logger.info(f"Spawning next group")
         if not self.level_data or not self.level_data.alien_groups:
+            logger.info(f"No more alien groups to spawn")
             return
 
         try:
             group = self.level_data.alien_groups.pop(0)
-            aliens = []
+            logger.info(f"Spawning alien group: type={group['alien_type']}, count={group['count']}")
+
+            # Get alien type and id
+            parts = group['alien_type'].split('_')
+            type = parts[0]
+            id = parts[1]
 
             # Calculate formation positions
             positions = self.calculate_formation_positions(
@@ -137,49 +145,49 @@ class LevelManager:
                 group['spacing']
             )
 
-            # Create aliens above the screen
-            screen = pygame.display.get_surface()
-            start_y = -50  # Always start above screen
-            
-            # Adjust start position based on entry point
-            if group['entry_point'] == "top_center":
-                start_x = screen.get_width() // 2
-            elif group['entry_point'] == "top_left":
-                start_x = int(screen.get_width() * 0.2)
-            elif group['entry_point'] == "top_right":
-                start_x = int(screen.get_width() * 0.8)
-            elif group['entry_point'] == "left_top":
-                start_x = int(screen.get_width() * 0.1)
-                start_y = 50
-            elif group['entry_point'] == "right_top":
-                start_x = int(screen.get_width() * 0.9)                                
-                start_y = 50
-            else:
-                start_x = screen.get_width() // 2
-
             # Create aliens with adjusted positions
-            for pos in positions:
-                alien = NonBossAlien(
-                    start_x + pos[0], start_y + pos[1],
-                    self.bullet_group,
-                    group['alien_type']
+            aliens = []
+            if type == "alien":
+                alien_type = parts[2]
+                alien_subtype = parts[3]
+                for pos in positions:
+                    alien = NonBossAlien(
+                        id, 
+                        x=pos[0],  # X position from formation
+                        y=pos[1],  # Y position from formation
+                        bullet_group=self.bullet_group,                        
+                        alien_type=alien_type,
+                        alien_subtype=alien_subtype
+                        )
+                    # Set additional properties
+                    alien.health = group.get('health', 1)
+                    alien.speed = group.get('speed', 2)
+                    alien.sound_manager = self.sound_manager
+                    
+                    self.enemy_group.add(alien)
+                    self.sprite_group.add(alien)
+                    aliens.append(alien)
+            elif type == "boss":
+                boss = BossAlien(
+                    id, 
+                    pos[0], 
+                    pos[1],
+                    self.bullet_group
                 )
-                alien.health = group['health']
-                alien.speed = group['speed']
-                aliens.append(alien)
+                boss.health = group['health']
+                boss.speed = group['speed']
+                boss.sound_manager = self.sound_manager
+                
+                self.enemy_group.add(boss)
+                self.sprite_group.add(boss)
+                aliens.append(boss)                
 
-            # Add aliens to sprite groups
-            for alien in aliens:
-                self.enemy_group.add(alien)
-                self.sprite_group.add(alien)
-
-            # Add to active groups
             self.active_groups.append({
                 "aliens": aliens,
                 "pattern": group['movement_pattern'],
                 "group_behavior": group.get('group_behavior', False)
             })
-
+                
         except Exception as e:
             logger.error(f"Error spawning alien group 0x0002: {e}")
 
@@ -189,19 +197,19 @@ class LevelManager:
         center_x = screen.get_width() // 2
 
         try:
-            if formation == "line":
+            if formation == MovementPattern.STRAIGHT:
                 total_width = (count - 1) * spacing
                 start_x = center_x - (total_width // 2)
                 for i in range(count):
                     positions.append((start_x + i * spacing, -50))
 
-            elif formation == "v":
+            elif formation == MovementPattern.ZIGZAG:
                 for i in range(count):
                     x = center_x + (i // 2 * spacing if i % 2 == 0 else -(i // 2 + 1) * spacing)
                     y = -50 + (i // 2 * spacing)
                     positions.append((x, y))
 
-            elif formation == "circle":
+            elif formation == MovementPattern.CIRCULAR:
                 import math
                 radius = spacing * count / (2 * math.pi)
                 for i in range(count):
@@ -256,6 +264,7 @@ class LevelManager:
     def load_next_level(self):
         """Load the next level"""
         self.current_level += 1
+        logger.info(f"Loading next level: {self.current_level}")
         self.level_data = self._load_level_data(self.current_level)
         self.level_complete = False
         self.active_groups = []
@@ -275,9 +284,18 @@ class LevelManager:
         entry_points = {
             "top_left": (screen_width * 0.2, -50),
             "top_center": (screen_width * 0.5, -50),
-            "top_right": (screen_width * 0.8, -50)
+            "top_right": (screen_width * 0.8, -50),
+            "left_top": (screen_width * 0.1, 50),
+            "right_top": (screen_width * 0.9, 50)
         }
         
         # Get entry position
         entry_point = group_data.get("entry_point", "top_center")
         base_x, base_y = entry_points[entry_point]
+
+        # Calculate positions for each alien
+        positions = []
+        for i in range(group_data["count"]):
+            x = base_x + i * group_data["spacing"]
+            y = base_y
+            positions.append((x, y))

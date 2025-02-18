@@ -266,7 +266,7 @@ class Game:
                 self.enemies.add(alien)
                 self.all_sprites.add(alien)
         except Exception as e:
-            logger.error(f"Error spawning alien group 0x0001: {e.with_traceback}")
+            logger.error(f"Error spawning alien group 0x0001: {e}")
 
     def draw(self, dev_mode, editing):
         """Draw game state."""

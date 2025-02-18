@@ -92,9 +92,9 @@ class Alien(BaseEnemy):
             self.kill()
 
 class NonBossAlien(Alien):
-    def __init__(self, id, x, y, bullet_group, enemy_type="small", enemy_subtype=1):
+    def __init__(self, id, x, y, bullet_group, alien_type="small", alien_subtype=1):
         # Set up base stats based on enemy type
-        if enemy_type == "small":
+        if alien_type == "small":
             health = ALIEN_SETTINGS["small"]["base_health"]
             points = ALIEN_SETTINGS["small"]["base_points"]
             size = ALIEN_SETTINGS["small"]["size"]
@@ -106,11 +106,11 @@ class NonBossAlien(Alien):
             speed = ALIEN_SETTINGS["large"]["speed_modifier"]
             
         # Call parent constructor with base stats
-        super().__init__(id, x, y, bullet_group, health, speed, points, enemy_type, enemy_subtype)
+        super().__init__(id, x, y, bullet_group, health, speed, points, alien_type, alien_subtype)
         
         # Load sprite based on type and subtype
         try:
-            self.image = load_image(f"assets/aliens/alien_{id}_{enemy_type}_{enemy_subtype}.png", fallback_color=(255, 0, 0),size=size)
+            self.image = load_image(f"assets/aliens/alien_{id}_{alien_type}_{alien_subtype}.png", fallback_color=(255, 0, 0),size=size)
             self.rect = self.image.get_rect(center=(x, y))
         except Exception as e:
             logger.error(f"Error loading alien sprite: {e}")
@@ -119,8 +119,8 @@ class NonBossAlien(Alien):
             self.image.fill((255, 0, 0))
             self.rect = self.image.get_rect(center=(x, y))
         
-        self.enemy_type = enemy_type  # Store the enemy type
-        self.enemy_subtype = enemy_subtype
+        self.alien_type = alien_type  # Store the alien type
+        self.alien_subtype = alien_subtype
 
 class BossAlien(Alien):
     def __init__(self, id, x, y, bullet_group, boss_type=1):
