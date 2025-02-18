@@ -11,7 +11,7 @@ from src.config.game_settings import ALIEN_SETTINGS
 logger = logging.getLogger(__name__)
 
 class BaseEnemy(pygame.sprite.Sprite):
-    def __init__(self, x: int, y: int, bullet_group: pygame.sprite.Group, health=1, speed=2, points=100):
+    def __init__(self, id, x: int, y: int, bullet_group: pygame.sprite.Group, health=1, speed=2, points=100, type="small", sub_type=1):
         super().__init__()
         try:
             self.bullet_group = bullet_group
@@ -23,6 +23,9 @@ class BaseEnemy(pygame.sprite.Sprite):
             self.last_shot = 0
             self.path = None
             self.path_index = 0
+            self.type = type
+            self.sub_type = sub_type
+            self.id = id
             
             # Setup behavior tree
             self.behavior_tree = Selector([

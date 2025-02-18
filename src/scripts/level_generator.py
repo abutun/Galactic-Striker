@@ -41,10 +41,11 @@ class LevelGenerator:
                 max_groups=3,
                 min_aliens=3,
                 max_aliens=5,
-                alien_types=["alien_01_small_01", "alien_01_small_02"],
-                formations=["line", "v"],
-                movement_patterns=["straight", "wave"],
-                entry_points=["top_center"],
+                alien_types=[f"alien_{i:02d}_{'small' if j < 2 else 'large'}_{k:02d}" 
+                           for i in range(1,4) for j in range(3) for k in range(1,3)],
+                formations=["line", "v", "circle", "diamond", "wave", "cross"],
+                movement_patterns=["straight", "wave", "zigzag", "swarm", "circular"],
+                entry_points=["top_center", "top_left", "top_right"],
                 difficulty=1,
                 boss_enabled=False
             ),
@@ -54,9 +55,10 @@ class LevelGenerator:
                 max_groups=4,
                 min_aliens=4,
                 max_aliens=6,
-                alien_types=["alien_01_small_01", "alien_02_small_01", "alien_01_large_01"],
-                formations=["line", "v", "circle"],
-                movement_patterns=["straight", "wave", "zigzag"],
+                alien_types=[f"alien_{i:02d}_{'small' if j < 2 else 'large'}_{k:02d}" 
+                           for i in range(4,7) for j in range(3) for k in range(1,3)],
+                formations=["line", "v", "circle", "diamond", "wave", "cross", "spiral"],
+                movement_patterns=["straight", "wave", "zigzag", "swarm", "circular"],
                 entry_points=["top_center", "top_left", "top_right"],
                 difficulty=2,
                 boss_enabled=True
@@ -68,9 +70,9 @@ class LevelGenerator:
                 min_aliens=5,
                 max_aliens=8,
                 alien_types=[f"alien_{i:02d}_{'small' if j < 2 else 'large'}_{k:02d}" 
-                           for i in range(1,4) for j in range(3) for k in range(1,3)],
-                formations=["line", "v", "circle", "diamond"],
-                movement_patterns=["straight", "wave", "zigzag", "swarm"],
+                           for i in range(7,11) for j in range(3) for k in range(1,3)],
+                formations=["line", "v", "circle", "diamond", "wave", "cross", "spiral"],
+                movement_patterns=["straight", "wave", "zigzag", "swarm", "circular", "random"],
                 entry_points=["top_center", "top_left", "top_right"],
                 difficulty=3,
                 boss_enabled=True
@@ -82,9 +84,9 @@ class LevelGenerator:
                 min_aliens=6,
                 max_aliens=10,
                 alien_types=[f"alien_{i:02d}_{'small' if j < 2 else 'large'}_{k:02d}" 
-                           for i in range(3,6) for j in range(3) for k in range(1,3)],
-                formations=["line", "v", "circle", "diamond", "wave"],
-                movement_patterns=["straight", "wave", "zigzag", "swarm", "circular"],
+                           for i in range(11,15) for j in range(3) for k in range(1,3)],
+                formations=["line", "v", "circle", "diamond", "wave", "cross", "spiral"],
+                movement_patterns=["straight", "wave", "zigzag", "swarm", "circular", "random"],
                 entry_points=["top_center", "top_left", "top_right"],
                 difficulty=4,
                 boss_enabled=True
@@ -96,9 +98,9 @@ class LevelGenerator:
                 min_aliens=7,
                 max_aliens=12,
                 alien_types=[f"alien_{i:02d}_{'small' if j < 2 else 'large'}_{k:02d}" 
-                           for i in range(4,7) for j in range(3) for k in range(1,3)],
-                formations=["line", "v", "circle", "diamond", "wave", "cross"],
-                movement_patterns=["straight", "wave", "zigzag", "swarm", "circular", "random"],
+                           for i in range(15,18) for j in range(3) for k in range(1,3)],
+                formations=["line", "v", "circle", "diamond", "wave", "cross", "spiral"],
+                movement_patterns=["straight", "wave", "zigzag", "swarm", "circular", "random", "chase"],
                 entry_points=["top_center", "top_left", "top_right"],
                 difficulty=5,
                 boss_enabled=True
@@ -110,7 +112,7 @@ class LevelGenerator:
                 min_aliens=8,
                 max_aliens=15,
                 alien_types=[f"alien_{i:02d}_{'small' if j < 2 else 'large'}_{k:02d}" 
-                           for i in range(5,9) for j in range(3) for k in range(1,3)],
+                           for i in range(18,22) for j in range(3) for k in range(1,3)],
                 formations=["line", "v", "circle", "diamond", "wave", "cross", "spiral"],
                 movement_patterns=["straight", "wave", "zigzag", "swarm", "circular", "random", "chase"],
                 entry_points=["top_center", "top_left", "top_right"],
@@ -124,7 +126,7 @@ class LevelGenerator:
                 min_aliens=10,
                 max_aliens=20,
                 alien_types=[f"alien_{i:02d}_{'small' if j < 2 else 'large'}_{k:02d}" 
-                           for i in range(7,11) for j in range(3) for k in range(1,3)],
+                           for i in range(22,26) for j in range(3) for k in range(1,3)],
                 formations=["line", "v", "circle", "diamond", "wave", "cross", "spiral", "star"],
                 movement_patterns=["straight", "wave", "zigzag", "swarm", "circular", "random", "chase", "teleport"],
                 entry_points=["top_center", "top_left", "top_right"],

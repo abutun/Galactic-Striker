@@ -20,12 +20,12 @@ class SoundManager:
             self.sounds['player_death'] = load_sound('assets/sounds/player_death.wav')
             
             # Alien sounds
-            self.sounds['alien_fire_1'] = load_sound('assets/sounds/alien_fire_1.wav')
-            self.sounds['alien_fire_2'] = load_sound('assets/sounds/alien_fire_2.wav')
-            self.sounds['alien_hit_1'] = load_sound('assets/sounds/alien_hit_1.wav')
-            self.sounds['alien_hit_2'] = load_sound('assets/sounds/alien_hit_2.wav')
-            self.sounds['alien_death_1'] = load_sound('assets/sounds/alien_death_1.wav')
-            self.sounds['alien_death_2'] = load_sound('assets/sounds/alien_death_2.wav')
+            self.sounds['alien_fire_01'] = load_sound('assets/sounds/alien_fire_01.wav')
+            self.sounds['alien_fire_02'] = load_sound('assets/sounds/alien_fire_02.wav')
+            self.sounds['alien_hit_01'] = load_sound('assets/sounds/alien_hit_01.wav')
+            self.sounds['alien_hit_02'] = load_sound('assets/sounds/alien_hit_02.wav')
+            self.sounds['alien_death_01'] = load_sound('assets/sounds/alien_death_01.wav')
+            self.sounds['alien_death_02'] = load_sound('assets/sounds/alien_death_02.wav')
             
             # Adjust volumes
             for sound in self.sounds.values():

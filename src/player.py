@@ -127,8 +127,7 @@ class Player(pygame.sprite.Sprite):
                 self.all_sprites.add(bullet)  # Add to all_sprites too
             
             # Play sound if available
-            if hasattr(self, 'laser_sound') and self.laser_sound:
-                self.laser_sound.play()
+            self.sound_manager.play('player_fire')
         except Exception as e:
             logger.error(f"Error firing weapon: {e}")
 

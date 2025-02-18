@@ -12,8 +12,8 @@ from src.config.game_settings import ALIEN_SETTINGS
 logger = logging.getLogger(__name__)
 
 class Alien(BaseEnemy):
-    def __init__(self, x, y, bullet_group, health, speed, points):
-        super().__init__(x, y, bullet_group, health, speed, points)
+    def __init__(self, id, x, y, bullet_group, health, speed, points, type, sub_type):
+        super().__init__(id, x, y, bullet_group, health, speed, points, type, sub_type)
         self.fire_delay = 2000  # milliseconds delay between shots
         self.last_fire = pygame.time.get_ticks()
         self.path = None
@@ -79,20 +79,20 @@ class Alien(BaseEnemy):
         bullet.image.fill((255, 0, 0))  # Red for enemy bullets
         self.bullet_group.add(bullet)
 
+        self.sound_manager.play(f'alien_fire_{self.sub_type}')
+
     def take_damage(self, damage):
         self.health -= damage
         
         # Play hit sound based on alien type
-        if hasattr(self, 'sound_manager') and self.sound_manager:
-            sound_suffix = '1' if hasattr(self, 'enemy_type') and 'small' in self.enemy_type else '2'
-            self.sound_manager.play(f'alien_hit_{sound_suffix}')
+        self.sound_manager.play(f'alien_hit_{self.sub_type}')
             
-            if self.health <= 0:
-                self.sound_manager.play(f'alien_death_{sound_suffix}')
-                self.kill()
+        if self.health <= 0:
+            self.sound_manager.play(f'alien_death_{self.sub_type}')
+            self.kill()
 
 class NonBossAlien(Alien):
-    def __init__(self, x, y, bullet_group, enemy_type="small", enemy_subtype=1):
+    def __init__(self, id, x, y, bullet_group, enemy_type="small", enemy_subtype=1):
         # Set up base stats based on enemy type
         if enemy_type == "small":
             health = ALIEN_SETTINGS["small"]["base_health"]
@@ -106,11 +106,11 @@ class NonBossAlien(Alien):
             speed = ALIEN_SETTINGS["large"]["speed_modifier"]
             
         # Call parent constructor with base stats
-        super().__init__(x, y, bullet_group, health, speed, points)
+        super().__init__(id, x, y, bullet_group, health, speed, points, enemy_type, enemy_subtype)
         
         # Load sprite based on type and subtype
         try:
-            self.image = load_image(f"assets/aliens/{enemy_type}.png", fallback_color=(255, 0, 0),size=size)
+            self.image = load_image(f"assets/aliens/alien_{id}_{enemy_type}_{enemy_subtype}.png", fallback_color=(255, 0, 0),size=size)
             self.rect = self.image.get_rect(center=(x, y))
         except Exception as e:
             logger.error(f"Error loading alien sprite: {e}")
@@ -123,18 +123,18 @@ class NonBossAlien(Alien):
         self.enemy_subtype = enemy_subtype
 
 class BossAlien(Alien):
-    def __init__(self, x, y, bullet_group, boss_type=1):
+    def __init__(self, id, x, y, bullet_group, boss_type=1):
         health = ALIEN_SETTINGS["boss"]["base_health"] * boss_type
         points = ALIEN_SETTINGS["boss"]["base_points"]
         speed = ALIEN_SETTINGS["boss"]["speed_modifier"]
         
-        super().__init__(x, y, bullet_group, health, speed, points)
+        super().__init__(id, x, y, bullet_group, health, speed, points, "boss", boss_type)
         
         # Load boss sprite
         try:
             size = ALIEN_SETTINGS["boss"]["size"]
             self.image = load_image(
-                f"assets/aliens/boss_{boss_type:02d}.png",
+                f"assets/aliens/boss_{id}_{boss_type}.png",
                 fallback_color=(255, 255, 0),
                 size=size
             )

@@ -138,21 +138,40 @@ class LevelManager:
             else:
                 start_x = screen.get_width() // 2
 
+            parts = group['alien_type'].split('_')
+            type = parts[0]
+            id = parts[1]
+
             # Create aliens with adjusted positions
-            for pos in positions:
-                alien = NonBossAlien(
-                    start_x + pos[0], start_y + pos[1],
-                    self.bullet_group,
-                    group['alien_type']
+            if type == "alien":
+                alien_type = parts[2]
+                alien_subtype = parts[3]
+                for pos in positions:
+                    alien = NonBossAlien(
+                        id, start_x + pos[0], start_y + pos[1],
+                        self.bullet_group,
+                        alien_type,
+                        alien_subtype
+                        )
+                    alien.health = group['health']
+                    alien.speed = group['speed']
+                    alien.sound_manager = self.sound_manager
+                    aliens.append(alien)
+            elif type == "boss":
+                boss = BossAlien(
+                    id, start_x + pos[0], start_y + pos[1],
+                    self.bullet_group
                 )
-                alien.health = group['health']
-                alien.speed = group['speed']
-                aliens.append(alien)
+                boss.health = group['health']
+                boss.speed = group['speed']
+                boss.sound_manager = self.sound_manager
+                aliens.append(boss)
+
 
             # Add aliens to sprite groups
-            for alien in aliens:
-                self.enemy_group.add(alien)
-                self.sprite_group.add(alien)
+            for enemy in aliens:
+                self.enemy_group.add(enemy)
+                self.sprite_group.add(enemy)
 
             # Add to active groups
             self.active_groups.append({

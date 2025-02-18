@@ -133,6 +133,7 @@ class Game:
         
         # Pass sound manager to objects that need it
         self.player.sound_manager = self.sound_manager
+        self.level_manager.sound_manager = self.sound_manager
         
         self.running = True
 
@@ -170,15 +171,6 @@ class Game:
 
         self.score_manager = ScoreManager()
         self.level_manager = LevelManager(1, self.enemies, self.all_sprites, self.enemy_bullets)
-
-        # Load sounds
-        self.laser_sound = load_sound("assets/audio/laser.wav")
-        self.explosion_sound = load_sound("assets/audio/explosion.wav")
-
-        if self.laser_sound:
-            self.laser_sound.set_volume(0.5)
-        if self.explosion_sound:
-            self.explosion_sound.set_volume(0.7)
 
     def handle_collisions(self):
         """Handle all game collisions."""
@@ -309,9 +301,9 @@ class Game:
                 if event.type == pygame.QUIT:
                     pygame.quit()
                     sys.exit()
-                elif event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_ESCAPE:
-                        return  # Allow skipping the intro
+                #elif event.type == pygame.KEYDOWN:
+                #    if event.key == pygame.K_ESCAPE:
+                #        return  # Allow skipping the intro
             
             # Update countdown
             elapsed = (current_time - start_time) / 1000  # Convert to seconds
