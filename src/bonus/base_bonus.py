@@ -26,7 +26,7 @@ class Bonus(pygame.sprite.Sprite, ABC):
     @abstractmethod
     def apply(self, player, game_context=None):
         """Apply bonus effect to player"""
-        pass
+        self.sound_manager.play("bonus_reward")
 
     def update(self):
         """Move bonus down the screen and check duration"""

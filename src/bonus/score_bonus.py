@@ -6,6 +6,7 @@ class ScoreMultiplierBonus(Bonus):
         self.multiplier = multiplier
         
     def apply(self, player, game_context=None):
+        self.sound_manager.play("bonus_reward")
         if game_context and "score_manager" in game_context:
             game_context["score_manager"].set_multiplier(self.multiplier)
 
@@ -15,6 +16,7 @@ class LetterCollectionBonus(Bonus):
         self.letter = letter
         
     def apply(self, player, game_context=None):
+        self.sound_manager.play("bonus_reward")
         if not hasattr(player, 'collected_letters'):
             player.collected_letters = []
         player.collected_letters.append(self.letter)

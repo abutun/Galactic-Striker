@@ -17,6 +17,7 @@ class MoneyBonus(Bonus):
         self.rect = self.image.get_rect(center=(x, y))
 
     def apply(self, player):
+        self.sound_manager.play("bonus_reward") 
         player.money += self.amount
 
 class MoneyBonus10(MoneyBonus):

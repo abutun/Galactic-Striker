@@ -12,6 +12,7 @@ class ExtraSpeedBonus(Bonus):
         )
         
     def apply(self, player, game_context=None):
+        self.sound_manager.play("bonus_reward")
         if hasattr(player, 'speed'):
             player.speed = min(player.speed + 1, 8)  # Cap at 8
         else:
@@ -27,6 +28,7 @@ class ExtraBulletBonus(Bonus):
         )
         
     def apply(self, player, game_context=None):
+        self.sound_manager.play("bonus_reward")
         if hasattr(player, 'bullet_count'):
             player.bullet_count = min(player.bullet_count + 1, 4)  # Cap at 4
         else:
@@ -42,6 +44,7 @@ class ExtraTimeBonus(Bonus):
         )
         
     def apply(self, player, game_context=None):
+        self.sound_manager.play("bonus_reward")
         if hasattr(player, 'time_stat'):
             player.time_stat = min(player.time_stat + 30, 300)  # Cap at 300 seconds
         else:
@@ -57,7 +60,7 @@ class ExtraBulletSpeedBonus(Bonus):
         )
         
     def apply(self, player, game_context=None):
-        """Increase player's bullet speed"""
+        self.sound_manager.play("bonus_reward")
         if hasattr(player, 'bullet_speed'):
             player.bullet_speed = min(player.bullet_speed + 1, 10)  # Cap at 10
         else:
@@ -74,4 +77,5 @@ class PowerUp(Bonus):
         self.rect = self.image.get_rect(center=(x, y))
 
     def apply(self, player):
+        self.sound_manager.play("bonus_reward")
         player.weapon_level = min(player.weapon_level + 1, 7)

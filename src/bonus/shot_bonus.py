@@ -8,6 +8,7 @@ class SingleShotBonus(Bonus):
                         size=(24, 24))
 
     def apply(self, player):
+        self.sound_manager.play("bonus_reward")
         player.primary_weapon = 1
 
 class DoubleShotBonus(Bonus):
@@ -18,6 +19,7 @@ class DoubleShotBonus(Bonus):
                         size=(24, 24))
 
     def apply(self, player):
+        self.sound_manager.play("bonus_reward")
         player.primary_weapon = 2
 
 class TripleShotBonus(Bonus):
@@ -28,6 +30,7 @@ class TripleShotBonus(Bonus):
                         size=(24, 24))
 
     def apply(self, player):
+        self.sound_manager.play("bonus_reward")
         player.primary_weapon = 3
 
 class QuadShotBonus(Bonus):
@@ -38,4 +41,5 @@ class QuadShotBonus(Bonus):
                         size=(24, 24))
 
     def apply(self, player):
+        self.sound_manager.play("bonus_reward")
         player.primary_weapon = 4

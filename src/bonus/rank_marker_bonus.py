@@ -13,5 +13,6 @@ class RankMarker(Bonus):
         self.rect = self.image.get_rect(center=(x, y))
 
     def apply(self, player):
+        self.sound_manager.play("bonus_reward")
         player.rank_markers.append(self)
         player.check_rank_upgrade()

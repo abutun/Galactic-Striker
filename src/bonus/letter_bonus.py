@@ -17,5 +17,6 @@ class LetterBonus(Bonus):
         self.rect = self.image.get_rect(center=(x, y))
 
     def apply(self, player):
+        self.sound_manager.play("bonus_reward")
         if self.letter not in player.letters:
             player.letters.append(self.letter)

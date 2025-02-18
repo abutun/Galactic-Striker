@@ -8,12 +8,12 @@ import pygame
 logger = logging.getLogger(__name__)
 
 # Core game components
-from src.player import Player, RANK_NAMES
+from src.player.player import Player, RANK_NAMES
 from src.enemy.alien import NonBossAlien
-from src.background import Background
-from src.scoring import ScoreManager
-from src.sound_manager import SoundManager
-from src.level.level_manager import LevelManager
+from src.misc.background import Background
+from src.manager.score_manager import ScoreManager
+from src.manager.sound_manager import SoundManager
+from src.manager.level_manager import LevelManager
 from src.level.level_editor import LevelEditor
 from src.utils.asset_loader import AssetLoader
 
@@ -24,7 +24,7 @@ from src.config.game_settings import (
     MOVEMENT_PATTERNS,
     SPECIAL_EFFECTS
 )
-import src.config.global_state as global_state
+import src.state.global_state as global_state
 
 # Bonus system imports
 from src.bonus import (
@@ -201,7 +201,7 @@ class Game:
             if 'game_context' in bonus.apply.__code__.co_varnames:
                 bonus.apply(self.player, {"score_manager": self.score_manager, "enemy_group": self.enemies})
             else:
-                bonus.apply(self.player)  # For bonuses that don't use game_context
+                bonus.apply(self.player)
 
     def update(self, dt):
         """Update game state."""
@@ -246,27 +246,13 @@ class Game:
                 reward = reward_class(position[0], position[1])
 
             # Set sound manager for the reward if it needs sounds
-            if hasattr(reward, 'sound_manager'):
-                reward.sound_manager = self.sound_manager
+            reward.sound_manager = self.sound_manager
             
             self.bonus_group.add(reward)
             self.all_sprites.add(reward)
             
         except Exception as e:
             logger.error(f"Error spawning rewards: {e}")
-
-    def spawn_alien_group(self, group_data):
-        """Spawn a group of aliens."""
-        try:
-            aliens = []
-            for pos in group_data['positions']:
-                alien = NonBossAlien(pos[0], pos[1], self.enemy_bullets, group_data['alien_type'])
-                alien.sound_manager = self.sound_manager  # Set sound manager for each alien
-                aliens.append(alien)
-                self.enemies.add(alien)
-                self.all_sprites.add(alien)
-        except Exception as e:
-            logger.error(f"Error spawning alien group 0x0001: {e}")
 
     def draw(self, dev_mode, editing):
         """Draw game state."""

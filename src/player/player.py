@@ -2,7 +2,7 @@ import pygame
 import logging
 from src.utils.utils import ResourceManager, load_image
 from src.weapon.weapon_factory import WeaponFactory
-from src.weapons import Missile, Bullet
+from src.weapon.weapons import Missile, Bullet
 
 logger = logging.getLogger(__name__)
 
@@ -32,7 +32,7 @@ class Player(pygame.sprite.Sprite):
             
             # Initialize player attributes
             self.bullet_group = bullet_group
-            self.speed = 10
+            self.speed = 8
             self.health = 100
             self.shield = 0
             self.lives = 3
@@ -90,8 +90,8 @@ class Player(pygame.sprite.Sprite):
             keys = pygame.key.get_pressed()
             
             # Keep player within play area bounds
-            play_area_left = int(pygame.display.get_surface().get_width() * 0.11)
-            play_area_right = int(pygame.display.get_surface().get_width() * 0.89)
+            play_area_left = int(pygame.display.get_surface().get_width() * 0.116)
+            play_area_right = int(pygame.display.get_surface().get_width() * 0.876)
             
             dx = (keys[pygame.K_RIGHT] - keys[pygame.K_LEFT]) * self.speed
             self.rect.x += dx

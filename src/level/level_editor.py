@@ -4,7 +4,7 @@ import logging
 import tkinter as tk
 from tkinter import filedialog
 
-from src.level.level_data import AlienGroup, EntryPoint, LevelData, MovementPattern, PathPoint
+from src.level.level_data import AlienGroup, EntryPoint, LevelData, Movement, PathPoint
 
 logger = logging.getLogger(__name__)
 
@@ -47,7 +47,7 @@ class LevelEditor:
                 spacing=group_data['spacing'],
                 entry_point=EntryPoint(group_data['entry_point']),
                 path=path_points,
-                movement_pattern=MovementPattern(group_data['movement_pattern']),
+                movement_pattern=Movement(group_data['movement_pattern']),
                 speed=group_data['speed'],
                 health=group_data['health'],
                 shoot_interval=group_data['shoot_interval'],
@@ -156,7 +156,7 @@ class LevelEditor:
                     spacing=40,
                     entry_point=EntryPoint.TOP,
                     path=[],
-                    movement_pattern=MovementPattern.STRAIGHT,
+                    movement_pattern=Movement.STRAIGHT,
                     speed=1.0,
                     health=1,
                     shoot_interval=2.0

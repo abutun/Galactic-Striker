@@ -5,7 +5,7 @@ from src.enemy.alien import NonBossAlien, BossAlien
 from src.level.level_data import *
 import logging
 from src.config.game_settings import MOVEMENT_PATTERNS
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Tuple
 from dataclasses import dataclass
 import math
 import random
@@ -90,7 +90,7 @@ class LevelManager:
                     spacing=group_data['spacing'],
                     entry_point=EntryPoint(group_data['entry_point']),
                     path=path_points,
-                    movement_pattern=MovementPattern(group_data['movement_pattern']),
+                    movement_pattern=Movement(group_data['movement_pattern']),
                     speed=group_data['speed'],
                     health=group_data['health'],
                     shoot_interval=group_data['shoot_interval'],
@@ -132,21 +132,55 @@ class LevelManager:
             return
 
         try:
+            screen = pygame.display.get_surface()
+            if not screen:
+                return
+            sw, sh = screen.get_size()
             group = self.level_data.alien_groups.pop(0)
-            logger.info(f"Spawning alien group: type={group['alien_type']}, count={group['count']}")
+
+            logger.info(f"Spawning alien group: type={group['alien_type']}, entry={group['entry_point']}, count={group['count']}")
+
+            # Calculate base positions based on entry point
+            enttry_point = EntryPoint[group['entry_point'].upper()]
+            base_y = -50  # Default starting y position above screen
+            if enttry_point == EntryPoint.TOP_CENTER:
+                base_x = sw // 2
+            elif enttry_point == EntryPoint.TOP_LEFT:
+                base_x = sw * 0.2  # 20% from left
+            elif enttry_point == EntryPoint.TOP_RIGHT:
+                base_x = sw * 0.8  # 20% from right
+            elif enttry_point == EntryPoint.LEFT_TOP:
+                base_x = sw * 0.1
+                base_y = sh * 0.2  # 20% from top
+            elif enttry_point == EntryPoint.RIGHT_TOP:
+                base_x = sw * 0.9
+                base_y = sh * 0.2  # 20% from to
 
             # Get alien type and id
             parts = group['alien_type'].split('_')
             type = parts[0]
             id = parts[1]
 
-            # Calculate formation positions
-            positions = self.calculate_formation_positions(
-                group['formation'], 
-                group['count'], 
+            # Calculate formation positions relative to entry point
+            raw_positions = self.calculate_formation_positions(
+                group['formation'],
+                group['count'],
                 group['spacing']
             )
-
+            
+            # Adjust positions based on entry point
+            positions = []
+            for pos in raw_positions:
+                if enttry_point in [EntryPoint.LEFT_TOP, EntryPoint.RIGHT_TOP]:
+                    # Adjust for side entry
+                    x = base_x + (pos[0] - base_x) * 0.2  # Compress formation width
+                    y = base_y + (pos[1] - base_y)
+                else:
+                    # Top entry points
+                    x = base_x + (pos[0] - (sw // 2))  # Center formation on entry point
+                    y = base_y + (pos[1] - (-50))
+                positions.append((x, y))
+            
             # Create aliens with adjusted positions
             aliens = []
             if type == "alien":
@@ -189,42 +223,48 @@ class LevelManager:
                 "pattern": group['movement_pattern'],
                 "group_behavior": group.get('group_behavior', False)
             })
+
+            logger.info(f"Spawned alien group: type={type}, count={len(aliens)}, entry={enttry_point.value}")    
                 
         except Exception as e:
             logger.error(f"Error spawning alien group 0x0002: {e}")
 
-    def calculate_formation_positions(self, formation, count, spacing):
-        """Calculate initial positions for alien formation."""
+    def calculate_formation_positions(self, pattern: str, count: int, spacing: int) -> List[Tuple[float, float]]:
+        """Calculate positions for all formation types."""
+        formation = Formation[pattern.upper()]
+        logger.info(f"Calculating formation: {formation} for {count} aliens")
+        screen = pygame.display.get_surface()
+        if not screen:
+            return []
+        
+        sw, sh = screen.get_size()
+        center_x = sw // 2
+        positions = []
+        
         try:
-            logger.info(f"Calculating formation positions: {formation}, count: {count}")
-            positions = []
-            screen = pygame.display.get_surface()
-            center_x = screen.get_width() // 2
-
-            if formation == "line":
+            if formation == Formation.LINE:
                 # Simple horizontal line
                 total_width = (count - 1) * spacing
                 start_x = center_x - (total_width // 2)
-                for i in range(count):
-                    positions.append((start_x + i * spacing, -50))
+                positions = [(start_x + i * spacing, -50) for i in range(count)]
                 
-            elif formation == "v":
-                # V formation
+            elif formation == Formation.V:
+                # V-shaped formation
                 for i in range(count):
                     x = center_x + (i // 2 * spacing if i % 2 == 0 else -(i // 2 + 1) * spacing)
                     y = -50 + (i // 2 * spacing)
                     positions.append((x, y))
-                
-            elif formation == "circle":
+                    
+            elif formation == Formation.CIRCLE:
                 # Circular formation
-                radius = spacing * count / (2 * math.pi)
+                radius = spacing * 2
                 for i in range(count):
                     angle = (2 * math.pi * i) / count
                     x = center_x + radius * math.cos(angle)
                     y = -50 + radius * math.sin(angle)
                     positions.append((x, y))
-                
-            elif formation == "diamond":
+                    
+            elif formation == Formation.DIAMOND:
                 # Diamond formation
                 size = math.ceil(math.sqrt(count))
                 for i in range(count):
@@ -233,15 +273,15 @@ class LevelManager:
                     x = center_x + (col - size/2) * spacing
                     y = -50 + row * spacing
                     positions.append((x, y))
-                
-            elif formation == "wave":
-                # Wave formation
+                    
+            elif formation == Formation.WAVE:
+                # Sinusoidal wave formation
                 for i in range(count):
                     x = center_x + (i - count/2) * spacing
                     y = -50 + math.sin(i * 0.5) * spacing
                     positions.append((x, y))
-                
-            elif formation == "cross":
+                    
+            elif formation == Formation.CROSS:
                 # Cross formation
                 mid = count // 2
                 for i in range(count):
@@ -252,13 +292,127 @@ class LevelManager:
                         x = center_x + (i - mid - count//4) * spacing
                         y = -50 - mid * spacing // 2
                     positions.append((x, y))
-                
+                    
+            elif formation == Formation.SPIRAL:
+                # Spiral formation
+                a = spacing / (2 * math.pi)  # Spiral spacing
+                for i in range(count):
+                    theta = i * 0.5
+                    r = a * theta
+                    x = center_x + r * math.cos(theta)
+                    y = -50 + r * math.sin(theta)
+                    positions.append((x, y))
+                    
+            elif formation == Formation.STAR:
+                # Star formation with 5 points
+                points = 5
+                inner_radius = spacing
+                outer_radius = spacing * 2
+                for i in range(count):
+                    angle = (2 * math.pi * i) / count
+                    radius = outer_radius if i % 2 == 0 else inner_radius
+                    x = center_x + radius * math.cos(angle)
+                    y = -50 + radius * math.sin(angle)
+                    positions.append((x, y))
+                    
             return positions
-        
+            
         except Exception as e:
             logger.error(f"Error calculating formation positions: {e}")
-            # Fallback to simple line formation
-            return [(center_x + i * spacing, -50) for i in range(count)]
+            return [(center_x, -50) for _ in range(count)]  # Fallback to single line
+
+    def update_group_pattern(self, aliens: List[pygame.sprite.Sprite], pattern: Movement) -> None:
+        """Update alien positions based on movement pattern."""
+        movement = Movement[pattern.upper()]
+       
+        try:
+            screen = pygame.display.get_surface()
+            if not screen:
+                return
+            
+            sw, sh = screen.get_size()
+            time = pygame.time.get_ticks() / 1000.0
+            
+            if movement == Movement.STRAIGHT:
+                # Simple downward movement
+                for alien in aliens:
+                    alien.rect.y += alien.speed
+                    
+            elif movement == Movement.ZIGZAG:
+                # Zigzag pattern
+                for alien in aliens:
+                    alien.rect.y += alien.speed
+                    alien.rect.x += math.sin(time * 2) * alien.speed * 2
+                    
+            elif movement == Movement.CIRCULAR:
+                # Circular pattern
+                center_x = sw // 2
+                for i, alien in enumerate(aliens):
+                    angle = time + (2 * math.pi * i / len(aliens))
+                    radius = 100
+                    alien.rect.x = center_x + math.cos(angle) * radius
+                    alien.rect.y += alien.speed
+                    
+            elif movement == Movement.WAVE:
+                # Wave pattern
+                for i, alien in enumerate(aliens):
+                    offset = i * 30
+                    alien.rect.x = (sw // 2) + math.sin(time * 2 + offset * 0.1) * 100
+                    alien.rect.y += alien.speed
+                    
+            elif movement == Movement.SWARM:
+                # Swarm behavior following leader
+                if aliens:
+                    leader = aliens[0]
+                    leader.rect.y += leader.speed
+                    leader.rect.x += math.sin(time * 3) * leader.speed
+                    
+                    for alien in aliens[1:]:
+                        dx = leader.rect.x - alien.rect.x
+                        dy = leader.rect.y - alien.rect.y
+                        dist = math.sqrt(dx*dx + dy*dy)
+                        if dist > 0:
+                            alien.rect.x += (dx/dist) * alien.speed * 0.5
+                            alien.rect.y += (dy/dist) * alien.speed * 0.5
+                            
+            elif movement == Movement.RANDOM:
+                # Random movement with bounds
+                for alien in aliens:
+                    if not hasattr(alien, 'dx') or random.random() < 0.05:
+                        alien.dx = random.uniform(-1, 1) * alien.speed
+                        alien.dy = random.uniform(0.5, 1) * alien.speed
+                    
+                    alien.rect.x += alien.dx
+                    alien.rect.y += alien.dy
+                    
+                    # Keep in bounds
+                    alien.rect.x = max(sw * 0.1, min(sw * 0.9, alien.rect.x))
+                    
+            elif movement == Movement.CHASE:
+                # Chase player if available
+                from src.state.global_state import global_player
+
+                # Chase player
+                if global_player:
+                    for alien in aliens:
+                        dx = global_player.rect.x - alien.rect.x
+                        dy = global_player.rect.y - alien.rect.y
+                        dist = math.sqrt(dx*dx + dy*dy)
+                        if dist > 0:
+                            alien.rect.x += (dx/dist) * alien.speed * 0.5
+                            alien.rect.y += (dy/dist) * alien.speed * 0.5
+                            
+            elif movement == Movement.TELEPORT:
+                # Random teleportation
+                for alien in aliens:
+                    if random.random() < 0.02:  # 2% chance to teleport
+                        alien.rect.x = random.randint(int(sw * 0.2), int(sw * 0.8))
+                        alien.rect.y = random.randint(50, int(sh * 0.5))
+                    else:
+                        alien.rect.y += alien.speed
+                    
+        except Exception as e:
+            logger.error(f"Error updating group pattern: {e}") 
 
     def update(self):
         """Update level state"""
@@ -282,97 +436,6 @@ class LevelManager:
         except Exception as e:
             logger.error(f"Error updating level: {e}")
 
-    def update_group_pattern(self, aliens, pattern):
-        """Update alien group movement based on pattern."""
-        try:
-            logger.info(f"Updating group pattern: {pattern}")
-            screen = pygame.display.get_surface()
-            if not screen:
-                return
-            
-            sw, sh = screen.get_size()
-            time = pygame.time.get_ticks() / 1000.0  # Current time in seconds
-            
-            if pattern == MovementPattern.STRAIGHT:
-                # Simple downward movement
-                for alien in aliens:
-                    alien.rect.y += alien.speed
-                
-            elif pattern == MovementPattern.ZIGZAG:
-                # Zigzag pattern with sine wave
-                for alien in aliens:
-                    alien.rect.y += alien.speed
-                    alien.rect.x += math.sin(time * 2) * alien.speed
-                
-            elif pattern == MovementPattern.CIRCULAR:
-                # Circular pattern
-                center_x = sw // 2
-                radius = 100
-                for i, alien in enumerate(aliens):
-                    angle = time + (2 * math.pi * i / len(aliens))
-                    alien.rect.x = center_x + math.cos(angle) * radius
-                    alien.rect.y += alien.speed
-                
-            elif pattern == MovementPattern.WAVE:
-                # Wave pattern
-                for i, alien in enumerate(aliens):
-                    offset = i * 30  # Space between aliens
-                    alien.rect.x = (sw // 2) + math.sin(time * 2 + offset * 0.1) * 100
-                    alien.rect.y += alien.speed
-                
-            elif pattern == MovementPattern.SWARM:
-                # Swarm behavior - follow leader with slight variations
-                if aliens:
-                    leader = aliens[0]
-                    leader.rect.y += leader.speed
-                    leader.rect.x += math.sin(time * 3) * leader.speed
-                    
-                    for i, alien in enumerate(aliens[1:], 1):
-                        dx = leader.rect.x - alien.rect.x
-                        dy = leader.rect.y - alien.rect.y
-                        dist = math.sqrt(dx*dx + dy*dy)
-                        
-                        if dist > 0:
-                            alien.rect.x += (dx/dist) * alien.speed
-                            alien.rect.y += (dy/dist) * alien.speed
-                        
-            elif pattern == MovementPattern.RANDOM:
-                # Random movement with bounds checking
-                for alien in aliens:
-                    if random.random() < 0.05:  # 5% chance to change direction
-                        alien.dx = random.uniform(-1, 1) * alien.speed
-                        alien.dy = random.uniform(0.5, 1) * alien.speed
-                    
-                    alien.rect.x += getattr(alien, 'dx', 0)
-                    alien.rect.y += getattr(alien, 'dy', alien.speed)
-                    
-                    # Keep in bounds
-                    alien.rect.x = max(sw * 0.1, min(sw * 0.9, alien.rect.x))
-                
-            elif pattern == MovementPattern.CHASE:
-                # Chase player if available
-                from src.config.global_state import global_player
-                if global_player:
-                    for alien in aliens:
-                        dx = global_player.rect.x - alien.rect.x
-                        dy = global_player.rect.y - alien.rect.y
-                        dist = math.sqrt(dx*dx + dy*dy)
-                        if dist > 0:
-                            alien.rect.x += (dx/dist) * alien.speed * 0.5
-                            alien.rect.y += (dy/dist) * alien.speed * 0.5
-                        
-            elif pattern == MovementPattern.TELEPORT:
-                # Random teleportation
-                for alien in aliens:
-                    if random.random() < 0.02:  # 2% chance to teleport
-                        alien.rect.x = random.randint(int(sw * 0.2), int(sw * 0.8))
-                        alien.rect.y = random.randint(50, int(sh * 0.5))
-                    else:
-                        alien.rect.y += alien.speed
-                    
-        except Exception as e:
-            logger.error(f"Error updating group pattern: {e}")
-
     def is_level_complete(self):
         return not self.active_groups and not self.level_data.alien_groups
 
@@ -389,28 +452,3 @@ class LevelManager:
             self.spawn_next_group()
         else:
             logger.error(f"Failed to load level {self.current_level}")
-
-    def spawn_alien_group(self, group_data):
-        """Spawn a group of aliens according to formation and entry point."""
-        screen_width = pygame.display.get_surface().get_width()
-        screen_height = pygame.display.get_surface().get_height()
-        
-        # Adjust entry points to always start from top
-        entry_points = {
-            "top_left": (screen_width * 0.2, -50),
-            "top_center": (screen_width * 0.5, -50),
-            "top_right": (screen_width * 0.8, -50),
-            "left_top": (screen_width * 0.1, 50),
-            "right_top": (screen_width * 0.9, 50)
-        }
-        
-        # Get entry position
-        entry_point = group_data.get("entry_point", "top_center")
-        base_x, base_y = entry_points[entry_point]
-
-        # Calculate positions for each alien
-        positions = []
-        for i in range(group_data["count"]):
-            x = base_x + i * group_data["spacing"]
-            y = base_y
-            positions.append((x, y))
