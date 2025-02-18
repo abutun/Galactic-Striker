@@ -26,7 +26,7 @@ class Player(pygame.sprite.Sprite):
         super().__init__()
         try:
             # Load the base player image first with 50% larger size (48x48 instead of 32x32)
-            self.base_image = load_image("assets/sprites/player.png", (0, 255, 0), (64, 64))
+            self.base_image = load_image("assets/sprites/player.png", (0, 255, 0), (48, 48))
             self.image = self.base_image.copy()  # Create initial copy
             self.rect = self.image.get_rect(center=(x, y))
             
@@ -90,8 +90,8 @@ class Player(pygame.sprite.Sprite):
             keys = pygame.key.get_pressed()
             
             # Keep player within play area bounds
-            play_area_left = int(pygame.display.get_surface().get_width() * 0.12)
-            play_area_right = int(pygame.display.get_surface().get_width() * 0.88)
+            play_area_left = int(pygame.display.get_surface().get_width() * 0.11)
+            play_area_right = int(pygame.display.get_surface().get_width() * 0.89)
             
             dx = (keys[pygame.K_RIGHT] - keys[pygame.K_LEFT]) * self.speed
             self.rect.x += dx
