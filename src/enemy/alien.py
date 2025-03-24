@@ -14,10 +14,13 @@ logger = logging.getLogger(__name__)
 class Alien(BaseEnemy):
     def __init__(self, id, x, y, bullet_group, health, speed, points, type, sub_type):
         super().__init__(id, x, y, bullet_group, health, speed, points, type, sub_type)
-        self.fire_delay = 2000  # milliseconds delay between shots
-        self.last_fire = pygame.time.get_ticks()
+        # Randomize initial fire delay between 1500-2500ms
+        self.fire_delay = random.randint(1500, 2500)
+        self.last_fire = pygame.time.get_ticks() + random.randint(0, 1000)  # Randomize initial fire time
         self.path = None
         self.path_index = 0
+        # Add spacing properties
+        self.min_spacing = 40  # Minimum space between aliens
 
     def follow_path(self):
         if self.path and self.path_index < len(self.path):
@@ -39,6 +42,10 @@ class Alien(BaseEnemy):
         screen = pygame.display.get_surface()
         if screen:
             _, sh = screen.get_size()
+            
+            # Check for collisions with other aliens and adjust position
+            self.maintain_spacing()
+            
             if self.rect.y < sh * 0.85:
                 self.rect.y += self.speed
             else:
@@ -57,11 +64,36 @@ class Alien(BaseEnemy):
                     elif pattern == "random":
                         self.rect.y += self.speed
                         self.rect.x += random.randint(-3, 3)
+                        
         self.wrap_position()
         now = pygame.time.get_ticks()
         if now - self.last_fire > self.fire_delay:
             self.fire()
             self.last_fire = now
+            # Randomize next fire delay between 1500-2500ms
+            self.fire_delay = random.randint(1500, 2500)
+
+    def maintain_spacing(self):
+        """Maintain minimum spacing between aliens"""
+        for sprite in self.groups()[0].sprites():  # Get all sprites from the same group
+            if sprite != self and isinstance(sprite, Alien):
+                dx = self.rect.centerx - sprite.rect.centerx
+                dy = self.rect.centery - sprite.rect.centery
+                distance = math.hypot(dx, dy)
+                
+                if distance < self.min_spacing:
+                    # Calculate repulsion vector
+                    if distance > 0:
+                        force_x = (dx / distance) * (self.min_spacing - distance) * 0.1
+                        force_y = (dy / distance) * (self.min_spacing - distance) * 0.1
+                    else:  # If exactly overlapping, move randomly
+                        angle = random.uniform(0, 2 * math.pi)
+                        force_x = math.cos(angle) * self.min_spacing * 0.1
+                        force_y = math.sin(angle) * self.min_spacing * 0.1
+                        
+                    # Apply forces
+                    self.rect.x += force_x
+                    self.rect.y += force_y
 
     def fire(self):
         if global_player is not None:

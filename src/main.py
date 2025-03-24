@@ -190,8 +190,10 @@ class Game:
 
         # Enemy bullets hitting player
         hits = pygame.sprite.spritecollide(self.player, self.enemy_bullets, True)
-        for bullet in hits:
-            self.player.take_damage(bullet.damage)
+        if hits:
+            self.player.take_damage(1)  # Always reduce health by 1
+            if self.player.health <= 0:
+                self.game_over()
 
         # Player collecting bonuses
         hits = pygame.sprite.spritecollide(self.player, self.bonus_group, True)
@@ -381,6 +383,55 @@ class Game:
             self.screen.blit(countdown_text, countdown_rect)
             
             pygame.display.flip()
+
+    def game_over(self):
+        """Handle game over state."""
+        try:
+            # Draw the final game state once
+            self.draw(self.dev_mode, self.editing)
+            
+            # Create and setup overlay
+            overlay = pygame.Surface(self.screen.get_size(), pygame.SRCALPHA)
+            overlay.fill((0, 0, 0, 180))  # Dark semi-transparent overlay
+            self.screen.blit(overlay, (0, 0))
+            
+            # Setup fonts
+            font_large = pygame.font.Font(None, 74)
+            font_small = pygame.font.Font(None, 36)
+            
+            # Create text surfaces
+            game_over_text = font_large.render("GAME OVER", True, (255, 0, 0))
+            score_text = font_small.render(f"Final Score: {self.score_manager.score}", True, (255, 255, 255))
+            press_text = font_small.render("Press SPACE/ENTER to quit", True, (255, 255, 255))
+            
+            # Position text
+            game_over_rect = game_over_text.get_rect(center=(self.screen.get_width()//2, self.screen.get_height()//2 - 50))
+            score_rect = score_text.get_rect(center=(self.screen.get_width()//2, self.screen.get_height()//2 + 50))
+            press_rect = press_text.get_rect(center=(self.screen.get_width()//2, self.screen.get_height()//2 + 100))
+            
+            # Draw all text elements once
+            self.screen.blit(game_over_text, game_over_rect)
+            self.screen.blit(score_text, score_rect)
+            self.screen.blit(press_text, press_rect)
+            
+            # Update display once
+            pygame.display.flip()
+            
+            # Event loop
+            while True:
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT or (
+                        event.type == pygame.KEYDOWN and 
+                        event.key in (pygame.K_ESCAPE, pygame.K_RETURN, pygame.K_SPACE)
+                    ):
+                        self.running = False
+                        return
+                
+                # Control frame rate without redrawing
+                self.clock.tick(60)
+                
+        except Exception as e:
+            logger.error(f"Error in game over screen: {e}")
 
     def run(self):
         """Main game loop."""

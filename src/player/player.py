@@ -33,7 +33,8 @@ class Player(pygame.sprite.Sprite):
             # Initialize player attributes
             self.bullet_group = bullet_group
             self.speed = 8
-            self.health = 100
+            self.health = 3
+            self.max_health = 6  # Cap maximum health at 5
             self.shield = 0
             self.lives = 3
             self.money = 0
@@ -139,21 +140,33 @@ class Player(pygame.sprite.Sprite):
             self.rockets -= 1
 
     def take_damage(self, damage: int) -> None:
-        """Handle taking damage with proper error checking."""
-        try:
-            if self.shield_active:
-                self.shield_active = False
+        """Handle player taking damage."""
+        if self.shield > 0:
+            self.shield -= damage
+            if self.shield < 0:
+                self.shield = 0
+            if self.sound_manager:
+                self.sound_manager.play('shield_hit')
+        else:
+            # Always decrease health by 1 regardless of damage amount
+            self.health -= 1
+            if self.sound_manager:
                 self.sound_manager.play('player_hit')
-                return
-            
-            self.health -= damage
-            self.sound_manager.play('player_hit')
-            
+                
             if self.health <= 0:
+                self.health = 0
                 self.sound_manager.play('player_death')
+                # Signal game over
                 self.kill()
-        except Exception as e:
-            logger.error(f"Error handling damage: {e}")
+
+    def add_health(self):
+        """Add one health point up to max_health."""
+        if self.health < self.max_health:
+            self.health += 1
+            if self.sound_manager:
+                self.sound_manager.play('health_pickup')
+            return True
+        return False
 
     def fire(self):
         if pygame.time.get_ticks() - self.last_fire > self.fire_delay:
