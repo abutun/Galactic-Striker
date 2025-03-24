@@ -15,7 +15,6 @@ from src.manager.score_manager import ScoreManager
 from src.manager.sound_manager import SoundManager
 from src.manager.level_manager import LevelManager
 from src.level.level_editor import LevelEditor
-from src.utils.asset_loader import AssetLoader
 
 # Game settings and state
 from src.config.game_settings import (
@@ -191,8 +190,10 @@ class Game:
 
         # Enemy bullets hitting player
         hits = pygame.sprite.spritecollide(self.player, self.enemy_bullets, True)
-        for bullet in hits:
-            self.player.take_damage(bullet.damage)
+        if hits:
+            self.player.take_damage(1)  # Always reduce health by 1
+            if self.player.health <= 0:
+                self.game_over()
 
         # Player collecting bonuses
         hits = pygame.sprite.spritecollide(self.player, self.bonus_group, True)
@@ -218,38 +219,92 @@ class Game:
         self.handle_collisions()
 
     def spawn_rewards(self, position):
-        """Spawn rewards at the given position."""
+        """Spawn rewards with probability based on level difficulty."""
         try:
-            # Random chance to spawn different rewards
+            # Base chance starts at 15% and increases with level difficulty
+            base_chance = 0.15 + (min(self.level_manager.current_level, 100) * 0.001)  # Max +10% at level 100
+            
+            # Only proceed if we hit the spawn chance
+            if random.random() > base_chance:
+                return
+            
             chance = random.random()
+            reward = None
             
-            if chance < 0.3:  # 30% chance for money bonuses
-                reward_class = random.choice([MoneyBonus10, MoneyBonus50, MoneyBonus100, MoneyBonus200])
-                reward = reward_class(position[0], position[1])
-                
-            elif chance < 0.5:  # 20% chance for shot upgrades
-                reward_class = random.choice([SingleShotBonus, DoubleShotBonus, TripleShotBonus, QuadShotBonus])
-                reward = reward_class(position[0], position[1])
-                
-            elif chance < 0.7:  # 20% chance for rank marker
-                reward = RankMarker(position[0], position[1])
-                
-            elif chance < 0.9:  # 20% chance for letter bonus
-                letters = 'EXTRA'  # or 'EXTRA' or whatever letters you want to use
-                reward = LetterBonus(position[0], position[1], random.choice(letters))
-                
-            else:  # 10% chance for special bonuses
-                reward_class = random.choice([
-                    ShipAutofireBonus, AlienScoopBonus,
-                    MoneyBombBonus, GemBombBonus
-                ])
-                reward = reward_class(position[0], position[1])
+            # Define reward groups with their probabilities and classes
+            reward_groups = {
+                # Money bonuses (15%)
+                (0, 0.15): [
+                    (MoneyBonus10, 0.4),     # 6%
+                    (MoneyBonus50, 0.3),     # 4.5%
+                    (MoneyBonus100, 0.2),    # 3%
+                    (MoneyBonus200, 0.1)     # 1.5%
+                ],
+                # Weapon bonuses (15%)
+                (0.15, 0.30): [
+                    (SingleShotBonus, 0.2),   # 3%
+                    (DoubleShotBonus, 0.2),   # 3%
+                    (TripleShotBonus, 0.2),   # 3%
+                    (QuadShotBonus, 0.2),     # 3%
+                ],
+                # Stat bonuses (15%)
+                (0.30, 0.45): [
+                    (ExtraSpeedBonus, 0.25),       # 3.75%
+                    (ExtraBulletBonus, 0.25),      # 3.75%
+                    (ExtraTimeBonus, 0.25),        # 3.75%
+                    (ExtraBulletSpeedBonus, 0.25)  # 3.75%
+                ],
+                # Special bonuses (15%)
+                (0.45, 0.60): [
+                    (ShipAutofireBonus, 0.2),    # 3%
+                    (AlienScoopBonus, 0.2),      # 3%
+                    (MoneyBombBonus, 0.2),       # 3%
+                    (GemBombBonus, 0.2),         # 3%
+                    (ExtraLifeBonus, 0.2)        # 3%
+                ],
+                # Game mode bonuses (15%)
+                (0.60, 0.75): [
+                    (MirrorModeBonus, 0.2),      # 3%
+                    (DrunkModeBonus, 0.2),       # 3%
+                    (FreezeModeBonus, 0.2),      # 3%
+                    (WarpForwardBonus, 0.2),     # 3%
+                    (CashDoublerBonus, 0.2)      # 3%
+                ],
+                # Modifier bonuses (15%)
+                (0.75, 0.90): [
+                    (DecreaseStrengthRedBonus, 0.15),    # 2.25%
+                    (DecreaseStrengthGreenBonus, 0.15),  # 2.25%
+                    (DecreaseStrengthBlueBonus, 0.15),   # 2.25%
+                    (X2ScoreMultiplierBonus, 0.15),      # 2.25%
+                    (X5ScoreMultiplierBonus, 0.15),      # 2.25%
+                    (BonusMeteorstormBonus, 0.125),      # 1.875%
+                    (BonusMemorystationBonus, 0.125)     # 1.875%
+                ],
+                # Collection bonuses (10%)
+                (0.90, 1.0): [
+                    (RankMarker, 0.4),    # 4%
+                    (lambda x, y: LetterBonus(x, y, random.choice('BONUS')), 0.6)  # 6%
+                ]
+            }
 
-            # Set sound manager for the reward if it needs sounds
-            reward.sound_manager = self.sound_manager
-            
-            self.bonus_group.add(reward)
-            self.all_sprites.add(reward)
+            # Find the appropriate group based on chance
+            for (min_prob, max_prob), rewards in reward_groups.items():
+                if min_prob <= chance < max_prob:
+                    # Select reward from group based on internal probabilities
+                    sub_chance = random.random()
+                    cumulative = 0
+                    for reward_class, prob in rewards:
+                        cumulative += prob
+                        if sub_chance <= cumulative:
+                            reward = reward_class(position[0], position[1])
+                            break
+
+            # Only proceed if we got a reward
+            if reward:
+                reward.sound_manager = self.sound_manager
+                self.bonus_group.add(reward)
+                self.all_sprites.add(reward)
+                logger.info(f"Spawned reward: {reward.__class__.__name__} at position {position}")
             
         except Exception as e:
             logger.error(f"Error spawning rewards: {e}")
@@ -295,9 +350,9 @@ class Game:
                 if event.type == pygame.QUIT:
                     pygame.quit()
                     sys.exit()
-                #elif event.type == pygame.KEYDOWN:
-                #    if event.key == pygame.K_ESCAPE:
-                #        return  # Allow skipping the intro
+                elif event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_ESCAPE:
+                        return  # Allow skipping the intro
             
             # Update countdown
             elapsed = (current_time - start_time) / 1000  # Convert to seconds
@@ -328,6 +383,55 @@ class Game:
             self.screen.blit(countdown_text, countdown_rect)
             
             pygame.display.flip()
+
+    def game_over(self):
+        """Handle game over state."""
+        try:
+            # Draw the final game state once
+            self.draw(self.dev_mode, self.editing)
+            
+            # Create and setup overlay
+            overlay = pygame.Surface(self.screen.get_size(), pygame.SRCALPHA)
+            overlay.fill((0, 0, 0, 180))  # Dark semi-transparent overlay
+            self.screen.blit(overlay, (0, 0))
+            
+            # Setup fonts
+            font_large = pygame.font.Font(None, 74)
+            font_small = pygame.font.Font(None, 36)
+            
+            # Create text surfaces
+            game_over_text = font_large.render("GAME OVER", True, (255, 0, 0))
+            score_text = font_small.render(f"Final Score: {self.score_manager.score}", True, (255, 255, 255))
+            press_text = font_small.render("Press SPACE/ENTER to quit", True, (255, 255, 255))
+            
+            # Position text
+            game_over_rect = game_over_text.get_rect(center=(self.screen.get_width()//2, self.screen.get_height()//2 - 50))
+            score_rect = score_text.get_rect(center=(self.screen.get_width()//2, self.screen.get_height()//2 + 50))
+            press_rect = press_text.get_rect(center=(self.screen.get_width()//2, self.screen.get_height()//2 + 100))
+            
+            # Draw all text elements once
+            self.screen.blit(game_over_text, game_over_rect)
+            self.screen.blit(score_text, score_rect)
+            self.screen.blit(press_text, press_rect)
+            
+            # Update display once
+            pygame.display.flip()
+            
+            # Event loop
+            while True:
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT or (
+                        event.type == pygame.KEYDOWN and 
+                        event.key in (pygame.K_ESCAPE, pygame.K_RETURN, pygame.K_SPACE)
+                    ):
+                        self.running = False
+                        return
+                
+                # Control frame rate without redrawing
+                self.clock.tick(60)
+                
+        except Exception as e:
+            logger.error(f"Error in game over screen: {e}")
 
     def run(self):
         """Main game loop."""

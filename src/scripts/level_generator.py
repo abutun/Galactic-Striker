@@ -34,6 +34,45 @@ class LevelConfig:
 
 class LevelGenerator:
     def __init__(self):
+        # Add formation spacing configurations with alien size consideration
+        base_spacing = ALIEN_SETTINGS.get("size", (32, 32))[0] * 0.5  # 50% of alien size as additional spacing
+        
+        self.formation_spacing = {
+            "line": {
+                "min_spacing": base_spacing,
+                "group_behavior_chance": 0.4
+            },
+            "v": {
+                "min_spacing": base_spacing * 1.2,  # 20% more for V formation
+                "group_behavior_chance": 0.6
+            },
+            "circle": {
+                "min_spacing": base_spacing * 1.1,
+                "group_behavior_chance": 0.7
+            },
+            "diamond": {
+                "min_spacing": base_spacing,
+                "group_behavior_chance": 0.8
+            },
+            "wave": {
+                "min_spacing": base_spacing * 0.9,  # Slightly less for wave
+                "group_behavior_chance": 0.5
+            },
+            "cross": {
+                "min_spacing": base_spacing,
+                "group_behavior_chance": 0.6
+            },
+            "spiral": {
+                "min_spacing": base_spacing * 0.9,
+                "group_behavior_chance": 0.7
+            },
+            "star": {
+                "min_spacing": base_spacing * 1.1,
+                "group_behavior_chance": 0.8
+            }
+        }
+        
+        # Keep existing difficulty configurations unchanged
         self.difficulty_configs = {
             # Tutorial levels (1-10)
             (1, 10): LevelConfig(
@@ -191,13 +230,10 @@ class LevelGenerator:
         count = random.randint(config.min_aliens, config.max_aliens)
         formation = random.choice(config.formations)
         
-        # Adjust spacing based on formation
-        if formation == "line":
-            spacing = random.randint(30, 50)
-        elif formation == "v":
-            spacing = random.randint(35, 55)
-        else:
-            spacing = random.randint(40, 60)
+        # Use formation-specific spacing
+        formation_config = self.formation_spacing[formation]
+        spacing = formation_config["min_spacing"]
+        group_behavior_chance = formation_config["group_behavior_chance"]
 
         entry_point = random.choice(config.entry_points)
         
@@ -212,7 +248,7 @@ class LevelGenerator:
             "speed": random.uniform(1.5, 2.5),
             "health": random.randint(1, config.difficulty + 1),
             "shoot_interval": random.uniform(1.5, 3.0),
-            "group_behavior": random.random() > 0.7
+            "group_behavior": random.random() < group_behavior_chance
         }
 
     def generate_boss_data(self, level_number: int) -> Dict:
