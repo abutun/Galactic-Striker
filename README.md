@@ -93,7 +93,7 @@ A sophisticated vertical-scrolling space shooter built with Python and Pygame, f
 ### Standard Installation
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/galactic-striker.git
+git clone https://github.com/abutun/Galactic-Striker
 cd galactic-striker
 
 # Create virtual environment (optional but recommended)
@@ -278,7 +278,7 @@ pytest --cov=src tests/
 - File naming conventions
 
 ## 🐛 Known Issues
-- See [GitHub Issues](https://github.com/yourusername/galactic-striker/issues)
+- See [GitHub Issues](https://github.com/abutun/Galactic-Striker/issues)
 
 ## 🗺️ Roadmap
 - Multiplayer support
@@ -297,8 +297,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📞 Contact
 - GitHub Issues
-- Discord: [Join our server]()
-- Email: support@galacticstriker.com
+- Discord: [Join our server](https://discord.gg/VDpPSrwRvu)
+- Email: contact@galacticstriker.com
 
 ---
 
