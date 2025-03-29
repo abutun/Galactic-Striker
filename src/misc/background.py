@@ -1,14 +1,15 @@
 import pygame
 from src.utils.utils import load_image
 import random
+from src.config.game_settings import PLAY_AREA
 
 class Background:
     def __init__(self, width, height, scroll_speed=1):
         self.screen_width = width
         self.screen_height = height
         self.scroll_speed = scroll_speed
-        self.border_width = int(width * 0.12)  # 12% of screen width for borders
-        self.play_area_width = width - (2 * self.border_width)
+        self.border_width = int(width * PLAY_AREA["left_boundary"])  # Use same boundary for borders
+        self.play_area_width = int(width * PLAY_AREA["width_percentage"])
 
         # Load or create main background
         try:

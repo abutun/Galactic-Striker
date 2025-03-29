@@ -21,7 +21,8 @@ from src.config.game_settings import (
     ALIEN_SETTINGS,
     FORMATIONS,
     MOVEMENT_PATTERNS,
-    SPECIAL_EFFECTS
+    SPECIAL_EFFECTS,
+    PLAY_AREA
 )
 import src.state.global_state as global_state
 
@@ -165,8 +166,8 @@ class Game:
         self.enemy_bullets = pygame.sprite.Group()
         
         # Player spawns at 95% of screen height, centered in play area
-        play_area_left = int(self.screen.get_width() * 0.12)
-        play_area_width = self.screen.get_width() - (2 * play_area_left)
+        play_area_left = int(self.screen.get_width() * PLAY_AREA["left_boundary"])
+        play_area_width = int(self.screen.get_width() * PLAY_AREA["width_percentage"])
         self.player = Player(play_area_left + (play_area_width // 2),
                             int(self.screen.get_height() * 0.95),
                             self.player_bullets)

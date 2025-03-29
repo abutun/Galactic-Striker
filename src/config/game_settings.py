@@ -126,4 +126,11 @@ PLAYER_SETTINGS = {
         "cols": 3,
         "frame_size": 341  # 1024/3 rounded down
     }
+}
+
+# Play area boundaries (percentage of screen width)
+PLAY_AREA = {
+    "left_boundary": 0.115,  # 11.5% from left
+    "right_boundary": 0.885,  # 88.5% from left
+    "width_percentage": 0.77,  # 77% of screen width for play area
 } 

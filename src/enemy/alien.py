@@ -7,7 +7,7 @@ from src.state.global_state import global_player
 from src.weapon.weapons import Bullet
 import logging
 
-from src.config.game_settings import ALIEN_SETTINGS
+from src.config.game_settings import ALIEN_SETTINGS, PLAY_AREA
 
 logger = logging.getLogger(__name__)
 
@@ -57,11 +57,16 @@ class Alien(BaseEnemy):
             # Regular movement and behavior updates
             screen = pygame.display.get_surface()
             if screen:
-                _, sh = screen.get_size()
+                sw, sh = screen.get_size()
+                
+                # Define play area boundaries from settings
+                left_boundary = sw * PLAY_AREA["left_boundary"]
+                right_boundary = sw * PLAY_AREA["right_boundary"]
                 
                 # Check for collisions with other aliens and adjust position
                 self.maintain_spacing()
                 
+                # Update position based on pattern
                 if self.rect.y < sh * 0.85:
                     self.rect.y += self.speed
                 else:
@@ -80,7 +85,17 @@ class Alien(BaseEnemy):
                         elif pattern == "random":
                             self.rect.y += self.speed
                             self.rect.x += random.randint(-3, 3)
-                            
+                
+                # Wrap position within play area
+                if self.rect.top > sh:  # Wrap vertically
+                    self.rect.bottom = 0
+                
+                # Wrap horizontally - appear on opposite side
+                if self.rect.right < left_boundary:  # Going beyond left boundary
+                    self.rect.left = right_boundary - self.rect.width*2
+                elif self.rect.left > right_boundary:  # Going beyond right boundary
+                    self.rect.right = left_boundary + self.rect.width*2
+                
             # Handle firing
             now = pygame.time.get_ticks()
             if now - self.last_fire > self.fire_delay:

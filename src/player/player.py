@@ -4,7 +4,7 @@ from src.utils.utils import ResourceManager, load_image
 from src.weapon.weapon_factory import WeaponFactory
 from src.weapon.weapons import Missile, Bullet
 from src.utils.sprite_animation import SpriteAnimation
-from src.config.game_settings import PLAYER_SETTINGS
+from src.config.game_settings import PLAYER_SETTINGS, PLAY_AREA
 
 logger = logging.getLogger(__name__)
 
@@ -138,9 +138,9 @@ class Player(pygame.sprite.Sprite):
             if not screen:
                 return
             
-            # Calculate movement boundaries
-            left_boundary = int(screen.get_width() * 0.116)
-            right_boundary = int(screen.get_width() * 0.876)
+            # Calculate movement boundaries from settings
+            left_boundary = int(screen.get_width() * PLAY_AREA["left_boundary"])
+            right_boundary = int(screen.get_width() * PLAY_AREA["right_boundary"])
             
             # Handle movement
             keys = pygame.key.get_pressed()

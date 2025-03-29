@@ -4,7 +4,7 @@ import pygame
 from src.enemy.alien import NonBossAlien, BossAlien
 from src.level.level_data import *
 import logging
-from src.config.game_settings import MOVEMENT_PATTERNS
+from src.config.game_settings import MOVEMENT_PATTERNS, PLAY_AREA
 from typing import List, Dict, Optional, Tuple
 from dataclasses import dataclass
 import math
@@ -339,32 +339,55 @@ class LevelManager:
             sw, sh = screen.get_size()
             time = pygame.time.get_ticks() / 1000.0
             
+            # Define play area boundaries from settings
+            left_boundary = sw * PLAY_AREA["left_boundary"]
+            right_boundary = sw * PLAY_AREA["right_boundary"]
+            play_width = sw * PLAY_AREA["width_percentage"]
+            
+            def wrap_position(alien):
+                """Wrap alien position within play area"""
+                # Vertical wrapping
+                if alien.rect.top > sh:
+                    alien.rect.bottom = 0
+                
+                # Horizontal wrapping - appear on opposite side
+                if alien.rect.right < left_boundary:  # Going beyond left boundary
+                    alien.rect.left = right_boundary - alien.rect.width*2
+                elif alien.rect.left > right_boundary:  # Going beyond right boundary
+                    alien.rect.right = left_boundary + alien.rect.width*2
+            
             if movement == Movement.STRAIGHT:
                 # Simple downward movement
                 for alien in aliens:
                     alien.rect.y += alien.speed
+                    wrap_position(alien)
                     
             elif movement == Movement.ZIGZAG:
                 # Zigzag pattern
                 for alien in aliens:
                     alien.rect.y += alien.speed
                     alien.rect.x += math.sin(time * 2) * alien.speed * 2
+                    wrap_position(alien)
                     
             elif movement == Movement.CIRCULAR:
                 # Circular pattern
-                center_x = sw // 2
+                center_x = left_boundary + (play_width / 2)
                 for i, alien in enumerate(aliens):
                     angle = time + (2 * math.pi * i / len(aliens))
-                    radius = 100
+                    radius = min(100, play_width / 4)  # Limit radius to stay in bounds
                     alien.rect.x = center_x + math.cos(angle) * radius
                     alien.rect.y += alien.speed
+                    wrap_position(alien)
                     
             elif movement == Movement.WAVE:
                 # Wave pattern
                 for i, alien in enumerate(aliens):
                     offset = i * 30
-                    alien.rect.x = (sw // 2) + math.sin(time * 2 + offset * 0.1) * 100
+                    wave_width = play_width * 0.4  # Use 40% of play area width
+                    center_x = left_boundary + (play_width / 2)
+                    alien.rect.x = center_x + math.sin(time * 2 + offset * 0.1) * wave_width
                     alien.rect.y += alien.speed
+                    wrap_position(alien)
                     
             elif movement == Movement.SWARM:
                 # Swarm behavior following leader
@@ -372,6 +395,7 @@ class LevelManager:
                     leader = aliens[0]
                     leader.rect.y += leader.speed
                     leader.rect.x += math.sin(time * 3) * leader.speed
+                    wrap_position(leader)
                     
                     for alien in aliens[1:]:
                         dx = leader.rect.x - alien.rect.x
@@ -380,7 +404,8 @@ class LevelManager:
                         if dist > 0:
                             alien.rect.x += (dx/dist) * alien.speed * 0.5
                             alien.rect.y += (dy/dist) * alien.speed * 0.5
-                            
+                        wrap_position(alien)
+                        
             elif movement == Movement.RANDOM:
                 # Random movement with bounds
                 for alien in aliens:
@@ -390,15 +415,11 @@ class LevelManager:
                     
                     alien.rect.x += alien.dx
                     alien.rect.y += alien.dy
-                    
-                    # Keep in bounds
-                    alien.rect.x = max(sw * 0.1, min(sw * 0.9, alien.rect.x))
+                    wrap_position(alien)
                     
             elif movement == Movement.CHASE:
                 # Chase player if available
                 from src.state.global_state import global_player
-
-                # Chase player
                 if global_player:
                     for alien in aliens:
                         dx = global_player.rect.x - alien.rect.x
@@ -407,18 +428,20 @@ class LevelManager:
                         if dist > 0:
                             alien.rect.x += (dx/dist) * alien.speed * 0.5
                             alien.rect.y += (dy/dist) * alien.speed * 0.5
-                            
+                        wrap_position(alien)
+                        
             elif movement == Movement.TELEPORT:
-                # Random teleportation
+                # Random teleportation within play area
                 for alien in aliens:
                     if random.random() < 0.02:  # 2% chance to teleport
-                        alien.rect.x = random.randint(int(sw * 0.2), int(sw * 0.8))
-                        alien.rect.y = random.randint(50, int(sh * 0.5))
+                        alien.rect.x = random.uniform(left_boundary, right_boundary - alien.rect.width)
+                        alien.rect.y = random.randint(0, int(sh * 0.5))
                     else:
                         alien.rect.y += alien.speed
+                    wrap_position(alien)
                     
         except Exception as e:
-            logger.error(f"Error updating group pattern: {e}") 
+            logger.error(f"Error updating group pattern: {e}")
 
     def update(self):
         """Update level state"""
