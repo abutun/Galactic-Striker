@@ -265,7 +265,7 @@ class LevelGenerator:
         """Generate a complete level configuration."""
         # Find the appropriate difficulty config for this level
         config = next((conf for (start, end), conf in self.difficulty_configs.items() 
-                      if start <= level_number <= end), None)
+                        if start <= level_number <= end), None)
         
         if not config:
             raise ValueError(f"No configuration found for level {level_number}")

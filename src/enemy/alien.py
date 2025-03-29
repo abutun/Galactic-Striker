@@ -39,39 +39,56 @@ class Alien(BaseEnemy):
             self.rect.y += self.speed
 
     def update(self):
-        screen = pygame.display.get_surface()
-        if screen:
-            _, sh = screen.get_size()
+        try:
+            # Update animation
+            self.animation.update()
             
-            # Check for collisions with other aliens and adjust position
-            self.maintain_spacing()
+            # Update sprite with current animation frame
+            current_frame = self.animation.get_current_frame()
+            if self.type == "small":
+                target_size = ALIEN_SETTINGS["small"]["size"]
+            elif self.type == "large":
+                target_size = ALIEN_SETTINGS["large"]["size"]
+            else:  # boss
+                target_size = ALIEN_SETTINGS["boss"]["size"]
             
-            if self.rect.y < sh * 0.85:
-                self.rect.y += self.speed
-            else:
-                if self.path:
-                    self.follow_path()
+            self.image = pygame.transform.scale(current_frame, target_size)
+            
+            # Regular movement and behavior updates
+            screen = pygame.display.get_surface()
+            if screen:
+                _, sh = screen.get_size()
+                
+                # Check for collisions with other aliens and adjust position
+                self.maintain_spacing()
+                
+                if self.rect.y < sh * 0.85:
+                    self.rect.y += self.speed
                 else:
-                    pattern = random.choice(["zigzag", "circular", "random"])
-                    if pattern == "zigzag":
-                        self.rect.y += self.speed
-                        self.rect.x += random.choice([-2, 2])
-                    elif pattern == "circular":
-                        t = pygame.time.get_ticks() / 1000.0
-                        amplitude = 20
-                        self.rect.y += self.speed
-                        self.rect.x += int(math.sin(t) * amplitude)
-                    elif pattern == "random":
-                        self.rect.y += self.speed
-                        self.rect.x += random.randint(-3, 3)
-                        
-        self.wrap_position()
-        now = pygame.time.get_ticks()
-        if now - self.last_fire > self.fire_delay:
-            self.fire()
-            self.last_fire = now
-            # Randomize next fire delay between 1500-2500ms
-            self.fire_delay = random.randint(1500, 2500)
+                    if self.path:
+                        self.follow_path()
+                    else:
+                        pattern = random.choice(["zigzag", "circular", "random"])
+                        if pattern == "zigzag":
+                            self.rect.y += self.speed
+                            self.rect.x += random.choice([-2, 2])
+                        elif pattern == "circular":
+                            t = pygame.time.get_ticks() / 1000.0
+                            amplitude = 20
+                            self.rect.y += self.speed
+                            self.rect.x += int(math.sin(t) * amplitude)
+                        elif pattern == "random":
+                            self.rect.y += self.speed
+                            self.rect.x += random.randint(-3, 3)
+                            
+            # Handle firing
+            now = pygame.time.get_ticks()
+            if now - self.last_fire > self.fire_delay:
+                self.fire()
+                self.last_fire = now
+                
+        except Exception as e:
+            logger.error(f"Error updating alien: {e}")
 
     def maintain_spacing(self):
         """Maintain minimum spacing between aliens"""

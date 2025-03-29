@@ -1,11 +1,15 @@
+import logging
 import pygame
 import math
 import random
 from src.enemy.base_enemy import BaseEnemy
 from src.utils.utils import load_image
 from src.state.global_state import global_player
+from src.utils.sprite_animation import SpriteAnimation
 
 from src.config.game_settings import ALIEN_SETTINGS
+
+logger = logging.getLogger(__name__)
 
 class BossEnemy(BaseEnemy):
     def __init__(self, x, y, bullet_group):

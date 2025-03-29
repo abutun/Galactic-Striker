@@ -3,6 +3,8 @@ import logging
 from src.utils.utils import ResourceManager, load_image
 from src.weapon.weapon_factory import WeaponFactory
 from src.weapon.weapons import Missile, Bullet
+from src.utils.sprite_animation import SpriteAnimation
+from src.config.game_settings import PLAYER_SETTINGS
 
 logger = logging.getLogger(__name__)
 
@@ -13,11 +15,12 @@ RANK_NAMES = [
     "Admiral 1 Silver Star", "Admiral 2 Silver Star", "Admiral 3 Silver Star",
     "Admiral 1 Gold Star", "Admiral 2 Gold Star", "Admiral 3 Gold Star",
     "Galactic Knight", "Galactic Lord", "Galactic Overlord", "Galactic Grandmaster",
-    "Galactic Grandmaster 1 Gold Star", "Galactic Grandmaster 2 Gold Star", "Galactic Grandmaster 3 Gold Star",
-    "Galactic Champion", "Galactic God",
-    "Galactic Pluto Rank", "Galactic Neptune Rank", "Galactic Uranus Rank", "Galactic Saturn Rank",
-    "Galactic Jupiter Rank", "Galactic Mars Rank", "Galactic Tellus Rank", "Galactic Venus Rank",
-    "Galactic Mercury Rank", "Galactic Sol Rank"
+    "Galactic Grandmaster 1 Gold Star", "Galactic Grandmaster 2 Gold Star", 
+    "Galactic Grandmaster 3 Gold Star", "Galactic Champion", "Galactic God", 
+    "Galactic Pluto Rank", "Galactic Neptune Rank", "Galactic Uranus Rank", 
+    "Galactic Saturn Rank", "Galactic Jupiter Rank", "Galactic Mars Rank", 
+    "Galactic Tellus Rank", "Galactic Venus Rank", "Galactic Mercury Rank", 
+    "Galactic Sol Rank"
 ]
 
 
@@ -25,14 +28,48 @@ class Player(pygame.sprite.Sprite):
     def __init__(self, x: int, y: int, bullet_group: pygame.sprite.Group):
         super().__init__()
         try:
-            # Load the base player image first with 50% larger size (48x48 instead of 32x32)
-            self.base_image = load_image("assets/sprites/player.png", (0, 255, 0), (48, 48))
-            self.image = self.base_image.copy()  # Create initial copy
-            self.rect = self.image.get_rect(center=(x, y))
+            # Load sprite sheet
+            sprite_sheet = load_image("assets/sprites/player_1.png", (0, 255, 0), (828, 990))
+            
+            frame_width = 276
+            frame_height = 330
+            
+            # Create animation handler
+            self.animation = SpriteAnimation(
+                sprite_sheet=sprite_sheet,
+                frame_width=frame_width,
+                frame_height=frame_height,
+                rows=3,
+                cols=3
+            )
+            
+            # Set initial image and rect
+            self.image = self.animation.get_current_frame()
+            
+            # Scale the image to desired size (use PLAYER_SETTINGS)
+            target_size = PLAYER_SETTINGS.get("size", (64, 64))
+
+            self.image = pygame.transform.scale(self.image, target_size)
+            
+            self.rect = self.image.get_rect()
+            
+            # Set initial position
+            screen = pygame.display.get_surface()
+            if screen:
+                # Position player at 98% of screen height
+                self.rect.bottom = int(screen.get_height() * 0.99)
+                # Center horizontally within play area
+                play_area_left = int(screen.get_width() * 0.12)
+                play_area_right = int(screen.get_width() * 0.88)
+                play_area_width = play_area_right - play_area_left
+                self.rect.centerx = play_area_left + (play_area_width // 2)
+            else:
+                self.rect.x = x
+                self.rect.y = y
             
             # Initialize player attributes
             self.bullet_group = bullet_group
-            self.speed = 8
+            self.speed = 5
             self.health = 3
             self.max_health = 6  # Cap maximum health at 5
             self.shield = 0
@@ -47,8 +84,8 @@ class Player(pygame.sprite.Sprite):
             self.last_fire = 0
             
             # Secondary weapon: rockets
-            self.rockets = 10  # initial pack of 10 rockets
-            self.max_rockets = 50
+            self.rockets = 3  # initial pack of 3 rockets
+            self.max_rockets = 15
             
             # Status flags
             self.scoop_active = False
@@ -71,7 +108,7 @@ class Player(pygame.sprite.Sprite):
 
     def update_rank_marker(self):
         try:
-            self.image = self.base_image.copy()
+            self.image = self.animation.get_current_frame()
             if self.rank_markers:
                 text = pygame.font.Font(None, 20).render(str(len(self.rank_markers)), True, (255, 255, 255))
                 self.image.blit(text, (0, self.image.get_height() - text.get_height()))
@@ -88,21 +125,29 @@ class Player(pygame.sprite.Sprite):
     def update(self) -> None:
         """Update player state with proper error handling."""
         try:
+            # Update animation
+            self.animation.update()
+            
+            # Update player image with current animation frame
+            current_frame = self.animation.get_current_frame()
+            target_size = PLAYER_SETTINGS.get("size", (64, 64))
+            self.image = pygame.transform.scale(current_frame, target_size)
+            
+            # Handle movement with boundaries
+            screen = pygame.display.get_surface()
+            if not screen:
+                return
+            
+            # Calculate movement boundaries
+            left_boundary = int(screen.get_width() * 0.116)
+            right_boundary = int(screen.get_width() * 0.876)
+            
+            # Handle movement
             keys = pygame.key.get_pressed()
-            
-            # Keep player within play area bounds
-            play_area_left = int(pygame.display.get_surface().get_width() * 0.116)
-            play_area_right = int(pygame.display.get_surface().get_width() * 0.876)
-            
-            dx = (keys[pygame.K_RIGHT] - keys[pygame.K_LEFT]) * self.speed
-            self.rect.x += dx
-            
-            # Clamp to play area
-            self.rect.clamp_ip(pygame.Rect(
-                play_area_left, 0,
-                play_area_right - play_area_left,
-                pygame.display.get_surface().get_height()
-            ))
+            if keys[pygame.K_LEFT] and self.rect.left > left_boundary:
+                self.rect.x -= self.speed
+            if keys[pygame.K_RIGHT] and self.rect.right < right_boundary:
+                self.rect.x += self.speed
             
             # Handle firing
             now = pygame.time.get_ticks()

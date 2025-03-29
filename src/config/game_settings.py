@@ -111,4 +111,19 @@ SPECIAL_EFFECTS = {
     "bonus_multiplier": 3.0,  # Score multiplier for bonus levels
     "boss_minion_boost": 1.5,  # Health/damage boost for boss minions
     "difficulty_scaling": 0.1  # Per-level scaling factor
+}
+
+PLAYER_SETTINGS = {
+    "size": (64, 64),
+    "speed": 5,
+    "health": 3,
+    "shield": 0,
+    "lives": 3,
+    "bullet_speed": 7,
+    "animation_speed": 0.2,  # Seconds per frame
+    "sprite_sheet": {
+        "rows": 3,
+        "cols": 3,
+        "frame_size": 341  # 1024/3 rounded down
+    }
 } 
