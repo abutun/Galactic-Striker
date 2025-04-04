@@ -38,3 +38,12 @@ alwaysApply: false
 - Level Manager and Level Editor ALWAYS must work according to the above information (formations, movement patterns, entry points etc.)
 - Player should have 3 health initially, whenever player gets a health bonus it should increase the health by 1 and whenever player gets hit by any enemy ships health should decrease by 1 and when it is 0 the game must end -game over.
 - Alien ships should behave independent of each other when it comes to firing bullet. And alien ships must not collide each other at all -when they are grouped together, they are on top of each other sometimes or sometimes they are touching each other meaning they intersect each other. Alien ships must not touch each other, must not collide with each other and when they are grouped together they must have spaces between them horizontally and vertically
+- Player ship cannot move up/down, it can only move left/right with the boundries of get_width() * 0.115 and get_width() * 0.885
+- Preload enemy ship images before level starts.
+- Enemy ships MUST move within the boundries of get_width() * 0.115 and get_width() * 0.885 and when they disappear from botton they must come from top of the screen again, same for left-to-right, right-to-left
+- The part of the alien ship that passed the left boundy should not be visible on the screen, the same should happen on the right boundy. After the ship completely passed the left or right boundy and disappeared, it should reappear on the screen from the right or left boundy after a while (if it disappeared from the left, it should be from the right boundy, if it disappeared from the right, it should be from the left boundy)
+
+
+
+
+

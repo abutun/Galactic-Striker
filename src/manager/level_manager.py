@@ -4,11 +4,13 @@ import pygame
 from src.enemy.alien import NonBossAlien, BossAlien
 from src.level.level_data import *
 import logging
-from src.config.game_settings import MOVEMENT_PATTERNS
+from src.config.game_settings import MOVEMENT_PATTERNS, PLAY_AREA
 from typing import List, Dict, Optional, Tuple
 from dataclasses import dataclass
 import math
 import random
+
+from src.utils.resource_preloader import ResourcePreloader
 
 logger = logging.getLogger(__name__)
 
@@ -41,10 +43,19 @@ class LevelManager:
         self.bullet_group = bullet_group
         self.active_groups = []
         self.level_data = self._load_level_data(start_level)
+        self.preloader = ResourcePreloader()
         self.formation_index = 0
         self.level_complete = False
-        self.level_transition_time = 2000  # 2 seconds between levels
+        self.level_transition_time = 3000  # 3 seconds between levels
         self.last_level_time = 0
+        
+        # Add group spawn delay properties
+        self.group_spawn_delay = 4000  # 4 seconds between groups
+        self.last_group_cleared_time = 0
+        self.next_group_pending = False
+
+        # preload first level data
+        self.preloader.preload_level_resources(self.level_data)
 
         if not self.level_data:
             raise ValueError(f"Could not load level {start_level}")
@@ -186,14 +197,16 @@ class LevelManager:
             if type == "alien":
                 alien_type = parts[2]
                 alien_subtype = parts[3]
+                animation = self.preloader.get_alien_animation(id, alien_type, alien_subtype)
                 for pos in positions:
                     alien = NonBossAlien(
                         id, 
                         x=pos[0],  # X position from formation
                         y=pos[1],  # Y position from formation
-                        bullet_group=self.bullet_group,                        
+                        bullet_group=self.bullet_group,
                         alien_type=alien_type,
-                        alien_subtype=alien_subtype
+                        alien_subtype=alien_subtype,
+                        animation=animation
                         )
                     # Set additional properties
                     alien.health = group.get('health', 1)
@@ -204,11 +217,13 @@ class LevelManager:
                     self.sprite_group.add(alien)
                     aliens.append(alien)
             elif type == "boss":
+                animation = self.preloader.get_boss_animation(id)
                 boss = BossAlien(
                     id, 
                     pos[0], 
                     pos[1],
-                    self.bullet_group
+                    self.bullet_group,
+                    animation=animation
                 )
                 boss.health = group['health']
                 boss.speed = group['speed']
@@ -333,16 +348,54 @@ class LevelManager:
             sw, sh = screen.get_size()
             time = pygame.time.get_ticks() / 1000.0
             
+            # Define play area boundaries from game settings
+            left_boundary = sw * PLAY_AREA.get("left_boundary", 0.115)
+            right_boundary = sw * PLAY_AREA.get("right_boundary", 0.885)
+            
+            # Implement wrapping function
+            def wrap_alien(alien):
+                # Only wrap if completely out of bounds
+                if alien.rect.right < left_boundary:
+                    # Ship passed left boundary - mark for wrapping from right
+                    if not hasattr(alien, 'waiting_to_wrap'):
+                        alien.waiting_to_wrap = 'right'
+                        alien.wrap_timer = time + random.uniform(1.0, 3.0)  # Random delay before reappearing
+                        alien.visible = False  # Hide the ship
+                elif alien.rect.left > right_boundary:
+                    # Ship passed right boundary - mark for wrapping from left
+                    if not hasattr(alien, 'waiting_to_wrap'):
+                        alien.waiting_to_wrap = 'left'
+                        alien.wrap_timer = time + random.uniform(1.0, 3.0)  # Random delay before reappearing
+                        alien.visible = False  # Hide the ship
+                
+                # Check if it's time to wrap
+                if hasattr(alien, 'waiting_to_wrap') and time >= alien.wrap_timer:
+                    if alien.waiting_to_wrap == 'right':
+                        # Wrap from right boundary
+                        alien.rect.left = right_boundary
+                    elif alien.waiting_to_wrap == 'left':
+                        # Wrap from left boundary
+                        alien.rect.right = left_boundary
+                    alien.visible = True  # Make the ship visible again
+                    delattr(alien, 'waiting_to_wrap')
+                    delattr(alien, 'wrap_timer')
+                
+                # Vertical wrapping when off bottom of screen
+                if alien.rect.top > sh:
+                    alien.rect.bottom = 0
+            
             if movement == Movement.STRAIGHT:
                 # Simple downward movement
                 for alien in aliens:
                     alien.rect.y += alien.speed
+                    wrap_alien(alien)
                     
             elif movement == Movement.ZIGZAG:
                 # Zigzag pattern
                 for alien in aliens:
                     alien.rect.y += alien.speed
                     alien.rect.x += math.sin(time * 2) * alien.speed * 2
+                    wrap_alien(alien)
                     
             elif movement == Movement.CIRCULAR:
                 # Circular pattern
@@ -352,6 +405,7 @@ class LevelManager:
                     radius = 100
                     alien.rect.x = center_x + math.cos(angle) * radius
                     alien.rect.y += alien.speed
+                    wrap_alien(alien)
                     
             elif movement == Movement.WAVE:
                 # Wave pattern
@@ -359,6 +413,7 @@ class LevelManager:
                     offset = i * 30
                     alien.rect.x = (sw // 2) + math.sin(time * 2 + offset * 0.1) * 100
                     alien.rect.y += alien.speed
+                    wrap_alien(alien)
                     
             elif movement == Movement.SWARM:
                 # Swarm behavior following leader
@@ -366,6 +421,7 @@ class LevelManager:
                     leader = aliens[0]
                     leader.rect.y += leader.speed
                     leader.rect.x += math.sin(time * 3) * leader.speed
+                    wrap_alien(leader)
                     
                     for alien in aliens[1:]:
                         dx = leader.rect.x - alien.rect.x
@@ -374,6 +430,7 @@ class LevelManager:
                         if dist > 0:
                             alien.rect.x += (dx/dist) * alien.speed * 0.5
                             alien.rect.y += (dy/dist) * alien.speed * 0.5
+                        wrap_alien(alien)
                             
             elif movement == Movement.RANDOM:
                 # Random movement with bounds
@@ -384,9 +441,7 @@ class LevelManager:
                     
                     alien.rect.x += alien.dx
                     alien.rect.y += alien.dy
-                    
-                    # Keep in bounds
-                    alien.rect.x = max(sw * 0.1, min(sw * 0.9, alien.rect.x))
+                    wrap_alien(alien)
                     
             elif movement == Movement.CHASE:
                 # Chase player if available
@@ -401,6 +456,7 @@ class LevelManager:
                         if dist > 0:
                             alien.rect.x += (dx/dist) * alien.speed * 0.5
                             alien.rect.y += (dy/dist) * alien.speed * 0.5
+                        wrap_alien(alien)
                             
             elif movement == Movement.TELEPORT:
                 # Random teleportation
@@ -410,9 +466,10 @@ class LevelManager:
                         alien.rect.y = random.randint(50, int(sh * 0.5))
                     else:
                         alien.rect.y += alien.speed
+                    wrap_alien(alien)
                     
         except Exception as e:
-            logger.error(f"Error updating group pattern: {e}") 
+            logger.error(f"Error updating group pattern: {e}")
 
     def update(self):
         """Update level state"""
@@ -423,14 +480,27 @@ class LevelManager:
                 
                 if not aliens_alive:
                     self.active_groups.remove(group)
-                    self.spawn_next_group()
+                    # Set the time when group was cleared
+                    self.last_group_cleared_time = pygame.time.get_ticks()
+                    self.next_group_pending = True
                     continue
 
                 if group["group_behavior"]:
                     self.update_group_pattern(aliens_alive, group["pattern"])
 
-            # Check if level is complete
-            if not self.active_groups and not self.level_data.alien_groups:
+            # Handle pending group spawn with delay
+            if self.next_group_pending and not self.active_groups:
+                current_time = pygame.time.get_ticks()
+                if (current_time - self.last_group_cleared_time) >= self.group_spawn_delay:
+                    if self.level_data and self.level_data.alien_groups:
+                        self.spawn_next_group()
+                        self.next_group_pending = False
+                    else:
+                        self.level_complete = True
+                        self.next_group_pending = False
+
+            # Check if level is complete (original logic)
+            elif not self.active_groups and not self.level_data.alien_groups and not self.next_group_pending:
                 self.level_complete = True
 
         except Exception as e:
@@ -446,9 +516,12 @@ class LevelManager:
         self.level_data = self._load_level_data(self.current_level)
         self.level_complete = False
         self.active_groups = []
-        
-        # Spawn first group of new level
-        if self.level_data and self.level_data.alien_groups:
-            self.spawn_next_group()
-        else:
-            logger.error(f"Failed to load level {self.current_level}")
+        self.next_group_pending = True  # Set pending flag for first group
+        self.last_group_cleared_time = pygame.time.get_ticks()  # Start delay timer
+
+        # Clear previous cached data
+        self.preloader.clear_cache()
+
+        # Preload next level data
+        next_level_data = self._load_level_data(self.current_level + 1)
+        self.preloader.preload_level_resources(next_level_data)

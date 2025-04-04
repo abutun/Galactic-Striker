@@ -1,14 +1,15 @@
 import pygame
 from src.utils.utils import load_image
 import random
+from src.config.game_settings import PLAY_AREA
 
 class Background:
     def __init__(self, width, height, scroll_speed=1):
         self.screen_width = width
         self.screen_height = height
         self.scroll_speed = scroll_speed
-        self.border_width = int(width * 0.12)  # 12% of screen width for borders
-        self.play_area_width = width - (2 * self.border_width)
+        self.border_width = int(width * PLAY_AREA.get("left_boundary", 0.115))  # Use same boundary for borders
+        self.play_area_width = int(width * PLAY_AREA.get("right_boundary", 0.885))
 
         # Load or create main background
         try:
@@ -71,11 +72,18 @@ class Background:
             self.bg_rect2.bottom = self.bg_rect1.top
             self.y2 = float(self.bg_rect2.y)
 
-    def draw(self, surface):
-        # Draw scrolling background
-        surface.blit(self.bg_image, self.bg_rect1)
-        surface.blit(self.bg_image, self.bg_rect2)
+    def draw(self, screen):
+        """Draw the background and borders but don't draw borders yet."""
+        # Draw the scrolling stars background
+        screen.blit(self.bg_image, self.bg_rect1)
+        screen.blit(self.bg_image, self.bg_rect2)
         
-        # Draw borders
-        surface.blit(self.left_border, self.left_border_rect)
-        surface.blit(self.right_border, self.right_border_rect)
+        # Don't draw borders here
+
+    def draw_borders(self, screen):
+        """Draw just the borders on top of everything else."""
+        # Draw left border
+        screen.blit(self.left_border, (0, 0))
+        
+        # Draw right border
+        screen.blit(self.right_border, (self.screen_width - self.border_width, 0))

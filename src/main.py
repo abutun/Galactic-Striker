@@ -21,7 +21,8 @@ from src.config.game_settings import (
     ALIEN_SETTINGS,
     FORMATIONS,
     MOVEMENT_PATTERNS,
-    SPECIAL_EFFECTS
+    SPECIAL_EFFECTS,
+    PLAY_AREA
 )
 import src.state.global_state as global_state
 
@@ -122,7 +123,7 @@ class Game:
         
         # Create player at the bottom center of the screen
         player_x = self.screen.get_width() // 2
-        player_y = self.screen.get_height() - 30  # 100 pixels from bottom
+        player_y = self.screen.get_height() - 30  # 30 pixels from bottom
         self.player = Player(player_x, player_y, self.player_bullets)
         self.all_sprites.add(self.player)
         
@@ -157,24 +158,6 @@ class Game:
             'difficulty': 1,
             'fullscreen': False
         }
-
-    def init_game_objects(self):
-        """Initialize game objects and groups."""
-        self.bonus_group = pygame.sprite.Group()
-        self.player_bullets = pygame.sprite.Group()
-        self.enemy_bullets = pygame.sprite.Group()
-        
-        # Player spawns at 95% of screen height, centered in play area
-        play_area_left = int(self.screen.get_width() * 0.12)
-        play_area_width = self.screen.get_width() - (2 * play_area_left)
-        self.player = Player(play_area_left + (play_area_width // 2),
-                            int(self.screen.get_height() * 0.95),
-                            self.player_bullets)
-        self.all_sprites.add(self.player)
-        global_state.global_player = self.player
-
-        self.score_manager = ScoreManager()
-        self.level_manager = LevelManager(1, self.enemies, self.all_sprites, self.enemy_bullets)
 
     def handle_collisions(self):
         """Handle all game collisions."""
@@ -311,12 +294,16 @@ class Game:
 
     def draw(self, dev_mode, editing):
         """Draw game state."""
+        # Draw background (without borders)
         self.background.draw(self.screen)
         
         # Draw all sprites including bullets
         self.all_sprites.draw(self.screen)
         self.player_bullets.draw(self.screen)  # Explicitly draw bullets
         self.enemy_bullets.draw(self.screen)   # Explicitly draw bullets
+        
+        # Draw borders ON TOP of the sprites
+        self.background.draw_borders(self.screen)
         
         # Draw score
         self.score_manager.draw(self.screen, 10, 10)
@@ -369,6 +356,11 @@ class Game:
             self.player_bullets.draw(self.screen)
             self.enemy_bullets.draw(self.screen)
             self.bonus_group.draw(self.screen)
+            
+            # Draw borders ON TOP of the sprites
+            self.background.draw_borders(self.screen)
+            
+            # Draw score and overlay
             self.score_manager.draw(self.screen, 10, 10)
             
             # Draw semi-transparent overlay
@@ -438,7 +430,7 @@ class Game:
         try:
             # Show intro and load first level
             self.show_level_intro(1)
-            self.level_manager.spawn_next_group()  # Spawn first group after countdown
+            self.level_manager.spawn_next_group()
             
             while self.running:
                 dt = self.clock.tick(60) / 1000.0
