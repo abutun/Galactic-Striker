@@ -13,11 +13,11 @@ from src.config.game_settings import ALIEN_SETTINGS, PLAY_AREA
 logger = logging.getLogger(__name__)
 
 class Alien(BaseEnemy):
-    def __init__(self, id, x, y, bullet_group, health, speed, points, type, sub_type):
-        super().__init__(id, x, y, bullet_group, health, speed, points, type, sub_type)
+    def __init__(self, id, x, y, bullet_group, health, speed, points, type, sub_type, animation=None):
+        super().__init__(id, x, y, bullet_group, health, speed, points, type, sub_type, animation)
         # Randomize initial fire delay between 1500-2500ms
-        self.fire_delay = random.randint(1500, 2500)
-        self.last_fire = pygame.time.get_ticks() + random.randint(0, 1000)  # Randomize initial fire time
+        self.fire_delay = random.randint(5000, 15000)
+        self.last_fire = pygame.time.get_ticks() + random.randint(0, 10000)  # Randomize initial fire time
         self.path = None
         self.path_index = 0
         # Add spacing properties
@@ -163,38 +163,20 @@ class NonBossAlien(Alien):
                         ALIEN_SETTINGS[alien_type]["base_health"], 
                         ALIEN_SETTINGS[alien_type]["speed_modifier"], 
                         ALIEN_SETTINGS[alien_type]["base_points"], 
-                        alien_type, alien_subtype)
+                        alien_type, alien_subtype, animation)
         
         # Store the alien type and subtype
         self.alien_type = alien_type
         self.alien_subtype = alien_subtype
-        
-        # Use the preloaded animation directly
-        if animation:
-            self.animation = animation.copy()  # Create a copy of the animation for this instance
-        else:
-            logger.warning(f"No preloaded animation provided for alien {id}_{alien_type}_{alien_subtype}, creating new one")
-            sprite_sheet = load_image(
-                f"assets/aliens/alien_{id}_{alien_type}_{alien_subtype}.png",
-                fallback_color=(255, 0, 0),
-                size=(1050, 1050)
-            )
-            self.animation = SpriteAnimation(
-                sprite_sheet=sprite_sheet,
-                frame_width=350,
-                frame_height=350,
-                rows=3,
-                cols=3
-            )
 
-class BossEnemy(BaseEnemy):
-    def __init__(self, x, y, bullet_group):
-        super().__init__(x, y, bullet_group)
-        self.image = load_image(
-            f"assets/aliens/boss_{self.type_number:02d}.png",
-            fallback_color=(255, 255, 0),
-            size=ALIEN_SETTINGS["boss"]["size"]
-        )
+class BossAlien(BaseEnemy):
+    def __init__(self, id, x, y, bullet_group, animation=None):
+        super().__init__(id, x, y, bullet_group, 
+                        ALIEN_SETTINGS["boss"]["base_health"],
+                        ALIEN_SETTINGS["boss"]["speed_modifier"],
+                        ALIEN_SETTINGS["boss"]["base_points"],
+                        "boss", "1", animation)
+
         self.rect = self.image.get_rect(center=(x, y))
         self.phases = 3
         self.current_phase = 1
@@ -265,29 +247,3 @@ class BossEnemy(BaseEnemy):
 
             bullet.update = update_bullet.__get__(bullet)
             self.bullet_group.add(bullet)
-
-class BossAlien(BaseEnemy):
-    def __init__(self, id, x, y, bullet_group, animation=None):
-        super().__init__(id, x, y, bullet_group, 
-                        ALIEN_SETTINGS["boss"]["base_health"],
-                        ALIEN_SETTINGS["boss"]["speed_modifier"],
-                        ALIEN_SETTINGS["boss"]["base_points"],
-                        "boss", "1")
-        
-        # Use the preloaded animation directly
-        if animation:
-            self.animation = animation.copy()  # Create a copy of the animation for this instance
-        else:
-            logger.warning(f"No preloaded animation provided for boss {id}, creating new one")
-            sprite_sheet = load_image(
-                f"assets/aliens/boss_{id}.png",
-                fallback_color=(255, 255, 0),
-                size=(1050, 1050)
-            )
-            self.animation = SpriteAnimation(
-                sprite_sheet=sprite_sheet,
-                frame_width=350,
-                frame_height=350,
-                rows=3,
-                cols=3
-            )

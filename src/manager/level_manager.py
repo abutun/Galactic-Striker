@@ -46,11 +46,11 @@ class LevelManager:
         self.preloader = ResourcePreloader()
         self.formation_index = 0
         self.level_complete = False
-        self.level_transition_time = 2000  # 2 seconds between levels
+        self.level_transition_time = 3000  # 3 seconds between levels
         self.last_level_time = 0
         
         # Add group spawn delay properties
-        self.group_spawn_delay = 1500  # 1.5 seconds between groups
+        self.group_spawn_delay = 4000  # 4 seconds between groups
         self.last_group_cleared_time = 0
         self.next_group_pending = False
 
@@ -203,7 +203,7 @@ class LevelManager:
                         id, 
                         x=pos[0],  # X position from formation
                         y=pos[1],  # Y position from formation
-                        bullet_group=self.bullet_group,                        
+                        bullet_group=self.bullet_group,
                         alien_type=alien_type,
                         alien_subtype=alien_subtype,
                         animation=animation

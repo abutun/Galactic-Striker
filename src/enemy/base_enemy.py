@@ -6,13 +6,13 @@ from src.utils.utils import load_image
 from .behavior_tree import *
 import logging
 from src.utils.utils import ResourceManager
-from src.config.game_settings import ALIEN_SETTINGS
+from src.config.game_settings import ALIEN_SETTINGS, PLAY_AREA
 from src.utils.sprite_animation import SpriteAnimation
 
 logger = logging.getLogger(__name__)
 
 class BaseEnemy(pygame.sprite.Sprite):
-    def __init__(self, id, x: int, y: int, bullet_group: pygame.sprite.Group, health=1, speed=2, points=100, type="small", sub_type=1):
+    def __init__(self, id, x: int, y: int, bullet_group: pygame.sprite.Group, health=1, speed=2, points=100, type="small", sub_type=1, animation=None):
         super().__init__()
         try:
             logger.info(f"Initializing enemy: id={id}, type={type}, sub_type={sub_type}")
@@ -23,22 +23,29 @@ class BaseEnemy(pygame.sprite.Sprite):
             self.type = type
             self.sub_type = sub_type
             self.id = id
-            
-            # Initialize animation
-            sprite_sheet = load_image(
-                f"assets/aliens/alien_{id}_{type}_{sub_type}.png",  # Assuming this naming convention
-                fallback_color=(255, 0, 0),
-                size=(1050, 1050)  # Original size of sprite sheet
-            )
-            
-            # Create animation handler (3x3 grid like player)
-            self.animation = SpriteAnimation(
-                sprite_sheet=sprite_sheet,
-                frame_width=350,
-                frame_height=350,
-                rows=3,
-                cols=3
-            )
+
+            if animation:
+                self.animation = animation
+            else:
+                if (type == "boss"):
+                    path = f"assets/aliens/boss_{id}.png"
+                    logger.warning(f"No preloaded animation provided for boss {id}, creating new one")
+                else:
+                    path = f"assets/aliens/alien_{id}_{type}_{sub_type}.png"
+                    logger.warning(f"No preloaded animation provided for alien {id}_{type}_{sub_type}, creating new one")
+
+                sprite_sheet = load_image(
+                    path,
+                    fallback_color=(255, 255, 0),
+                    size=(1050, 1050)
+                )
+                self.animation = SpriteAnimation(
+                    sprite_sheet=sprite_sheet,
+                    frame_width=350,
+                    frame_height=350,
+                    rows=3,
+                    cols=3
+                )
 
             # Set initial image and scale it
             self.image = self.animation.get_current_frame()
@@ -90,7 +97,7 @@ class BaseEnemy(pygame.sprite.Sprite):
             self.image = pygame.Surface(size)
             self.image.fill((255, 0, 0))
             self.rect = self.image.get_rect(center=(x, y))
-            
+
     def update(self) -> None:
         """Update enemy behavior."""
         try:
@@ -141,8 +148,8 @@ class BaseEnemy(pygame.sprite.Sprite):
         if not screen:
             return
         sw, sh = screen.get_size()
-        left_bound = int(sw * 0.15)
-        right_bound = int(sw * 0.85)
+        left_bound = int(sw * PLAY_AREA.get("left_boundary", 0.115))
+        right_bound = int(sw * PLAY_AREA.get("right_boundary", 0.885))
         if self.rect.right < left_bound:
             self.rect.left = right_bound
         elif self.rect.left > right_bound:

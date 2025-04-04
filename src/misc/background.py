@@ -8,8 +8,8 @@ class Background:
         self.screen_width = width
         self.screen_height = height
         self.scroll_speed = scroll_speed
-        self.border_width = int(width * PLAY_AREA["left_boundary"])  # Use same boundary for borders
-        self.play_area_width = int(width * PLAY_AREA["width_percentage"])
+        self.border_width = int(width * PLAY_AREA.get("left_boundary", 0.115))  # Use same boundary for borders
+        self.play_area_width = int(width * PLAY_AREA.get("right_boundary", 0.885))
 
         # Load or create main background
         try:
