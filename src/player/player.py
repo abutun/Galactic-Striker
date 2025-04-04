@@ -29,7 +29,7 @@ class Player(pygame.sprite.Sprite):
         super().__init__()
         try:
             # Load sprite sheet
-            sprite_sheet = load_image("assets/sprites/player_1.png", (0, 255, 0), (828, 990))
+            sprite_sheet = load_image("assets/sprites/player.png", (0, 255, 0), (828, 990))
             
             frame_width = 276
             frame_height = 330
