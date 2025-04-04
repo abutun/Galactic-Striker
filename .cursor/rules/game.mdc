@@ -41,7 +41,7 @@ alwaysApply: false
 - Player ship cannot move up/down, it can only move left/right with the boundries of get_width() * 0.115 and get_width() * 0.885
 - Preload enemy ship images before level starts.
 - Enemy ships MUST move within the boundries of get_width() * 0.115 and get_width() * 0.885 and when they disappear from botton they must come from top of the screen again, same for left-to-right, right-to-left
-- Alien ships should be able to appear from right when it tries to go beyond left boundry and it should be the same for when it wants to go beyond right boundry
+- The part of the alien ship that passed the left boundy should not be visible on the screen, the same should happen on the right boundy. After the ship completely passed the left or right boundy and disappeared, it should reappear on the screen from the right or left boundy after a while (if it disappeared from the left, it should be from the right boundy, if it disappeared from the right, it should be from the left boundy)
 
 
 

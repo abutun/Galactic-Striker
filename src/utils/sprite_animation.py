@@ -1,19 +1,22 @@
 import pygame
 
 class SpriteAnimation:
-    def __init__(self, sprite_sheet, frame_width, frame_height, rows, cols):
+    def __init__(self, sprite_sheet, frame_width, frame_height, rows, cols, frames=None):
         self.sprite_sheet = sprite_sheet
         self.frame_width = frame_width
         self.frame_height = frame_height
         self.rows = rows
         self.cols = cols
-        self.frames = []
         self.current_frame = 0
         self.animation_speed = 0.2  # Seconds per frame
         self.last_update = 0
         
-        # Extract frames from sprite sheet
-        self._extract_frames()
+        # Use provided frames or extract new ones
+        if frames is not None:
+            self.frames = frames
+        else:
+            self.frames = []
+            self._extract_frames()
     
     def _extract_frames(self):
         for row in range(self.rows):
@@ -31,4 +34,15 @@ class SpriteAnimation:
             self.current_frame = (self.current_frame + 1) % len(self.frames)
     
     def get_current_frame(self):
-        return self.frames[self.current_frame] 
+        return self.frames[self.current_frame]
+
+    def copy(self):
+        """Create a copy of the animation that shares the same frames but has independent counters"""
+        return SpriteAnimation(
+            sprite_sheet=self.sprite_sheet,
+            frame_width=self.frame_width,
+            frame_height=self.frame_height,
+            rows=self.rows,
+            cols=self.cols,
+            frames=self.frames  # Pass the existing frames to avoid re-extraction
+        ) 

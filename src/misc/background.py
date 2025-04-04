@@ -72,11 +72,18 @@ class Background:
             self.bg_rect2.bottom = self.bg_rect1.top
             self.y2 = float(self.bg_rect2.y)
 
-    def draw(self, surface):
-        # Draw scrolling background
-        surface.blit(self.bg_image, self.bg_rect1)
-        surface.blit(self.bg_image, self.bg_rect2)
+    def draw(self, screen):
+        """Draw the background and borders but don't draw borders yet."""
+        # Draw the scrolling stars background
+        screen.blit(self.bg_image, self.bg_rect1)
+        screen.blit(self.bg_image, self.bg_rect2)
         
-        # Draw borders
-        surface.blit(self.left_border, self.left_border_rect)
-        surface.blit(self.right_border, self.right_border_rect)
+        # Don't draw borders here
+
+    def draw_borders(self, screen):
+        """Draw just the borders on top of everything else."""
+        # Draw left border
+        screen.blit(self.left_border, (0, 0))
+        
+        # Draw right border
+        screen.blit(self.right_border, (self.screen_width - self.border_width, 0))

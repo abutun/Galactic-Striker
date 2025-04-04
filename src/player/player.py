@@ -56,11 +56,11 @@ class Player(pygame.sprite.Sprite):
             # Set initial position
             screen = pygame.display.get_surface()
             if screen:
-                # Position player at 98% of screen height
+                # Position player at 99% of screen height
                 self.rect.bottom = int(screen.get_height() * 0.99)
                 # Center horizontally within play area
-                play_area_left = int(screen.get_width() * 0.12)
-                play_area_right = int(screen.get_width() * 0.88)
+                play_area_left = int(screen.get_width() * PLAY_AREA.get("left_boundary", 0.115))
+                play_area_right = int(screen.get_width() * PLAY_AREA.get("right_boundary", 0.885))
                 play_area_width = play_area_right - play_area_left
                 self.rect.centerx = play_area_left + (play_area_width // 2)
             else:
