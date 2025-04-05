@@ -8,7 +8,7 @@ class SpriteAnimation:
         self.rows = rows
         self.cols = cols
         self.current_frame = 0
-        self.animation_speed = 0.2  # Seconds per frame
+        self.animation_speed = 0.1  # Seconds per frame
         self.last_update = 0
         
         # Use provided frames or extract new ones
