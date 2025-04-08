@@ -68,6 +68,12 @@ def draw_dev_info(screen, player, level_manager, score_manager):
         f"Rank: {RANK_NAMES[player.rank - 1]} (#{player.rank})",
         f"Collected Rank Markers: {len(player.rank_markers)}",
         f"Scoop Active: {player.scoop_active}",
+        f"Shield Active: {player.shield_active}",
+        f"Mirror Mode: {player.mirror_mode}",
+        f"Drunk Mode: {player.drunk_mode}",
+        f"Scoop Active: {player.autofire}",
+        f"Is Immune: {player.is_immune}",
+        f"Space Pressed: {player.space_pressed}",
         f"Weapon Level: {player.weapon_level}",
         f"Primary Weapon: {player.primary_weapon}",
         f"Life: {player.life}",
@@ -80,7 +86,7 @@ def draw_dev_info(screen, player, level_manager, score_manager):
         f"Score: {score_manager.score}",
         f"Letters: {', '.join(player.letters) if player.letters else 'None'}"
     ]
-    overlay = pygame.Surface((210, 300))
+    overlay = pygame.Surface((200, 400))
     overlay.set_alpha(200)
     overlay.fill((0, 0, 0))
     font = pygame.font.Font(None, 20)

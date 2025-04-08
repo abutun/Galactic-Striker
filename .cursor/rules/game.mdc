@@ -41,7 +41,16 @@ alwaysApply: false
 - Player ship cannot move up/down, it can only move left/right with the boundries of get_width() * 0.115 and get_width() * 0.885
 - Preload enemy ship images before level starts.
 - Enemy ships MUST move within the boundries of get_width() * 0.115 and get_width() * 0.885 and when they disappear from botton they must come from top of the screen again. But for the left and right ships cannot pass through.
-
+- Player ship MUST start the game with manual shooting meaning whenever player presses SPACE button the ship must fire. It should not auto fire when the button is pressed unless auto-fire bonus is captured by the ship.
+- When player ship gets hit;
+	* If player has no more life, the ship is killed and the game is over.
+	* If player has life after life decrease, meaning still life > 0, ship must re-spawn with 3 seconds of immunity (meaning that in that time if ship gets hit, nothing happens)
+	* Before re-spawning;
+		* Player's primary weapon is demoted, meaning primary_weapon will be decreased by 1
+		* If player has auto-shot bonus, it will be gone (meaning player will demoted to manual shooting)
+		* If player has any special bonus, they will be gone
+		* Player speed will be decreased by 1
+- When player gets autp-fire bonus, then manual shooting will be active again but this time, when SPACE button is pressed continuously, ship will shoot continuously (as it is now in the current implementation)
 
 
 
