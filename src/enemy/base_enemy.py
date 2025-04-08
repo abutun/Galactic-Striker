@@ -12,12 +12,12 @@ from src.utils.sprite_animation import SpriteAnimation
 logger = logging.getLogger(__name__)
 
 class BaseEnemy(pygame.sprite.Sprite):
-    def __init__(self, id, x: int, y: int, bullet_group: pygame.sprite.Group, health=1, speed=2, points=100, type="small", sub_type=1, animation=None):
+    def __init__(self, id, x: int, y: int, bullet_group: pygame.sprite.Group, life=1, speed=2, points=100, type="small", sub_type=1, animation=None):
         super().__init__()
         try:
             logger.info(f"Initializing enemy: id={id}, type={type}, sub_type={sub_type}")
             self.bullet_group = bullet_group
-            self.health = health
+            self.life = life
             self.speed = speed
             self.points = points
             self.type = type
@@ -117,7 +117,7 @@ class BaseEnemy(pygame.sprite.Sprite):
     def take_damage(self, damage: int) -> None:
         """Handle taking damage."""
         try:
-            self.health -= damage
+            self.life -= damage
         except Exception as e:
             logger.error(f"Error handling damage: {e}")
 

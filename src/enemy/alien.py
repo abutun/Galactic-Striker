@@ -13,8 +13,8 @@ from src.config.game_settings import ALIEN_SETTINGS, PLAY_AREA
 logger = logging.getLogger(__name__)
 
 class Alien(BaseEnemy):
-    def __init__(self, id, x, y, bullet_group, health, speed, points, type, sub_type, animation=None):
-        super().__init__(id, x, y, bullet_group, health, speed, points, type, sub_type, animation)
+    def __init__(self, id, x, y, bullet_group, life, speed, points, type, sub_type, animation=None):
+        super().__init__(id, x, y, bullet_group, life, speed, points, type, sub_type, animation)
         # Randomize initial fire delay between 1500-2500ms
         self.fire_delay = random.randint(5000, 15000)
         self.last_fire = pygame.time.get_ticks() + random.randint(0, 10000)  # Randomize initial fire time
@@ -147,12 +147,12 @@ class Alien(BaseEnemy):
         self.sound_manager.play(f'alien_fire_{self.sub_type}')
 
     def take_damage(self, damage):
-        self.health -= damage
+        self.life -= 1
         
         # Play hit sound based on alien type
         self.sound_manager.play(f'alien_hit_{self.sub_type}')
             
-        if self.health <= 0:
+        if self.life <= 0:
             self.sound_manager.play(f'alien_death_{self.sub_type}')
             self.kill()
 
@@ -160,7 +160,7 @@ class NonBossAlien(Alien):
     def __init__(self, id, x, y, bullet_group, alien_type, alien_subtype, animation=None):
         # Initialize base class first
         super().__init__(id, x, y, bullet_group, 
-                        ALIEN_SETTINGS[alien_type]["base_health"], 
+                        ALIEN_SETTINGS[alien_type]["base_life"], 
                         ALIEN_SETTINGS[alien_type]["speed_modifier"], 
                         ALIEN_SETTINGS[alien_type]["base_points"], 
                         alien_type, alien_subtype, animation)
@@ -172,7 +172,7 @@ class NonBossAlien(Alien):
 class BossAlien(BaseEnemy):
     def __init__(self, id, x, y, bullet_group, animation=None):
         super().__init__(id, x, y, bullet_group, 
-                        ALIEN_SETTINGS["boss"]["base_health"],
+                        ALIEN_SETTINGS["boss"]["base_life"],
                         ALIEN_SETTINGS["boss"]["speed_modifier"],
                         ALIEN_SETTINGS["boss"]["base_points"],
                         "boss", "1", animation)
@@ -206,7 +206,7 @@ class BossAlien(BaseEnemy):
         if now - self.last_fire > self.fire_delay:
             self.fire()
             self.last_fire = now
-        if self.health < (20 * self.phases) * (1 - self.current_phase / self.phases) and self.current_phase < self.phases:
+        if self.life < (20 * self.phases) * (1 - self.current_phase / self.phases) and self.current_phase < self.phases:
             self.current_phase += 1
             self.fire_delay = max(500, self.fire_delay - 200)
         self.wrap_position()

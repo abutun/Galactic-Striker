@@ -70,10 +70,9 @@ class Player(pygame.sprite.Sprite):
             # Initialize player attributes
             self.bullet_group = bullet_group
             self.speed = 5
-            self.health = 3
-            self.max_health = 6  # Cap maximum health at 5
             self.shield = 0
-            self.lives = 3
+            self.life = 3
+            self.max_life = 5
             self.money = 0
             self.weapon_level = 1
             self.bullet_speed = 7
@@ -193,23 +192,23 @@ class Player(pygame.sprite.Sprite):
             if self.sound_manager:
                 self.sound_manager.play('shield_hit')
         else:
-            # Always decrease health by 1 regardless of damage amount
-            self.health -= 1
+            # Always decrease life by 1 regardless of damage amount
+            self.life -= 1
             if self.sound_manager:
                 self.sound_manager.play('player_hit')
                 
-            if self.health <= 0:
-                self.health = 0
+            if self.life <= 0:
+                self.life = 0
                 self.sound_manager.play('player_death')
                 # Signal game over
                 self.kill()
 
-    def add_health(self):
-        """Add one health point up to max_health."""
-        if self.health < self.max_health:
-            self.health += 1
+    def add_life(self):
+        """Add one life point up to max_life."""
+        if self.life < self.max_life:
+            self.life += 1
             if self.sound_manager:
-                self.sound_manager.play('health_pickup')
+                self.sound_manager.play('life_pickup')
             return True
         return False
 

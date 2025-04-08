@@ -74,16 +74,16 @@ class AlienType:
             return base_points * 10
 
     @property
-    def health(self) -> int:
-        """Calculate health for this alien type."""
-        base_health = self.type_number
+    def life(self) -> int:
+        """Calculate life for this alien type."""
+        base_life = self.type_number
         
         if self.category == AlienCategory.SMALL:
-            return base_health
+            return base_life
         elif self.category == AlienCategory.LARGE:
-            return base_health * 2
+            return base_life * 2
         else:  # BOSS
-            return base_health * 10
+            return base_life * 5
 
     @property
     def fire_pattern(self) -> str:

@@ -70,7 +70,7 @@ def draw_dev_info(screen, player, level_manager, score_manager):
         f"Scoop Active: {player.scoop_active}",
         f"Weapon Level: {player.weapon_level}",
         f"Primary Weapon: {player.primary_weapon}",
-        f"Health: {player.health}",
+        f"Life: {player.life}",
         f"Shield: {player.shield}",
         f"Speed: {player.speed}",
         f"Money: {player.money}",
@@ -166,7 +166,7 @@ class Game:
         for enemy, bullets in hits.items():
             for bullet in bullets:
                 enemy.take_damage(bullet.damage)
-                if enemy.health <= 0:
+                if enemy.life <= 0:
                     self.spawn_rewards(enemy.rect.center)
                     enemy.kill()
                     self.score_manager.add_score(enemy.points)
@@ -174,8 +174,8 @@ class Game:
         # Enemy bullets hitting player
         hits = pygame.sprite.spritecollide(self.player, self.enemy_bullets, True)
         if hits:
-            self.player.take_damage(1)  # Always reduce health by 1
-            if self.player.health <= 0:
+            self.player.take_damage(1)  # Always reduce life by 1
+            if self.player.life <= 0:
                 self.game_over()
 
         # Player collecting bonuses
