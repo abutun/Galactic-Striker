@@ -246,7 +246,7 @@ class LevelGenerator:
             "path": self.generate_path(entry_point, config.difficulty),
             "movement_pattern": random.choice(config.movement_patterns),
             "speed": random.uniform(1.5, 2.5),
-            "health": random.randint(1, config.difficulty + 1),
+            "life": random.randint(1, config.difficulty + 1),
             "shoot_interval": random.uniform(1.5, 3.0),
             "group_behavior": random.random() < group_behavior_chance
         }
@@ -255,7 +255,7 @@ class LevelGenerator:
         """Generate boss configuration for milestone levels."""
         return {
             "type": f"boss_{(level_number // 25):02d}",
-            "health": 100 + (level_number // 25) * 50,
+            "life": 10 + (level_number // 25) * 10,
             "speed": 1.0,
             "attack_patterns": ["pattern1", "pattern2", "pattern3"],
             "phase_count": 3

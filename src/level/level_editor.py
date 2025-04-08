@@ -49,7 +49,7 @@ class LevelEditor:
                 path=path_points,
                 movement_pattern=Movement(group_data['movement_pattern']),
                 speed=group_data['speed'],
-                health=group_data['health'],
+                life=group_data['life'],
                 shoot_interval=group_data['shoot_interval'],
                 group_behavior=group_data.get('group_behavior', False)
             )
@@ -93,7 +93,7 @@ class LevelEditor:
                     ],
                     'movement_pattern': group.movement_pattern.value,
                     'speed': group.speed,
-                    'health': group.health,
+                    'life': group.life,
                     'shoot_interval': group.shoot_interval,
                     'group_behavior': group.group_behavior
                 }
@@ -158,7 +158,7 @@ class LevelEditor:
                     path=[],
                     movement_pattern=Movement.STRAIGHT,
                     speed=1.0,
-                    health=1,
+                    life=1,
                     shoot_interval=2.0
                 )
                 self.current_level.alien_groups.append(new_group)

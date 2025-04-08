@@ -53,6 +53,10 @@ class Player(pygame.sprite.Sprite):
             
             self.rect = self.image.get_rect()
             
+            # Store initial position for respawning
+            self.initial_x = x
+            self.initial_y = y
+            
             # Set initial position
             screen = pygame.display.get_surface()
             if screen:
@@ -63,6 +67,9 @@ class Player(pygame.sprite.Sprite):
                 play_area_right = int(screen.get_width() * PLAY_AREA.get("right_boundary", 0.885))
                 play_area_width = play_area_right - play_area_left
                 self.rect.centerx = play_area_left + (play_area_width // 2)
+                # Store initial position for respawning
+                self.initial_x = self.rect.centerx
+                self.initial_y = self.rect.bottom
             else:
                 self.rect.x = x
                 self.rect.y = y
@@ -70,10 +77,9 @@ class Player(pygame.sprite.Sprite):
             # Initialize player attributes
             self.bullet_group = bullet_group
             self.speed = 5
-            self.health = 3
-            self.max_health = 6  # Cap maximum health at 5
             self.shield = 0
-            self.lives = 3
+            self.life = 3
+            self.max_life = 5
             self.money = 0
             self.weapon_level = 1
             self.bullet_speed = 7
@@ -93,6 +99,20 @@ class Player(pygame.sprite.Sprite):
             self.shield_active = False
             self.mirror_mode = False
             self.drunk_mode = False
+            
+            # Immunity system
+            self.is_immune = False
+            self.immunity_start = 0
+            self.immunity_duration = 3000  # 3 seconds in milliseconds
+            
+            # Respawn system
+            self.is_respawning = False
+            self.respawn_start = 0
+            self.respawn_duration = 3000  # 3 seconds in milliseconds
+            self.visible = True
+            
+            # Manual shooting tracking
+            self.space_pressed = False
             
             # Rank system
             self.rank = 1
@@ -133,6 +153,30 @@ class Player(pygame.sprite.Sprite):
             target_size = PLAYER_SETTINGS.get("size", (64, 64))
             self.image = pygame.transform.scale(current_frame, target_size)
             
+            # Handle respawning
+            now = pygame.time.get_ticks()
+            if self.is_respawning:
+                if now - self.respawn_start >= self.respawn_duration:
+                    # Respawn complete
+                    self.is_respawning = False
+                    self.visible = True
+                    
+                    # Start immunity period just before respawning
+                    self.is_immune = True
+                    self.immunity_start = now
+                    
+                    # Reset position to initial position
+                    screen = pygame.display.get_surface()
+                    if screen:
+                        self.rect.centerx = self.initial_x
+                        self.rect.bottom = self.initial_y
+                    else:
+                        self.rect.x = self.initial_x
+                        self.rect.y = self.initial_y
+                else:
+                    # Still respawning, don't update position or handle input
+                    return
+            
             # Handle movement with boundaries
             screen = pygame.display.get_surface()
             if not screen:
@@ -151,17 +195,44 @@ class Player(pygame.sprite.Sprite):
             
             # Handle firing
             now = pygame.time.get_ticks()
-            if keys[pygame.K_SPACE] and now - self.last_fire >= self.fire_delay:
-                self.fire_bullet()
-                self.last_fire = now
+            
+            # Auto-fire mode (when autofire is active)
+            if self.autofire and keys[pygame.K_SPACE]:
+                if now - self.last_fire >= self.fire_delay:
+                    self.fire_bullet()
+                    self.last_fire = now
+            
+            # Manual shooting (when autofire is not active)
+            # Track space key state for manual shooting
+            if not self.autofire:
+                # Check if space is pressed
+                if keys[pygame.K_SPACE]:
+                    # If space was not pressed in the previous frame, fire
+                    if not self.space_pressed and now - self.last_fire >= self.fire_delay:
+                        self.fire_bullet()
+                        self.last_fire = now
+                    self.space_pressed = True
+                else:
+                    # Space is released
+                    self.space_pressed = False
                 
             # Secondary fire with left shift
             if keys[pygame.K_LSHIFT]:
                 self.fire_secondary()
                 
+            # Check immunity status
+            if self.is_immune:
+                if now - self.immunity_start >= self.immunity_duration:
+                    self.is_immune = False
+                
             self.check_rank_upgrade()
         except Exception as e:
             logger.error(f"Error updating player: {e}")
+
+    def draw(self, surface):
+        """Draw the player on the surface."""
+        if self.visible:
+            surface.blit(self.image, self.rect)
 
     def fire_bullet(self) -> None:
         """Fire the current weapon."""
@@ -186,6 +257,10 @@ class Player(pygame.sprite.Sprite):
 
     def take_damage(self, damage: int) -> None:
         """Handle player taking damage."""
+        # If immune, ignore damage
+        if self.is_immune:
+            return
+            
         if self.shield > 0:
             self.shield -= damage
             if self.shield < 0:
@@ -193,23 +268,56 @@ class Player(pygame.sprite.Sprite):
             if self.sound_manager:
                 self.sound_manager.play('shield_hit')
         else:
-            # Always decrease health by 1 regardless of damage amount
-            self.health -= 1
+            # Always decrease life by 1 regardless of damage amount
+            self.life -= 1
             if self.sound_manager:
                 self.sound_manager.play('player_hit')
                 
-            if self.health <= 0:
-                self.health = 0
+            if self.life <= 0:
+                self.life = 0
                 self.sound_manager.play('player_death')
                 # Signal game over
                 self.kill()
+            else:
+                # Make ship disappear immediately
+                self.visible = False
+                
+                # Player still has lives, apply respawn penalties
+                self._apply_respawn_penalties()
+                
+                # Start respawn process
+                self.is_respawning = True
+                self.respawn_start = pygame.time.get_ticks()
+                
+                # Force immediate position update to prevent freezing
+                screen = pygame.display.get_surface()
+                if screen:
+                    # Move ship off-screen during respawn
+                    self.rect.bottom = -100
 
-    def add_health(self):
-        """Add one health point up to max_health."""
-        if self.health < self.max_health:
-            self.health += 1
+    def _apply_respawn_penalties(self):
+        """Apply penalties when player respawns after being hit."""
+        # Demote primary weapon
+        self.primary_weapon = max(1, self.primary_weapon - 1)
+        
+        # Remove auto-fire bonus
+        self.autofire = False
+        
+        # Remove special bonuses
+        self.scoop_active = False
+        self.shield_active = False
+        self.mirror_mode = False
+        self.drunk_mode = False
+        
+        # Decrease speed
+        self.speed = max(1, self.speed - 1)
+
+    def add_life(self):
+        """Add one life point up to max_life."""
+        if self.life < self.max_life:
+            self.life += 1
             if self.sound_manager:
-                self.sound_manager.play('health_pickup')
+                self.sound_manager.play('life_pickup')
             return True
         return False
 

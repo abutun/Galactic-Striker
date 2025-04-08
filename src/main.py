@@ -68,9 +68,15 @@ def draw_dev_info(screen, player, level_manager, score_manager):
         f"Rank: {RANK_NAMES[player.rank - 1]} (#{player.rank})",
         f"Collected Rank Markers: {len(player.rank_markers)}",
         f"Scoop Active: {player.scoop_active}",
+        f"Shield Active: {player.shield_active}",
+        f"Mirror Mode: {player.mirror_mode}",
+        f"Drunk Mode: {player.drunk_mode}",
+        f"Scoop Active: {player.autofire}",
+        f"Is Immune: {player.is_immune}",
+        f"Space Pressed: {player.space_pressed}",
         f"Weapon Level: {player.weapon_level}",
         f"Primary Weapon: {player.primary_weapon}",
-        f"Health: {player.health}",
+        f"Life: {player.life}",
         f"Shield: {player.shield}",
         f"Speed: {player.speed}",
         f"Money: {player.money}",
@@ -80,7 +86,7 @@ def draw_dev_info(screen, player, level_manager, score_manager):
         f"Score: {score_manager.score}",
         f"Letters: {', '.join(player.letters) if player.letters else 'None'}"
     ]
-    overlay = pygame.Surface((210, 300))
+    overlay = pygame.Surface((200, 400))
     overlay.set_alpha(200)
     overlay.fill((0, 0, 0))
     font = pygame.font.Font(None, 20)
@@ -166,7 +172,7 @@ class Game:
         for enemy, bullets in hits.items():
             for bullet in bullets:
                 enemy.take_damage(bullet.damage)
-                if enemy.health <= 0:
+                if enemy.life <= 0:
                     self.spawn_rewards(enemy.rect.center)
                     enemy.kill()
                     self.score_manager.add_score(enemy.points)
@@ -174,8 +180,8 @@ class Game:
         # Enemy bullets hitting player
         hits = pygame.sprite.spritecollide(self.player, self.enemy_bullets, True)
         if hits:
-            self.player.take_damage(1)  # Always reduce health by 1
-            if self.player.health <= 0:
+            self.player.take_damage(1)  # Always reduce life by 1
+            if self.player.life <= 0:
                 self.game_over()
 
         # Player collecting bonuses

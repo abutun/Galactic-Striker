@@ -103,7 +103,7 @@ class LevelManager:
                     path=path_points,
                     movement_pattern=Movement(group_data['movement_pattern']),
                     speed=group_data['speed'],
-                    health=group_data['health'],
+                    life=group_data['life'],
                     shoot_interval=group_data['shoot_interval'],
                     group_behavior=group_data.get('group_behavior', False)
                 )
@@ -209,7 +209,7 @@ class LevelManager:
                         animation=animation
                         )
                     # Set additional properties
-                    alien.health = group.get('health', 1)
+                    alien.life = group.get('life', 1)
                     alien.speed = group.get('speed', 2)
                     alien.sound_manager = self.sound_manager
                     
@@ -225,7 +225,7 @@ class LevelManager:
                     self.bullet_group,
                     animation=animation
                 )
-                boss.health = group['health']
+                boss.life = group['life']
                 boss.speed = group['speed']
                 boss.sound_manager = self.sound_manager
                 
@@ -244,35 +244,46 @@ class LevelManager:
         except Exception as e:
             logger.error(f"Error spawning alien group 0x0002: {e}")
 
-    def calculate_formation_positions(self, pattern: str, count: int, spacing: int) -> List[Tuple[float, float]]:
-        """Calculate positions for all formation types."""
+    def calculate_formation_positions(self, pattern: str, count: int, spacing: int = 50) -> List[Tuple[float, float]]:
+        """Calculate positions for a formation pattern."""
         formation = Formation[pattern.upper()]
-        logger.info(f"Calculating formation: {formation} for {count} aliens")
-        screen = pygame.display.get_surface()
-        if not screen:
-            return []
-        
-        sw, sh = screen.get_size()
-        center_x = sw // 2
-        positions = []
-        
+        logger.info(f"Calculating formation: {formation} for {count} aliens")        
         try:
-            if formation == Formation.LINE:
-                # Simple horizontal line
-                total_width = (count - 1) * spacing
-                start_x = center_x - (total_width // 2)
-                positions = [(start_x + i * spacing, -50) for i in range(count)]
+            screen = pygame.display.get_surface()
+            if not screen:
+                return []
                 
-            elif formation == Formation.V:
-                # V-shaped formation
+            sw, sh = screen.get_size()
+            
+            # Define play area boundaries from game settings
+            left_boundary = sw * PLAY_AREA.get("left_boundary", 0.115)
+            right_boundary = sw * PLAY_AREA.get("right_boundary", 0.885)
+            play_width = right_boundary - left_boundary
+            
+            # Calculate base positions
+            positions = []
+            
+            if formation == Formation.LINE:
+                # Line formation within boundaries
+                total_width = (count - 1) * spacing
+                start_x = left_boundary + (play_width - total_width) / 2
                 for i in range(count):
-                    x = center_x + (i // 2 * spacing if i % 2 == 0 else -(i // 2 + 1) * spacing)
-                    y = -50 + (i // 2 * spacing)
+                    x = start_x + (i * spacing)
+                    positions.append((x, -50))
+                    
+            elif formation == Formation.V:
+                # V formation within boundaries
+                total_width = (count - 1) * spacing
+                start_x = left_boundary + (play_width - total_width) / 2
+                for i in range(count):
+                    x = start_x + (i * spacing)
+                    y = -50 + (abs(i - (count-1)/2) * spacing)
                     positions.append((x, y))
                     
             elif formation == Formation.CIRCLE:
-                # Circular formation
-                radius = spacing * 2
+                # Circle formation within boundaries
+                radius = min(play_width, sh * 0.3) / 2
+                center_x = left_boundary + play_width / 2
                 for i in range(count):
                     angle = (2 * math.pi * i) / count
                     x = center_x + radius * math.cos(angle)
@@ -280,66 +291,75 @@ class LevelManager:
                     positions.append((x, y))
                     
             elif formation == Formation.DIAMOND:
-                # Diamond formation
-                size = math.ceil(math.sqrt(count))
+                # Diamond formation within boundaries
+                total_width = (count - 1) * spacing
+                start_x = left_boundary + (play_width - total_width) / 2
                 for i in range(count):
-                    row = i // size
-                    col = i % size
-                    x = center_x + (col - size/2) * spacing
-                    y = -50 + row * spacing
+                    x = start_x + (i * spacing)
+                    y = -50 + (abs(i - (count-1)/2) * spacing)
                     positions.append((x, y))
                     
             elif formation == Formation.WAVE:
-                # Sinusoidal wave formation
+                # Wave formation within boundaries
+                total_width = (count - 1) * spacing
+                start_x = left_boundary + (play_width - total_width) / 2
                 for i in range(count):
-                    x = center_x + (i - count/2) * spacing
+                    x = start_x + (i * spacing)
                     y = -50 + math.sin(i * 0.5) * spacing
                     positions.append((x, y))
                     
             elif formation == Formation.CROSS:
-                # Cross formation
-                mid = count // 2
+                # Cross formation within boundaries
+                center_x = left_boundary + play_width / 2
                 for i in range(count):
-                    if i < mid:  # Vertical line
+                    if i % 2 == 0:
                         x = center_x
-                        y = -50 - i * spacing
-                    else:  # Horizontal line
-                        x = center_x + (i - mid - count//4) * spacing
-                        y = -50 - mid * spacing // 2
+                        y = -50 + (i // 2) * spacing
+                    else:
+                        x = center_x + ((i // 2 + 1) * spacing)
+                        y = -50
                     positions.append((x, y))
                     
             elif formation == Formation.SPIRAL:
-                # Spiral formation
-                a = spacing / (2 * math.pi)  # Spiral spacing
+                # Spiral formation within boundaries
+                center_x = left_boundary + play_width / 2
                 for i in range(count):
-                    theta = i * 0.5
-                    r = a * theta
-                    x = center_x + r * math.cos(theta)
-                    y = -50 + r * math.sin(theta)
-                    positions.append((x, y))
-                    
-            elif formation == Formation.STAR:
-                # Star formation with 5 points
-                points = 5
-                inner_radius = spacing
-                outer_radius = spacing * 2
-                for i in range(count):
-                    angle = (2 * math.pi * i) / count
-                    radius = outer_radius if i % 2 == 0 else inner_radius
+                    angle = i * 0.5
+                    radius = i * spacing / 10
                     x = center_x + radius * math.cos(angle)
                     y = -50 + radius * math.sin(angle)
                     positions.append((x, y))
                     
+            elif formation == Formation.STAR:
+                # Star formation within boundaries
+                center_x = left_boundary + play_width / 2
+                for i in range(count):
+                    angle = (2 * math.pi * i) / count
+                    radius = spacing * (1 + math.sin(angle * 5) * 0.5)
+                    x = center_x + radius * math.cos(angle)
+                    y = -50 + radius * math.sin(angle)
+                    positions.append((x, y))
+                    
+            else:
+                logger.warning(f"Unknown formation pattern: {pattern}")
+                return []
+                
+            # Ensure all positions are within boundaries (# 350 is alien width)
+            for i, (x, y) in enumerate(positions):
+                positions[i] = (
+                    max(left_boundary, min(right_boundary - 350, x)), y
+                )
+                
             return positions
             
         except Exception as e:
             logger.error(f"Error calculating formation positions: {e}")
-            return [(center_x, -50) for _ in range(count)]  # Fallback to single line
+            return []
 
     def update_group_pattern(self, aliens: List[pygame.sprite.Sprite], pattern: Movement) -> None:
         """Update alien positions based on movement pattern."""
         movement = Movement[pattern.upper()]
-       
+    
         try:
             screen = pygame.display.get_surface()
             if not screen:
@@ -354,35 +374,15 @@ class LevelManager:
             
             # Implement wrapping function
             def wrap_alien(alien):
-                # Only wrap if completely out of bounds
-                if alien.rect.right < left_boundary:
-                    # Ship passed left boundary - mark for wrapping from right
-                    if not hasattr(alien, 'waiting_to_wrap'):
-                        alien.waiting_to_wrap = 'right'
-                        alien.wrap_timer = time + random.uniform(1.0, 3.0)  # Random delay before reappearing
-                        alien.visible = False  # Hide the ship
-                elif alien.rect.left > right_boundary:
-                    # Ship passed right boundary - mark for wrapping from left
-                    if not hasattr(alien, 'waiting_to_wrap'):
-                        alien.waiting_to_wrap = 'left'
-                        alien.wrap_timer = time + random.uniform(1.0, 3.0)  # Random delay before reappearing
-                        alien.visible = False  # Hide the ship
-                
-                # Check if it's time to wrap
-                if hasattr(alien, 'waiting_to_wrap') and time >= alien.wrap_timer:
-                    if alien.waiting_to_wrap == 'right':
-                        # Wrap from right boundary
-                        alien.rect.left = right_boundary
-                    elif alien.waiting_to_wrap == 'left':
-                        # Wrap from left boundary
-                        alien.rect.right = left_boundary
-                    alien.visible = True  # Make the ship visible again
-                    delattr(alien, 'waiting_to_wrap')
-                    delattr(alien, 'wrap_timer')
-                
-                # Vertical wrapping when off bottom of screen
+                # Only wrap vertically (top to bottom)
                 if alien.rect.top > sh:
                     alien.rect.bottom = 0
+                
+                # Enforce horizontal boundaries without wrapping
+                if alien.rect.left < left_boundary:
+                    alien.rect.left = left_boundary
+                elif alien.rect.right > right_boundary:
+                    alien.rect.right = right_boundary
             
             if movement == Movement.STRAIGHT:
                 # Simple downward movement
@@ -462,7 +462,7 @@ class LevelManager:
                 # Random teleportation
                 for alien in aliens:
                     if random.random() < 0.02:  # 2% chance to teleport
-                        alien.rect.x = random.randint(int(sw * 0.2), int(sw * 0.8))
+                        alien.rect.x = random.randint(int(left_boundary), int(right_boundary - alien.rect.width))
                         alien.rect.y = random.randint(50, int(sh * 0.5))
                     else:
                         alien.rect.y += alien.speed

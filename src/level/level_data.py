@@ -48,7 +48,7 @@ class AlienGroup:
     path: List[PathPoint]
     movement_pattern: Movement
     speed: float
-    health: int
+    life: int
     shoot_interval: float
     group_behavior: bool = False  # Whether aliens move as a group
 
