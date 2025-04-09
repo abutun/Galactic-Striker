@@ -35,39 +35,47 @@ class LevelConfig:
 class LevelGenerator:
     def __init__(self):
         # Add formation spacing configurations with alien size consideration
-        base_spacing = ALIEN_SETTINGS.get("size", (32, 32))[0] * 0.5  # 50% of alien size as additional spacing
+        base_spacing = ALIEN_SETTINGS["small"]["size"][0] * 1.25  # 125% of alien size as base spacing
         
         self.formation_spacing = {
             "line": {
                 "min_spacing": base_spacing,
+                "vertical_spacing": base_spacing * 0.8,
                 "group_behavior_chance": 0.4
             },
             "v": {
                 "min_spacing": base_spacing * 1.2,  # 20% more for V formation
+                "vertical_spacing": base_spacing,
                 "group_behavior_chance": 0.6
             },
             "circle": {
                 "min_spacing": base_spacing * 1.1,
+                "vertical_spacing": base_spacing * 1.1,
                 "group_behavior_chance": 0.7
             },
             "diamond": {
                 "min_spacing": base_spacing,
+                "vertical_spacing": base_spacing,
                 "group_behavior_chance": 0.8
             },
             "wave": {
                 "min_spacing": base_spacing * 0.9,  # Slightly less for wave
+                "vertical_spacing": base_spacing * 1.2,  # More vertical space for wave pattern
                 "group_behavior_chance": 0.5
             },
             "cross": {
                 "min_spacing": base_spacing,
+                "vertical_spacing": base_spacing * 1.3,  # More vertical space for cross pattern
                 "group_behavior_chance": 0.6
             },
             "spiral": {
                 "min_spacing": base_spacing * 0.9,
+                "vertical_spacing": base_spacing * 1.1,
                 "group_behavior_chance": 0.7
             },
             "star": {
                 "min_spacing": base_spacing * 1.1,
+                "vertical_spacing": base_spacing * 1.2,
                 "group_behavior_chance": 0.8
             }
         }
@@ -233,6 +241,7 @@ class LevelGenerator:
         # Use formation-specific spacing
         formation_config = self.formation_spacing[formation]
         spacing = formation_config["min_spacing"]
+        vertical_spacing = formation_config["vertical_spacing"]
         group_behavior_chance = formation_config["group_behavior_chance"]
 
         entry_point = random.choice(config.entry_points)
@@ -242,10 +251,11 @@ class LevelGenerator:
             "count": count,
             "formation": formation,
             "spacing": spacing,
+            "vertical_spacing": vertical_spacing,
             "entry_point": entry_point,
             "path": self.generate_path(entry_point, config.difficulty),
             "movement_pattern": random.choice(config.movement_patterns),
-            "speed": random.uniform(1.5, 2.5),
+            "speed": random.uniform(1.0, 2.0),
             "life": random.randint(1, config.difficulty + 1),
             "shoot_interval": random.uniform(1.5, 3.0),
             "group_behavior": random.random() < group_behavior_chance
@@ -291,7 +301,7 @@ class LevelGenerator:
             "minimum_clear_time": 30.0
         }
 
-    def generate_all_levels(self, start_level: int = 1, end_level: int = 100):
+    def generate_all_levels(self, start_level: int = 1, end_level: int = 200):
         """Generate all level files."""
         output_dir = os.path.join("assets", "levels")
         os.makedirs(output_dir, exist_ok=True)

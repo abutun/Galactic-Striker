@@ -35,7 +35,7 @@ class X2ScoreMultiplierBonus(Bonus):
     def apply(self, player, game_context=None):
         self.sound_manager.play("bonus_reward")
         if game_context and "score_manager" in game_context:
-            game_context["score_manager"].activate_multiplier(2, player.time_stat)
+            game_context["score_manager"].activate_multiplier(2, 10)
 
 class X5ScoreMultiplierBonus(Bonus):
     def __init__(self, x, y):
@@ -43,7 +43,7 @@ class X5ScoreMultiplierBonus(Bonus):
     def apply(self, player, game_context=None):
         self.sound_manager.play("bonus_reward")
         if game_context and "score_manager" in game_context:
-            game_context["score_manager"].activate_multiplier(5, player.time_stat)
+            game_context["score_manager"].activate_multiplier(5, 5)
 
 class CashDoublerBonus(Bonus):
     def __init__(self, x, y):
