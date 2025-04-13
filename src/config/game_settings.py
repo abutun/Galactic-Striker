@@ -51,14 +51,14 @@ ALIEN_SETTINGS = {
     "small": {
         "base_life": 1,
         "base_points": 100,
-        "size": (64, 64),
+        "size": (55, 55),
         "speed_modifier": 1.2,
         "shoot_interval": 2.0
     },
     "large": {
         "base_life": 3,
         "base_points": 200,
-        "size": (96, 96),
+        "size": (75, 75),
         "speed_modifier": 0.8,
         "shoot_interval": 1.5
     },
@@ -124,7 +124,7 @@ PLAYER_SETTINGS = {
     "sprite_sheet": {
         "rows": 3,
         "cols": 3,
-        "frame_size": 341  # 1024/3 rounded down
+        "frame_size": 350
     }
 }
 

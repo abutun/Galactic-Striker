@@ -48,6 +48,7 @@ from src.bonus import (
     # Modifier bonuses
     DecreaseStrengthRedBonus, DecreaseStrengthGreenBonus,
     DecreaseStrengthBlueBonus, X2ScoreMultiplierBonus,
+    X3ScoreMultiplierBonus, X4ScoreMultiplierBonus,
     X5ScoreMultiplierBonus, CashDoublerBonus,
     
     # Game mode bonuses
@@ -269,7 +270,9 @@ class Game:
                     (DecreaseStrengthGreenBonus, 0.15),  # 2.25%
                     (DecreaseStrengthBlueBonus, 0.15),   # 2.25%
                     (X2ScoreMultiplierBonus, 0.15),      # 2.25%
-                    (X5ScoreMultiplierBonus, 0.15),      # 2.25%
+                    (X3ScoreMultiplierBonus, 0.15),      # 2.25%
+                    (X4ScoreMultiplierBonus, 0.15),      # 2.25%
+                    (X5ScoreMultiplierBonus, 0.15),      # 2.25%                 
                     (BonusMeteorstormBonus, 0.125),      # 1.875%
                     (BonusMemorystationBonus, 0.125)     # 1.875%
                 ],

@@ -37,6 +37,24 @@ class X2ScoreMultiplierBonus(Bonus):
         if game_context and "score_manager" in game_context:
             game_context["score_manager"].activate_multiplier(2, 10)
 
+
+class X3ScoreMultiplierBonus(Bonus):
+    def __init__(self, x, y):
+        super().__init__(x, y, "assets/sprites/x2_multiplier.png", (255, 255, 255), (24, 24))
+    def apply(self, player, game_context=None):
+        self.sound_manager.play("bonus_reward")
+        if game_context and "score_manager" in game_context:
+            game_context["score_manager"].activate_multiplier(3, 10)
+
+
+class X4ScoreMultiplierBonus(Bonus):
+    def __init__(self, x, y):
+        super().__init__(x, y, "assets/sprites/x2_multiplier.png", (255, 255, 255), (24, 24))
+    def apply(self, player, game_context=None):
+        self.sound_manager.play("bonus_reward")
+        if game_context and "score_manager" in game_context:
+            game_context["score_manager"].activate_multiplier(4, 10)                        
+
 class X5ScoreMultiplierBonus(Bonus):
     def __init__(self, x, y):
         super().__init__(x, y, "assets/sprites/x5_multiplier.png", (255, 255, 255), (24, 24))

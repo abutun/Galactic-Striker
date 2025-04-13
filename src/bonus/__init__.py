@@ -6,8 +6,8 @@ from .letter_bonus import LetterBonus
 from .bonus_level_bonus import BonusMeteorstormBonus, BonusMemorystationBonus
 from .hidden_bonus import (
     DecreaseStrengthRedBonus, DecreaseStrengthGreenBonus, DecreaseStrengthBlueBonus,
-    X2ScoreMultiplierBonus, X5ScoreMultiplierBonus, CashDoublerBonus, MirrorModeBonus,
-    DrunkModeBonus, FreezeModeBonus, WarpForwardBonus
+    X2ScoreMultiplierBonus, X3ScoreMultiplierBonus, X4ScoreMultiplierBonus, X5ScoreMultiplierBonus, 
+    CashDoublerBonus, MirrorModeBonus, DrunkModeBonus, FreezeModeBonus, WarpForwardBonus
 )
 from .money_bonus import MoneyBonus10, MoneyBonus50, MoneyBonus100, MoneyBonus200
 from .shot_bonus import SingleShotBonus, DoubleShotBonus, TripleShotBonus, QuadShotBonus
@@ -22,7 +22,8 @@ __all__ = [
     'LetterBonus',
     'BonusMeteorstormBonus', 'BonusMemorystationBonus',
     'DecreaseStrengthRedBonus', 'DecreaseStrengthGreenBonus', 'DecreaseStrengthBlueBonus',
-    'X2ScoreMultiplierBonus', 'X5ScoreMultiplierBonus', 'CashDoublerBonus',
+    'X2ScoreMultiplierBonus', 'X3ScoreMultiplierBonus', 'X4ScoreMultiplierBonus',
+    'X5ScoreMultiplierBonus', 'CashDoublerBonus',
     'MirrorModeBonus', 'DrunkModeBonus', 'FreezeModeBonus', 'WarpForwardBonus'
 ]
 
@@ -35,6 +36,7 @@ from .special_bonus import ShipAutofireBonus, AlienScoopBonus, MoneyBombBonus, G
 from .letter_bonus import ExtraLetterBonus
 from .bonus_level_bonus import BonusMeteorstormBonus, BonusMemorystationBonus
 from .hidden_bonus import (DecreaseStrengthRedBonus, DecreaseStrengthGreenBonus, DecreaseStrengthBlueBonus,
-                           X2ScoreMultiplierBonus, X5ScoreMultiplierBonus, CashDoublerBonus, MirrorModeBonus,
+                           X2ScoreMultiplierBonus, X3ScoreMultiplierBonus, 'X4ScoreMultiplierBonus,
+                           X5ScoreMultiplierBonus, CashDoublerBonus, MirrorModeBonus,
                            DrunkModeBonus, FreezeModeBonus, WarpForwardBonus)
 """
