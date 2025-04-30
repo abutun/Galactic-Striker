@@ -226,6 +226,7 @@ class Player(pygame.sprite.Sprite):
                     self.is_immune = False
                 
             self.check_rank_upgrade()
+
         except Exception as e:
             logger.error(f"Error updating player: {e}")
 

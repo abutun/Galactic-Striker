@@ -7,9 +7,9 @@ class LetterBonus(Bonus):
         super().__init__(x, y)
         self.letter = letter
         try:
-            self.image = load_image(f"assets/sprites/letter_{letter}.png", (0, 0, 0), (20, 20))
+            self.image = load_image(f"assets/sprites/letter_{letter}.png", (0, 0, 0), (32, 32))
         except:
-            self.image = pygame.Surface((20, 20))
+            self.image = pygame.Surface((32, 32))
             self.image.fill((128, 0, 128))  # Purple
             font = pygame.font.Font(None, 20)
             text = font.render(letter, True, (255, 255, 255))

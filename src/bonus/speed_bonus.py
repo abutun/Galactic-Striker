@@ -1,8 +1,8 @@
 from .base_bonus import Bonus
 
-class SpeedBoostBonus(Bonus):
+class ExtraSpeedBonus(Bonus):
     def __init__(self, x, y):
-        super().__init__(x, y, "assets/sprites/speed_boost.png", (0, 255, 255), (24, 24))
+        super().__init__(x, y, "assets/sprites/extra_speed.png", (0, 255, 255), (32, 32))
         
     def apply(self, player, game_context=None):
         self.sound_manager.play("bonus_reward")
@@ -13,7 +13,7 @@ class SpeedBoostBonus(Bonus):
 
 class TimeBonus(Bonus):
     def __init__(self, x, y):
-        super().__init__(x, y, "assets/sprites/time_bonus.png", (255, 255, 0), (24, 24))
+        super().__init__(x, y, "assets/sprites/extra_time.png", (255, 255, 0), (32, 32))
         
     def apply(self, player, game_context=None):
         self.sound_manager.play("bonus_reward")

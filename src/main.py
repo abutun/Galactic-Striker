@@ -48,6 +48,7 @@ from src.bonus import (
     # Modifier bonuses
     DecreaseStrengthRedBonus, DecreaseStrengthGreenBonus,
     DecreaseStrengthBlueBonus, X2ScoreMultiplierBonus,
+    X3ScoreMultiplierBonus, X4ScoreMultiplierBonus,
     X5ScoreMultiplierBonus, CashDoublerBonus,
     
     # Game mode bonuses
@@ -73,7 +74,6 @@ def draw_dev_info(screen, player, level_manager, score_manager):
         f"Drunk Mode: {player.drunk_mode}",
         f"Scoop Active: {player.autofire}",
         f"Is Immune: {player.is_immune}",
-        f"Space Pressed: {player.space_pressed}",
         f"Weapon Level: {player.weapon_level}",
         f"Primary Weapon: {player.primary_weapon}",
         f"Life: {player.life}",
@@ -84,9 +84,14 @@ def draw_dev_info(screen, player, level_manager, score_manager):
         f"Bullet Speed: {player.bullet_speed}",
         f"Bullet Count: {player.bullet_count}",
         f"Score: {score_manager.score}",
+        f"Multiplier: {score_manager.multiplier}",
+        f"Multiplier Duration: {score_manager.multiplier_duration}",
+        f"Multiplier Start Time: {score_manager.multiplier_start_time}",
+        f"Combo: {score_manager.combo}",
+        f"Combo Timer: {score_manager.combo_timer}",
         f"Letters: {', '.join(player.letters) if player.letters else 'None'}"
     ]
-    overlay = pygame.Surface((200, 400))
+    overlay = pygame.Surface((200, 480))
     overlay.set_alpha(200)
     overlay.fill((0, 0, 0))
     font = pygame.font.Font(None, 20)
@@ -95,7 +100,7 @@ def draw_dev_info(screen, player, level_manager, score_manager):
         text_surface = font.render(line, True, (255, 255, 255))
         overlay.blit(text_surface, (10, y_offset))
         y_offset += text_surface.get_height() + 2
-    screen.blit(overlay, (10, 100))
+    screen.blit(overlay, (10, 120))
 
 
 class Game:
@@ -265,14 +270,16 @@ class Game:
                     (DecreaseStrengthGreenBonus, 0.15),  # 2.25%
                     (DecreaseStrengthBlueBonus, 0.15),   # 2.25%
                     (X2ScoreMultiplierBonus, 0.15),      # 2.25%
-                    (X5ScoreMultiplierBonus, 0.15),      # 2.25%
+                    (X3ScoreMultiplierBonus, 0.15),      # 2.25%
+                    (X4ScoreMultiplierBonus, 0.15),      # 2.25%
+                    (X5ScoreMultiplierBonus, 0.15),      # 2.25%                 
                     (BonusMeteorstormBonus, 0.125),      # 1.875%
                     (BonusMemorystationBonus, 0.125)     # 1.875%
                 ],
                 # Collection bonuses (10%)
                 (0.90, 1.0): [
-                    (RankMarker, 0.4),    # 4%
-                    (lambda x, y: LetterBonus(x, y, random.choice('BONUS')), 0.6)  # 6%
+                    (lambda x, y: RankMarker(x, y, random.choice(['red', 'blue', 'green', 'yellow', 'purple', 'orange', 'dark_purple'])), 0.4),    # 4%
+                    (lambda x, y: LetterBonus(x, y, random.choice('EXTRA')), 0.6)  # 6%
                 ]
             }
 
@@ -461,7 +468,12 @@ class Game:
                 # Check if level is complete
                 if self.level_manager.level_complete:
                     next_level = self.level_manager.current_level + 1
+                    
+                    # Reset score manager's combo and multiplier
+                    self.score_manager.reset(False)
+
                     self.show_level_intro(next_level)  # Show intro while game continues
+                    
                     self.level_manager.load_next_level()  # Load next level after countdown
                     self.level_manager.spawn_next_group()  # Spawn first group of new level
 

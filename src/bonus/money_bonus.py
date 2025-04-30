@@ -3,13 +3,13 @@ from src.utils.utils import load_image
 from .base_bonus import Bonus
 
 class MoneyBonus(Bonus):
-    def __init__(self, x, y, amount=100):
+    def __init__(self, x, y, amount=10):
         super().__init__(x, y)
         self.amount = amount
         try:
-            self.image = load_image("assets/sprites/money_bonus.png", (0, 0, 0), (24, 24))
+            self.image = load_image(f"assets/sprites/money_bonus_{amount}.png", (0, 0, 0), (32, 32))
         except:
-            self.image = pygame.Surface((20, 20))
+            self.image = pygame.Surface((32, 32))
             self.image.fill((255, 223, 0))  # Gold
             font = pygame.font.Font(None, 20)
             text = font.render("$", True, (0, 0, 0))

@@ -18,19 +18,29 @@ class ScoreManager:
     def add_score(self, points):
         """Add points to the current score."""
         try:
+            current_time = pygame.time.get_ticks()
+            
+            # Check if combo has expired
+            if current_time - self.combo_timer > self.combo_timeout:
+                self.combo = 0
+                logger.info("Combo reset due to timeout")
+            
+            # Calculate points with multiplier and combo
             base_points = points * self.multiplier
             combo_bonus = int(base_points * (self.combo * 0.1))  # 10% bonus per combo level
             total_points = base_points + combo_bonus
             
+            # Update score and combo
             self.score += total_points
             self.combo += 1
-            self.combo_timer = pygame.time.get_ticks()
+            self.combo_timer = current_time
             
             # Update high score if needed
             if self.score > self.high_score:
                 self.high_score = self.score
                 self.save_high_score()
                 
+            logger.info(f"Score added: {total_points} (Combo: {self.combo})")
             return total_points
         except Exception as e:
             logger.error(f"Error adding score: {e}")
@@ -38,35 +48,43 @@ class ScoreManager:
 
     def activate_multiplier(self, multiplier_value, duration):
         """Activate a score multiplier for a specified duration"""
-        self.multiplier = multiplier_value
-        self.multiplier_duration = duration * 1000  # Convert to milliseconds
+        self.multiplier = self.multiplier * multiplier_value
+        self.multiplier_duration = duration * 2000  # Convert to milliseconds
         self.multiplier_start_time = pygame.time.get_ticks()
 
     def update(self):
         """Update score-related mechanics."""
         try:
+            current_time = pygame.time.get_ticks()
+            
             # Check combo timer
-            now = pygame.time.get_ticks()
-            if now - self.combo_timer > self.combo_timeout:
+            if self.combo > 0 and current_time - self.combo_timer > self.combo_timeout:
                 self.combo = 0
+                logger.info("Combo reset due to timeout")
             
             # Update multiplier status
             if self.multiplier > 1 and self.multiplier_duration > 0:
-                current_time = pygame.time.get_ticks()
                 if current_time - self.multiplier_start_time > self.multiplier_duration:
                     self.multiplier = 1
                     self.multiplier_duration = 0
+                    self.multiplier_start_time = 0
+                    logger.info("Score multiplier expired, reset to 1")
         except Exception as e:
             logger.error(f"Error updating score: {e}")
 
-    def reset(self):
-        """Reset the current score."""
-        self.score = 0
-        self.multiplier = 1
-        self.combo = 0
-        self.combo_timer = 0
-        self.multiplier_duration = 0
-        self.multiplier_start_time = 0
+    def reset(self, clear_score=False):
+        """Reset the score manager state."""
+        try:
+            if clear_score:
+                self.score = 0
+            self.multiplier = 1
+            self.combo = 0
+            self.combo_timer = 0
+            self.multiplier_duration = 0
+            self.multiplier_start_time = 0
+            logger.info("Score manager reset - Combo and multiplier cleared")
+        except Exception as e:
+            logger.error(f"Error resetting score manager: {e}")
 
     def load_high_score(self):
         """Load high score from file."""
@@ -100,7 +118,7 @@ class ScoreManager:
             # Draw multiplier if active
             if self.multiplier > 1:
                 multiplier_text = self.font.render(f"x{self.multiplier}", True, (255, 255, 0))
-                surface.blit(multiplier_text, (x, y + 60))
+                surface.blit(multiplier_text, (x, y + 90))
         except Exception as e:
             logger.error(f"Error drawing score: {e}")
 

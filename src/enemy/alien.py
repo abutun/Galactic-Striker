@@ -108,25 +108,40 @@ class Alien(BaseEnemy):
 
     def maintain_spacing(self):
         """Maintain minimum spacing between aliens"""
-        for sprite in self.groups()[0].sprites():  # Get all sprites from the same group
-            if sprite != self and isinstance(sprite, Alien):
-                dx = self.rect.centerx - sprite.rect.centerx
-                dy = self.rect.centery - sprite.rect.centery
-                distance = math.hypot(dx, dy)
-                
-                if distance < self.min_spacing:
-                    # Calculate repulsion vector
-                    if distance > 0:
-                        force_x = (dx / distance) * (self.min_spacing - distance) * 0.1
-                        force_y = (dy / distance) * (self.min_spacing - distance) * 0.1
-                    else:  # If exactly overlapping, move randomly
-                        angle = random.uniform(0, 2 * math.pi)
-                        force_x = math.cos(angle) * self.min_spacing * 0.1
-                        force_y = math.sin(angle) * self.min_spacing * 0.1
+        try:
+            min_spacing = 40  # Minimum pixels between aliens
+            for sprite in self.groups()[0].sprites():  # Get all sprites from the same group
+                if sprite != self and isinstance(sprite, Alien):
+                    dx = self.rect.centerx - sprite.rect.centerx
+                    dy = self.rect.centery - sprite.rect.centery
+                    distance = math.hypot(dx, dy)
+                    
+                    if distance < min_spacing:
+                        # Calculate repulsion vector
+                        if distance > 0:
+                            force_x = (dx / distance) * (min_spacing - distance) * 0.2
+                            force_y = (dy / distance) * (min_spacing - distance) * 0.2
+                        else:  # If exactly overlapping, move randomly
+                            angle = random.uniform(0, 2 * math.pi)
+                            force_x = math.cos(angle) * min_spacing * 0.2
+                            force_y = math.sin(angle) * min_spacing * 0.2
+                            
+                        # Apply forces
+                        self.rect.x += force_x
+                        self.rect.y += force_y
                         
-                    # Apply forces
-                    self.rect.x += force_x
-                    self.rect.y += force_y
+                        # Ensure aliens stay within play area
+                        screen = pygame.display.get_surface()
+                        if screen:
+                            sw, sh = screen.get_size()
+                            left_boundary = sw * PLAY_AREA["left_boundary"]
+                            right_boundary = sw * PLAY_AREA["right_boundary"]
+                            
+                            # Clamp position within boundaries
+                            self.rect.left = max(left_boundary, self.rect.left)
+                            self.rect.right = min(right_boundary, self.rect.right)
+        except Exception as e:
+            logger.error(f"Error maintaining alien spacing: {e}")
 
     def fire(self):
         if global_player is not None:
