@@ -5,7 +5,7 @@ class SingleShotBonus(Bonus):
         super().__init__(x, y, 
                         image_path="assets/sprites/single_shot.png",
                         fallback_color=(200, 200, 200),
-                        size=(24, 24))
+                        size=(32, 32))
 
     def apply(self, player):
         self.sound_manager.play("bonus_reward")
@@ -16,7 +16,7 @@ class DoubleShotBonus(Bonus):
         super().__init__(x, y, 
                         image_path="assets/sprites/double_shot.png",
                         fallback_color=(200, 200, 200),
-                        size=(24, 24))
+                        size=(32, 32))
 
     def apply(self, player):
         self.sound_manager.play("bonus_reward")
@@ -27,7 +27,7 @@ class TripleShotBonus(Bonus):
         super().__init__(x, y, 
                         image_path="assets/sprites/triple_shot.png",
                         fallback_color=(200, 200, 200),
-                        size=(24, 24))
+                        size=(32, 32))
 
     def apply(self, player):
         self.sound_manager.play("bonus_reward")
@@ -38,7 +38,7 @@ class QuadShotBonus(Bonus):
         super().__init__(x, y, 
                         image_path="assets/sprites/quad_shot.png",
                         fallback_color=(200, 200, 200),
-                        size=(24, 24))
+                        size=(32, 32))
 
     def apply(self, player):
         self.sound_manager.play("bonus_reward")

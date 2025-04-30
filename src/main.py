@@ -278,8 +278,8 @@ class Game:
                 ],
                 # Collection bonuses (10%)
                 (0.90, 1.0): [
-                    (RankMarker, 0.4),    # 4%
-                    (lambda x, y: LetterBonus(x, y, random.choice('BONUS')), 0.6)  # 6%
+                    (lambda x, y: RankMarker(x, y, random.choice(['red', 'blue', 'green', 'yellow', 'purple', 'orange', 'dark_purple'])), 0.4),    # 4%
+                    (lambda x, y: LetterBonus(x, y, random.choice('EXTRA')), 0.6)  # 6%
                 ]
             }
 

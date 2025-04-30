@@ -6,7 +6,7 @@ from src.utils.utils import load_image
 class Bonus(pygame.sprite.Sprite, ABC):
     def __init__(self, x, y, image_path=None, fallback_color=(255, 255, 255), size=(24, 24)):
         pygame.sprite.Sprite.__init__(self)  # Initialize Sprite first
-        self.speed = 2
+        self.speed = 1.25
         
         # Load image
         if image_path:
@@ -27,7 +27,7 @@ class Bonus(pygame.sprite.Sprite, ABC):
 
         # Rotation attributes for Y-axis effect
         self.rotation_angle = 0  # Angle in degrees
-        self.rotation_speed = 2  # Speed of rotation (degrees per frame)
+        self.rotation_speed = 0.5  # Speed of rotation (degrees per frame)
         self.rotation_direction = 1  # 1 for forward, -1 for backward
 
     @abstractmethod

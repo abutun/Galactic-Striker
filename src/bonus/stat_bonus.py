@@ -72,7 +72,7 @@ class PowerUp(Bonus):
         try:
             self.image = load_image("assets/bonuses/power_up.png", (0, 0, 0), (20, 20))
         except:
-            self.image = pygame.Surface((20, 20))
+            self.image = pygame.Surface((32, 32))
             self.image.fill((0, 255, 0))  # Green
         self.rect = self.image.get_rect(center=(x, y))
 

@@ -2,21 +2,21 @@ from .base_bonus import Bonus
 
 class ShipAutofireBonus(Bonus):
     def __init__(self, x, y):
-        super().__init__(x, y, "assets/sprites/ship_autofire.png", (255, 255, 0), (24, 24))
+        super().__init__(x, y, "assets/sprites/ship_autofire.png", (255, 255, 0), (32, 32))
     def apply(self, player, game_context=None):
         self.sound_manager.play("bonus_reward")
         player.autofire = True
 
 class ShieldBonus(Bonus):
     def __init__(self, x, y):
-        super().__init__(x, y, "assets/sprites/shield.png", (0, 0, 255), (24, 24))
+        super().__init__(x, y, "assets/sprites/shield.png", (0, 0, 255), (32, 32))
     def apply(self, player, game_context=None):
         self.sound_manager.play("bonus_reward")
         player.shield_active = True
 
 class AlienScoopBonus(Bonus):
     def __init__(self, x, y):
-        super().__init__(x, y, "assets/sprites/alien_scoop.png", (0, 255, 0), (24, 24))
+        super().__init__(x, y, "assets/sprites/alien_scoop.png", (0, 255, 0), (32, 32))
     def apply(self, player, game_context=None):
         self.sound_manager.play("bonus_reward")
         player.scoop_active = True
@@ -25,7 +25,7 @@ class AlienScoopBonus(Bonus):
 
 class MoneyBombBonus(Bonus):
     def __init__(self, x, y):
-        super().__init__(x, y, "assets/sprites/money_bomb.png", (255, 215, 0), (24, 24))
+        super().__init__(x, y, "assets/sprites/money_bomb.png", (255, 215, 0), (32, 32))
     def apply(self, player, game_context=None):
         self.sound_manager.play("bonus_reward")
         player.money += 1000
@@ -34,7 +34,7 @@ class MoneyBombBonus(Bonus):
 
 class GemBombBonus(Bonus):
     def __init__(self, x, y):
-        super().__init__(x, y, "assets/sprites/gem_bomb.png", (147, 112, 219), (24, 24))
+        super().__init__(x, y, "assets/sprites/gem_bomb.png", (147, 112, 219), (32, 32))
     def apply(self, player, game_context=None):
         self.sound_manager.play("bonus_reward")
         player.money += 2000
