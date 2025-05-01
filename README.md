@@ -1,6 +1,8 @@
 # 🚀 Galactic Striker
 A sophisticated vertical-scrolling space shooter built with Python and Pygame, featuring dynamic gameplay, extensive weapon systems, and procedurally generated content.
 
+![Galactic Striker](https://github.com/abutun/Galactic-Striker/blob/dev/screenshots/3.png "Galactic Striker")
+
 ## 📖 Table of Contents
 - [Features](#-features)
 - [Installation](#-installation)
@@ -298,7 +300,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 📞 Contact
 - GitHub Issues
 - Discord: [Join our server](https://discord.gg/VDpPSrwRvu)
-- Email: contact@galacticstriker.com
+- Email: contact@cosmicmeta.io
 
 ---
 
