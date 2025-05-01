@@ -149,7 +149,7 @@ class Game:
         self.level_manager.sound_manager = self.sound_manager
         
         self.running = True
-        self.dev_mode = False  # developer mode toggle
+        self.dev_mode = True  # developer mode toggle
         self.editing = False  # editing mode toggle
 
 

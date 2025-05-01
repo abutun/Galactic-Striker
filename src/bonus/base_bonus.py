@@ -27,8 +27,8 @@ class Bonus(pygame.sprite.Sprite, ABC):
 
         # Rotation attributes for Y-axis effect
         self.rotation_angle = 0  # Angle in degrees
-        self.rotation_speed = 0.5  # Speed of rotation (degrees per frame)
-        self.rotation_direction = 1  # 1 for forward, -1 for backward
+        self.rotation_speed = 0.8  # Speed of rotation (degrees per frame)
+        self.rotation_direction = 1.2  # 1 for forward, -1 for backward
 
     @abstractmethod
     def apply(self, player, game_context=None):
