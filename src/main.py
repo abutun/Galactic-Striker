@@ -14,6 +14,7 @@ from src.misc.background import Background
 from src.manager.score_manager import ScoreManager
 from src.manager.sound_manager import SoundManager
 from src.manager.level_manager import LevelManager
+from src.manager.reward_manager import RewardManager
 from src.level.level_editor import LevelEditor
 
 # Game settings and state
@@ -56,11 +57,6 @@ from src.bonus import (
     WarpForwardBonus
 )
 
-# Add project root to Python path
-project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, project_root)
-
-
 # Developer mode overlay function.
 def draw_dev_info(screen, player, level_manager, score_manager):
     info_lines = [
@@ -72,7 +68,7 @@ def draw_dev_info(screen, player, level_manager, score_manager):
         f"Shield Active: {player.shield_active}",
         f"Mirror Mode: {player.mirror_mode}",
         f"Drunk Mode: {player.drunk_mode}",
-        f"Scoop Active: {player.autofire}",
+        f"Autofire: {player.autofire}",
         f"Is Immune: {player.is_immune}",
         f"Weapon Level: {player.weapon_level}",
         f"Primary Weapon: {player.primary_weapon}",
@@ -142,6 +138,7 @@ class Game:
         self.score_manager = ScoreManager()
         self.sound_manager = SoundManager()
         self.level_manager = LevelManager(1, self.enemies, self.all_sprites, self.enemy_bullets)
+        self.reward_manager = RewardManager()
         self.editor = LevelEditor()
 
         # Pass sound manager to objects that need it
@@ -214,96 +211,15 @@ class Game:
 
     def spawn_rewards(self, position):
         """Spawn rewards with probability based on level difficulty."""
-        try:
-            # Base chance starts at 15% and increases with level difficulty
-            base_chance = 0.15 + (min(self.level_manager.current_level, 100) * 0.001)  # Max +10% at level 100
-            
-            # Only proceed if we hit the spawn chance
-            if random.random() > base_chance:
-                return
-            
-            chance = random.random()
-            reward = None
-            
-            # Define reward groups with their probabilities and classes
-            reward_groups = {
-                # Money bonuses (15%)
-                (0, 0.15): [
-                    (MoneyBonus10, 0.4),     # 6%
-                    (MoneyBonus50, 0.3),     # 4.5%
-                    (MoneyBonus100, 0.2),    # 3%
-                    (MoneyBonus200, 0.1)     # 1.5%
-                ],
-                # Weapon bonuses (15%)
-                (0.15, 0.30): [
-                    (SingleShotBonus, 0.2),   # 3%
-                    (DoubleShotBonus, 0.2),   # 3%
-                    (TripleShotBonus, 0.2),   # 3%
-                    (QuadShotBonus, 0.2),     # 3%
-                ],
-                # Stat bonuses (15%)
-                (0.30, 0.45): [
-                    (ExtraSpeedBonus, 0.25),       # 3.75%
-                    (ExtraBulletBonus, 0.25),      # 3.75%
-                    (ExtraTimeBonus, 0.25),        # 3.75%
-                    (ExtraBulletSpeedBonus, 0.25)  # 3.75%
-                ],
-                # Special bonuses (15%)
-                (0.45, 0.60): [
-                    (ShipAutofireBonus, 0.2),    # 3%
-                    (AlienScoopBonus, 0.2),      # 3%
-                    (MoneyBombBonus, 0.2),       # 3%
-                    (GemBombBonus, 0.2),         # 3%
-                    (ExtraLifeBonus, 0.2)        # 3%
-                ],
-                # Game mode bonuses (15%)
-                (0.60, 0.75): [
-                    (MirrorModeBonus, 0.2),      # 3%
-                    (DrunkModeBonus, 0.2),       # 3%
-                    (FreezeModeBonus, 0.2),      # 3%
-                    (WarpForwardBonus, 0.2),     # 3%
-                    (CashDoublerBonus, 0.2)      # 3%
-                ],
-                # Modifier bonuses (15%)
-                (0.75, 0.90): [
-                    (DecreaseStrengthRedBonus, 0.15),    # 2.25%
-                    (DecreaseStrengthGreenBonus, 0.15),  # 2.25%
-                    (DecreaseStrengthBlueBonus, 0.15),   # 2.25%
-                    (X2ScoreMultiplierBonus, 0.15),      # 2.25%
-                    (X3ScoreMultiplierBonus, 0.15),      # 2.25%
-                    (X4ScoreMultiplierBonus, 0.15),      # 2.25%
-                    (X5ScoreMultiplierBonus, 0.15),      # 2.25%                 
-                    (BonusMeteorstormBonus, 0.125),      # 1.875%
-                    (BonusMemorystationBonus, 0.125)     # 1.875%
-                ],
-                # Collection bonuses (10%)
-                (0.90, 1.0): [
-                    (lambda x, y: RankMarker(x, y, random.choice(['red', 'blue', 'green', 'yellow', 'purple', 'orange', 'dark_purple'])), 0.4),    # 4%
-                    (lambda x, y: LetterBonus(x, y, random.choice('EXTRA')), 0.6)  # 6%
-                ]
-            }
-
-            # Find the appropriate group based on chance
-            for (min_prob, max_prob), rewards in reward_groups.items():
-                if min_prob <= chance < max_prob:
-                    # Select reward from group based on internal probabilities
-                    sub_chance = random.random()
-                    cumulative = 0
-                    for reward_class, prob in rewards:
-                        cumulative += prob
-                        if sub_chance <= cumulative:
-                            reward = reward_class(position[0], position[1])
-                            break
-
-            # Only proceed if we got a reward
-            if reward:
-                reward.sound_manager = self.sound_manager
-                self.bonus_group.add(reward)
-                self.all_sprites.add(reward)
-                logger.info(f"Spawned reward: {reward.__class__.__name__} at position {position}")
-            
-        except Exception as e:
-            logger.error(f"Error spawning rewards: {e}")
+        reward = self.reward_manager.spawn_reward(
+            position, 
+            self.level_manager.current_level, 
+            self.sound_manager
+        )
+        
+        if reward:
+            self.bonus_group.add(reward)
+            self.all_sprites.add(reward)
 
     def draw(self, dev_mode, editing):
         """Draw game state."""
