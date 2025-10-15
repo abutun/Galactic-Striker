@@ -56,3 +56,9 @@ When developing, always import modules relative to the project root, and test by
 - `ENTER` resumes play when paused.
 - `R` restarts the current level from the pause overlay.
 - `Q` quits to desktop from the pause overlay.
+- `S` opens the settings panel (pause overlay) where you can adjust difficulty, audio, and starfield density.
+
+## Level Editor
+- Launch the standalone editor with `python -m src.level.level_editor`.
+- Use the left sidebar to manage alien groups, the right panel to tweak group properties, and `P` to toggle path-edit mode.
+- `Ctrl+S` saves back to `assets/levels`, `Ctrl+O` opens existing JSON files, and `Ctrl+N` starts a new level file.

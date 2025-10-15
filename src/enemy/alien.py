@@ -21,6 +21,9 @@ class Alien(BaseEnemy):
         self.path_index = 0
         # Add spacing properties
         self.min_spacing = 40  # Minimum space between aliens
+        self.horizontal_drift = random.uniform(-0.6, 0.6)
+        self.drift_interval = random.randint(1800, 3200)
+        self.last_drift_update = pygame.time.get_ticks()
 
     def follow_path(self):
         if self.path and self.path_index < len(self.path):
@@ -54,47 +57,36 @@ class Alien(BaseEnemy):
             
             self.image = pygame.transform.scale(current_frame, target_size)
             
-            # Regular movement and behavior updates
             screen = pygame.display.get_surface()
             if screen:
                 sw, sh = screen.get_size()
-                
-                # Define play area boundaries from settings
-                left_boundary = sw * PLAY_AREA["left_boundary"]
-                right_boundary = sw * PLAY_AREA["right_boundary"]
-                
-                # Check for collisions with other aliens and adjust position
-                self.maintain_spacing()
-                
-                # Update position based on pattern
-                if self.rect.y < sh * 0.85:
-                    self.rect.y += self.speed
+                left_boundary = int(sw * PLAY_AREA["left_boundary"])
+                right_boundary = int(sw * PLAY_AREA["right_boundary"])
+
+                now = pygame.time.get_ticks()
+                if now - self.last_drift_update > self.drift_interval:
+                    self.horizontal_drift = random.uniform(-0.8, 0.8)
+                    self.last_drift_update = now
+                    self.drift_interval = random.randint(1800, 3200)
+
+                if self.path and self.path_index < len(self.path):
+                    self.follow_path()
                 else:
-                    if self.path:
-                        self.follow_path()
-                    else:
-                        pattern = random.choice(["zigzag", "circular", "random"])
-                        if pattern == "zigzag":
-                            self.rect.y += self.speed
-                            self.rect.x += random.choice([-2, 2])
-                        elif pattern == "circular":
-                            t = pygame.time.get_ticks() / 1000.0
-                            amplitude = 20
-                            self.rect.y += self.speed
-                            self.rect.x += int(math.sin(t) * amplitude)
-                        elif pattern == "random":
-                            self.rect.y += self.speed
-                            self.rect.x += random.randint(-3, 3)
-                
-                # Wrap position within play area
-                if self.rect.top > sh:  # Wrap vertically
-                    self.rect.bottom = 0
-                
-                # Wrap horizontally - appear on opposite side
-                if self.rect.right < left_boundary:  # Going beyond left boundary
-                    self.rect.left = right_boundary - self.rect.width*2
-                elif self.rect.left > right_boundary:  # Going beyond right boundary
-                    self.rect.right = left_boundary + self.rect.width*2
+                    self.rect.y += self.speed
+                    self.rect.x += self.horizontal_drift
+
+                self.maintain_spacing()
+
+                if self.rect.left < left_boundary:
+                    self.rect.left = left_boundary
+                if self.rect.right > right_boundary:
+                    self.rect.right = right_boundary
+
+                if self.rect.top < -self.rect.height * 1.5:
+                    self.rect.top = -self.rect.height * 1.5
+                max_bottom = int(sh * 0.92)
+                if self.rect.bottom > max_bottom:
+                    self.rect.bottom = max_bottom
                 
             # Handle firing
             now = pygame.time.get_ticks()
@@ -196,26 +188,21 @@ class BossAlien(BaseEnemy):
         self.current_phase = 1
         self.fire_delay = 1000
         self.last_fire = pygame.time.get_ticks()
+        self.base_x = x
+        self.horizontal_amplitude = 60
+        self.horizontal_speed = 1.0
 
     def update(self):
         screen = pygame.display.get_surface()
         if screen:
             _, sh = screen.get_size()
-            if self.rect.y < sh * 0.85:
-                self.rect.y += self.speed
-            else:
-                pattern = random.choice(["zigzag", "circular", "random"])
-                if pattern == "zigzag":
-                    self.rect.y += self.speed
-                    self.rect.x += random.choice([-2, 2])
-                elif pattern == "circular":
-                    t = pygame.time.get_ticks() / 1000.0
-                    amplitude = 15
-                    self.rect.y += self.speed
-                    self.rect.x += int(math.sin(t) * amplitude)
-                elif pattern == "random":
-                    self.rect.y += self.speed
-                    self.rect.x += random.randint(-3, 3)
+            self.rect.y += self.speed
+            max_bottom = int(sh * 0.88)
+            if self.rect.bottom > max_bottom:
+                self.rect.bottom = max_bottom
+            t = pygame.time.get_ticks() / 1000.0
+            anchor = getattr(self, "base_x", self.rect.x)
+            self.rect.centerx = anchor + math.sin(t * self.horizontal_speed) * self.horizontal_amplitude
         now = pygame.time.get_ticks()
         if now - self.last_fire > self.fire_delay:
             self.fire()
