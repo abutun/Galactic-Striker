@@ -212,6 +212,10 @@ class LevelManager:
                     target_x = left_boundary + float(point.get('x', 0.0)) * play_width
                     target_y = max(0.0, float(point.get('y', 0.0))) * sh
                     path_points.append((target_x, target_y))
+                if path_points:
+                    top_return_y = -spawn_offset
+                    if path_points[-1][1] > top_return_y:
+                        path_points.append((path_points[-1][0], top_return_y))
             
             # Create aliens with adjusted positions
             aliens = []
@@ -238,13 +242,23 @@ class LevelManager:
                     if path_points:
                         alien.path = list(path_points)
                         alien.path_index = 0
+                        if alien.path:
+                            alien.base_x = alien.path[0][0]
+                            alien.base_y = alien.path[0][1]
+                    else:
+                        dynamic_path = self._generate_dynamic_path(pos[0], sw, sh)
+                        alien.path = dynamic_path
+                        alien.path_index = 0
+                        if dynamic_path:
+                            alien.base_x = dynamic_path[0][0]
+                            alien.base_y = dynamic_path[0][1]
                     
                     self.enemy_group.add(alien)
                     self.sprite_group.add(alien)
                     aliens.append(alien)
             elif type == "boss":
                 animation = self.preloader.get_boss_animation(id)
-                boss_x, boss_y = positions[0] if positions else (sw // 2, base_y)
+                boss_x, boss_y = positions[0] if positions else (sw // 2, -spawn_offset)
                 boss = BossAlien(
                     id, 
                     boss_x,
@@ -260,6 +274,16 @@ class LevelManager:
                 if path_points:
                     boss.path = list(path_points)
                     boss.path_index = 0
+                    if boss.path:
+                        boss.base_x = boss.path[0][0]
+                        boss.base_y = boss.path[0][1]
+                else:
+                    dynamic_path = self._generate_dynamic_path(boss_x, sw, sh)
+                    boss.path = dynamic_path
+                    boss.path_index = 0
+                    if dynamic_path:
+                        boss.base_x = dynamic_path[0][0]
+                        boss.base_y = dynamic_path[0][1]
 
                 self.enemy_group.add(boss)
                 self.sprite_group.add(boss)
@@ -388,6 +412,30 @@ class LevelManager:
         except Exception as e:
             logger.error(f"Error calculating formation positions: {e}")
             return []
+
+    def _generate_dynamic_path(self, center_x: float, sw: int, sh: int) -> List[Tuple[float, float]]:
+        left_boundary = int(sw * PLAY_AREA.get("left_boundary", 0.115))
+        right_boundary = int(sw * PLAY_AREA.get("right_boundary", 0.885))
+        play_width = right_boundary - left_boundary
+
+        base_y = random.uniform(sh * 0.25, sh * 0.55)
+        radius_x = random.uniform(play_width * 0.12, play_width * 0.2)
+        radius_y = random.uniform(sh * 0.08, sh * 0.16)
+        steps = random.randint(6, 8)
+
+        path = []
+        for i in range(steps):
+            angle = (2 * math.pi / steps) * i
+            x = center_x + radius_x * math.cos(angle)
+            y = base_y + radius_y * math.sin(angle)
+            path.append((x, y))
+
+        sweep_y = min(sh * 0.88, base_y + radius_y + random.uniform(120, 220))
+        path.append((center_x + random.uniform(-radius_x, radius_x), sweep_y))
+        path.append((center_x + random.uniform(-radius_x, radius_x), base_y - radius_y))
+        path.append((center_x, -random.uniform(120, 200)))
+
+        return path
 
     def update_group_pattern(self, aliens: List[pygame.sprite.Sprite], pattern: Movement) -> None:
         """Update alien positions based on movement pattern."""
