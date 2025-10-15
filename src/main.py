@@ -58,13 +58,13 @@ from src.bonus import (
 
 # Developer mode overlay function.
 def draw_dev_info(screen, player, level_manager, score_manager):
-    width, height = 260, 320
+    width, height = 320, 420
     panel_surface = pygame.Surface((width, height), pygame.SRCALPHA)
     panel_surface.fill((26, 32, 54, 220))
     pygame.draw.rect(panel_surface, (110, 140, 210), panel_surface.get_rect(), width=2, border_radius=16)
 
-    title_font = pygame.font.Font(None, 32)
-    text_font = pygame.font.Font(None, 22)
+    title_font = pygame.font.Font(None, 26)
+    text_font = pygame.font.Font(None, 18)
 
     title_surface = title_font.render("DEVELOPER MODE", True, (220, 230, 255))
     panel_surface.blit(title_surface, (20, 18))
@@ -85,15 +85,13 @@ def draw_dev_info(screen, player, level_manager, score_manager):
         ("Letters", ", ".join(player.letters) if player.letters else "None"),
     ]
 
-    y = 60
+    y = 56
     for label, value in stats:
-        label_surface = text_font.render(f"{label.upper()}", True, (160, 200, 255))
-        value_surface = text_font.render(value, True, (255, 255, 255))
-        panel_surface.blit(label_surface, (20, y))
-        panel_surface.blit(value_surface, (20, y + 18))
-        y += 44
+        line_surface = text_font.render(f"{label.upper()}: {value}", True, (200, 210, 235))
+        panel_surface.blit(line_surface, (20, y))
+        y += 24
 
-    screen.blit(panel_surface, (20, 120))
+    screen.blit(panel_surface, (20, 186))
 
 
 class Game:

@@ -196,13 +196,16 @@ class BossAlien(BaseEnemy):
         screen = pygame.display.get_surface()
         if screen:
             _, sh = screen.get_size()
-            self.rect.y += self.speed
-            max_bottom = int(sh * 0.88)
-            if self.rect.bottom > max_bottom:
-                self.rect.bottom = max_bottom
-            t = pygame.time.get_ticks() / 1000.0
-            anchor = getattr(self, "base_x", self.rect.x)
-            self.rect.centerx = anchor + math.sin(t * self.horizontal_speed) * self.horizontal_amplitude
+            if getattr(self, "path", None):
+                self.follow_path()
+            else:
+                self.rect.y += self.speed
+                max_bottom = int(sh * 0.88)
+                if self.rect.bottom > max_bottom:
+                    self.rect.bottom = max_bottom
+                t = pygame.time.get_ticks() / 1000.0
+                anchor = getattr(self, "base_x", self.rect.x)
+                self.rect.centerx = anchor + math.sin(t * self.horizontal_speed) * self.horizontal_amplitude
         now = pygame.time.get_ticks()
         if now - self.last_fire > self.fire_delay:
             self.fire()

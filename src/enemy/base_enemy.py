@@ -125,9 +125,7 @@ class BaseEnemy(pygame.sprite.Sprite):
         if self.path and len(self.path) > 0:
             # Ensure target_index is valid.
             if self.path_index >= len(self.path):
-                # Finished path—clear the path so that normal movement resumes.
-                self.path = None
-                return
+                self.path_index = 0
             target = self.path[self.path_index]
             current_x, current_y = self.rect.center
             dx = target[0] - current_x

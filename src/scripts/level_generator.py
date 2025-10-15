@@ -3,6 +3,7 @@ import random
 import os
 import sys
 import logging
+import math
 from typing import List, Dict, Any
 from dataclasses import dataclass
 
@@ -182,56 +183,109 @@ class LevelGenerator:
             )
         }
 
-    def generate_path(self, entry_point: str, complexity: int) -> List[Dict]:
-        """Generate a movement path for an alien group."""
-        path = []
-        points = random.randint(3, 5 + complexity)
-        
-        # Starting point based on entry point
+    def _start_coords(self, entry_point: str) -> Dict[str, float]:
+        mapping = {
+            "top_center": {"x": 0.5, "y": 0.05},
+            "top_left": {"x": 0.18, "y": 0.05},
+            "top_right": {"x": 0.82, "y": 0.05},
+            "left_top": {"x": 0.08, "y": 0.18},
+            "right_top": {"x": 0.92, "y": 0.18},
+        }
+        return mapping.get(entry_point, {"x": 0.5, "y": 0.05})
+
+    def _path_vertical_sweep(self, entry_point: str, complexity: int) -> List[Dict]:
         if entry_point == "top_center":
-            start_x = 0.5
-            start_y = 0.1
-        elif entry_point == "top_left":
-            start_x = 0.2
-            start_y = 0.1
-        elif entry_point == "top_right":
-            start_x = 0.8
-            start_y = 0.1
-        elif entry_point == "left_top":
-            start_x = 0.1
-            start_y = 0.1
-        elif entry_point == "right_top":
-            start_x = 0.9
-            start_y = 0.1
+            baseline = 0.45
         else:
-            start_x = 0.5
-            start_y = 0.1
+            baseline = 0.35
 
-        path.append({
-            "x": start_x,
-            "y": start_y,
-            "wait_time": 0,
-            "shoot": False
-        })
+        start = self._start_coords(entry_point)
+        path = [
+            {"x": start["x"], "y": start["y"], "wait_time": 0, "shoot": False},
+            {"x": start["x"], "y": min(0.18 + complexity * 0.02, 0.28), "wait_time": 0.3, "shoot": False},
+            {"x": 0.25, "y": baseline, "wait_time": 0.4, "shoot": True},
+            {"x": 0.75, "y": baseline + 0.08, "wait_time": 0.4, "shoot": True},
+            {"x": 0.5, "y": min(baseline + 0.18, 0.68), "wait_time": 0.3, "shoot": True},
+        ]
+        path.append({"x": 0.5, "y": 0.92, "wait_time": 0.2, "shoot": False})
+        path.append({"x": 0.5, "y": 0.04, "wait_time": 0, "shoot": False})
+        return path
 
-        # Generate middle points
-        for _ in range(points - 2):
+    def _path_circle_then_line(self, entry_point: str, complexity: int) -> List[Dict]:
+        start = self._start_coords(entry_point)
+        center_x = 0.5
+        center_y = 0.32 + random.uniform(-0.05, 0.05)
+        radius = 0.18 + complexity * 0.015
+        steps = 6 + complexity
+        path = [{"x": start["x"], "y": start["y"], "wait_time": 0, "shoot": False}]
+
+        for i in range(steps):
+            angle = (2 * math.pi / steps) * i
+            x = center_x + radius * math.cos(angle)
+            y = center_y + (radius * 0.6) * math.sin(angle)
             path.append({
-                "x": random.uniform(0.1, 0.9),
-                "y": random.uniform(0.2, 0.6),
-                "wait_time": random.uniform(0.5, 2.0),
-                "shoot": random.random() > 0.5
+                "x": max(0.1, min(0.9, x)),
+                "y": max(0.12, min(0.65, y)),
+                "wait_time": random.uniform(0.2, 0.5),
+                "shoot": random.random() < 0.6
             })
 
-        # End point (return to top)
-        path.append({
-            "x": random.uniform(0.2, 0.8),
-            "y": 0.1,
-            "wait_time": 0,
-            "shoot": False
-        })
-
+        path.extend([
+            {"x": 0.2, "y": center_y + 0.1, "wait_time": 0.3, "shoot": True},
+            {"x": 0.8, "y": center_y + 0.12, "wait_time": 0.3, "shoot": True},
+            {"x": 0.5, "y": 0.04, "wait_time": 0, "shoot": False},
+        ])
         return path
+
+    def _path_side_merge(self, entry_point: str, complexity: int) -> List[Dict]:
+        start = self._start_coords(entry_point)
+        mirror = 0.85 if start["x"] < 0.5 else 0.15
+        mid_y = 0.28 + complexity * 0.02
+        path = [
+            {"x": start["x"], "y": start["y"], "wait_time": 0, "shoot": False},
+            {"x": start["x"], "y": mid_y, "wait_time": 0.3, "shoot": False},
+            {"x": mirror, "y": mid_y + 0.1, "wait_time": 0.3, "shoot": True},
+            {"x": 0.5, "y": mid_y + 0.16, "wait_time": 0.4, "shoot": True},
+            {"x": 0.5, "y": 0.6, "wait_time": 0.3, "shoot": True},
+            {"x": 0.5, "y": 0.9, "wait_time": 0.2, "shoot": False},
+            {"x": 0.5, "y": 0.04, "wait_time": 0, "shoot": False},
+        ]
+        return path
+
+    def _path_figure_eight(self, entry_point: str, complexity: int) -> List[Dict]:
+        start = self._start_coords(entry_point)
+        center_y = 0.36
+        amplitude = 0.22
+        path = [{"x": start["x"], "y": start["y"], "wait_time": 0, "shoot": False}]
+
+        for i in range(6 + complexity):
+            t = i / (6 + complexity) * 2 * math.pi
+            x = 0.5 + amplitude * math.sin(t)
+            y = center_y + (amplitude * 0.6) * math.sin(2 * t)
+            path.append({
+                "x": max(0.1, min(0.9, x)),
+                "y": max(0.14, min(0.65, y)),
+                "wait_time": 0.25,
+                "shoot": random.random() < 0.65
+            })
+
+        path.extend([
+            {"x": 0.35, "y": 0.55, "wait_time": 0.3, "shoot": True},
+            {"x": 0.65, "y": 0.55, "wait_time": 0.3, "shoot": True},
+            {"x": 0.5, "y": 0.04, "wait_time": 0, "shoot": False},
+        ])
+        return path
+
+    def generate_path(self, entry_point: str, complexity: int) -> List[Dict]:
+        """Generate a movement path for an alien group."""
+        templates = [
+            self._path_vertical_sweep,
+            self._path_circle_then_line,
+            self._path_side_merge,
+            self._path_figure_eight,
+        ]
+        template = random.choice(templates)
+        return template(entry_point, complexity)
 
     def generate_alien_group(self, config: LevelConfig) -> Dict:
         """Generate a single alien group configuration."""
@@ -245,6 +299,9 @@ class LevelGenerator:
         group_behavior_chance = formation_config["group_behavior_chance"]
 
         entry_point = random.choice(config.entry_points)
+        pattern_choices = [p for p in config.movement_patterns if p != "straight"]
+        if not pattern_choices:
+            pattern_choices = config.movement_patterns
         
         return {
             "alien_type": random.choice(config.alien_types),
@@ -254,7 +311,7 @@ class LevelGenerator:
             "vertical_spacing": vertical_spacing,
             "entry_point": entry_point,
             "path": self.generate_path(entry_point, config.difficulty),
-            "movement_pattern": random.choice(config.movement_patterns),
+            "movement_pattern": random.choice(pattern_choices),
             "speed": random.uniform(1.0, 2.0),
             "life": random.randint(1, config.difficulty + 1),
             "shoot_interval": random.uniform(1.5, 3.0),
