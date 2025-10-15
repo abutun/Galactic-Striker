@@ -13,7 +13,7 @@ sys.path.insert(0, project_root)
 from src.level.level_data import *
 from src.enemy.alien_types import AlienCategory, AlienSubType, AlienType
 from src.config.game_settings import (
-    LEVEL_PROGRESSION, ALIEN_SETTINGS, 
+    LEVEL_PROGRESSION, ALIEN_SETTINGS,
     FORMATIONS, SPECIAL_EFFECTS
 )
 

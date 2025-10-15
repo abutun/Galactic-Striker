@@ -1,13 +1,13 @@
 # src/enemy/base_enemy.py
 
-import pygame
-import math
-from src.utils.utils import load_image
-from .behavior_tree import *
 import logging
-from src.utils.utils import ResourceManager
+
+import pygame
+
 from src.config.game_settings import ALIEN_SETTINGS, PLAY_AREA
 from src.utils.sprite_animation import SpriteAnimation
+from src.utils.utils import load_image
+from .behavior_tree import *
 
 logger = logging.getLogger(__name__)
 

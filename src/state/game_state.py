@@ -1,9 +1,10 @@
-from typing import Dict, Any, Optional
-from abc import ABC, abstractmethod
-import pygame
 import logging
-from enum import Enum
+from abc import ABC, abstractmethod
 from dataclasses import dataclass
+from enum import Enum
+from typing import Dict, Any, Optional
+
+import pygame
 
 logger = logging.getLogger(__name__)
 

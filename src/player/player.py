@@ -1,5 +1,6 @@
 import pygame
 import logging
+from typing import Optional
 from src.utils.utils import ResourceManager, load_image
 from src.weapon.weapon_factory import WeaponFactory
 from src.weapon.weapons import Missile, Bullet
@@ -25,7 +26,7 @@ RANK_NAMES = [
 
 
 class Player(pygame.sprite.Sprite):
-    def __init__(self, x: int, y: int, bullet_group: pygame.sprite.Group):
+    def __init__(self, x: int, y: int, bullet_group: pygame.sprite.Group, all_sprites: Optional[pygame.sprite.Group] = None):
         super().__init__()
         try:
             # Load sprite sheet
@@ -76,6 +77,7 @@ class Player(pygame.sprite.Sprite):
             
             # Initialize player attributes
             self.bullet_group = bullet_group
+            self.all_sprites = all_sprites
             self.speed = 5
             self.shield = 0
             self.life = 3
@@ -242,10 +244,12 @@ class Player(pygame.sprite.Sprite):
             bullet = weapon.fire(self.rect.centerx, self.rect.top)
             if bullet:  # If bullet was created successfully
                 self.bullet_group.add(bullet)
-                self.all_sprites.add(bullet)  # Add to all_sprites too
+                if self.all_sprites is not None:
+                    self.all_sprites.add(bullet)  # Add to all_sprites too
             
             # Play sound if available
-            self.sound_manager.play('player_fire')
+            if self.sound_manager:
+                self.sound_manager.play('player_fire')
         except Exception as e:
             logger.error(f"Error firing weapon: {e}")
 

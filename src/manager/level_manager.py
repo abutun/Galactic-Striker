@@ -135,6 +135,22 @@ class LevelManager:
             logger.error(f"Error loading level {level_number}: {e}")
             self.level_data = None
 
+    def reset_level(self, level_number: Optional[int] = None) -> None:
+        """Reload the current level data so groups can be spawned again."""
+        target_level = self.current_level if level_number is None else level_number
+        if level_number is not None:
+            self.current_level = level_number
+
+        self.level_data = self._load_level_data(target_level)
+        self.active_groups = []
+        self.level_complete = False
+        self.next_group_pending = False
+        self.last_group_cleared_time = pygame.time.get_ticks()
+
+        if self.level_data:
+            self.preloader.clear_cache()
+            self.preloader.preload_level_resources(self.level_data)
+
     def spawn_next_group(self) -> None:
         """Spawn the next group of aliens."""
         logger.info(f"Spawning next group")
@@ -218,10 +234,11 @@ class LevelManager:
                     aliens.append(alien)
             elif type == "boss":
                 animation = self.preloader.get_boss_animation(id)
+                boss_x, boss_y = positions[0] if positions else (sw // 2, base_y)
                 boss = BossAlien(
                     id, 
-                    pos[0], 
-                    pos[1],
+                    boss_x,
+                    boss_y,
                     self.bullet_group,
                     animation=animation
                 )

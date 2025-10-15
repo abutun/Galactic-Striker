@@ -1,7 +1,5 @@
-import os
 import sys
 import logging
-import random
 import pygame
 
 # Configure logging
@@ -16,6 +14,7 @@ from src.manager.sound_manager import SoundManager
 from src.manager.level_manager import LevelManager
 from src.manager.reward_manager import RewardManager
 from src.level.level_editor import LevelEditor
+from src.ui.hud_overlay import HUDOverlay
 
 # Game settings and state
 from src.config.game_settings import (
@@ -102,14 +101,25 @@ def draw_dev_info(screen, player, level_manager, score_manager):
 class Game:
     def __init__(self):
         pygame.init()
-        pygame.mixer.init()  # Initialize sound system
-        
-        # Get the display info
-        display_info = pygame.display.Info()
         self.settings = self.load_settings()
+
+        # Attempt to initialise audio, fall back gracefully when unavailable.
+        self.mixer_available = True
+        try:
+            pygame.mixer.init()
+        except pygame.error as exc:
+            self.mixer_available = False
+            logger.warning("Audio initialisation failed: %s. Running without sound.", exc)
         
-        # Set up fullscreen display
-        self.screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+        # Set up display according to settings
+        if self.settings.get('fullscreen', False):
+            flags = pygame.FULLSCREEN
+            size = (0, 0)
+        else:
+            flags = pygame.RESIZABLE
+            size = (self.settings.get('screen_width', 1280), self.settings.get('screen_height', 720))
+
+        self.screen = pygame.display.set_mode(size, flags)
         self.settings['screen_width'] = self.screen.get_width()
         self.settings['screen_height'] = self.screen.get_height()
         
@@ -127,16 +137,18 @@ class Game:
         
         # Create background with borders
         self.background = Background(self.screen.get_width(), self.screen.get_height(), scroll_speed=1)
+        self.hud_overlay = HUDOverlay(self.screen.get_size())
         
         # Create player at the bottom center of the screen
         player_x = self.screen.get_width() // 2
         player_y = self.screen.get_height() - 30  # 30 pixels from bottom
-        self.player = Player(player_x, player_y, self.player_bullets)
+        self.player = Player(player_x, player_y, self.player_bullets, self.all_sprites)
         self.all_sprites.add(self.player)
+        global_state.global_player = self.player
         
         # Initialize managers
         self.score_manager = ScoreManager()
-        self.sound_manager = SoundManager()
+        self.sound_manager = SoundManager(enabled=self.mixer_available, sfx_volume=self.settings.get('sfx_volume', 0.7))
         self.level_manager = LevelManager(1, self.enemies, self.all_sprites, self.enemy_bullets)
         self.reward_manager = RewardManager()
         self.editor = LevelEditor()
@@ -144,10 +156,14 @@ class Game:
         # Pass sound manager to objects that need it
         self.player.sound_manager = self.sound_manager
         self.level_manager.sound_manager = self.sound_manager
+        self.score_manager.player = self.player
         
         self.running = True
         self.dev_mode = True  # developer mode toggle
         self.editing = False  # editing mode toggle
+        self.paused = False
+        self.pause_font_large = pygame.font.Font(None, 86)
+        self.pause_font_small = pygame.font.Font(None, 36)
 
 
     def load_settings(self):
@@ -197,6 +213,9 @@ class Game:
 
     def update(self, dt):
         """Update game state."""
+        if self.paused:
+            return
+
         # Update all game objects
         self.background.update()
         self.all_sprites.update()
@@ -205,6 +224,7 @@ class Game:
         self.enemies.update()
         self.bonus_group.update()
         self.level_manager.update()
+        self.score_manager.update()
 
         # Handle collisions
         self.handle_collisions()
@@ -221,6 +241,93 @@ class Game:
             self.bonus_group.add(reward)
             self.all_sprites.add(reward)
 
+    def toggle_pause(self) -> None:
+        """Pause or resume gameplay while keeping the scene visible."""
+        self.paused = not self.paused
+        if self.sound_manager:
+            if self.paused:
+                self.sound_manager.pause_all()
+            else:
+                self.sound_manager.resume_all()
+
+    def restart_level(self) -> None:
+        """Reset the current level and respawn the player."""
+        logger.info("Restarting level %s", self.level_manager.current_level)
+
+        if self.paused:
+            self.paused = False
+            if self.sound_manager:
+                self.sound_manager.resume_all()
+
+        # Clear existing entities but reuse sprite groups to keep references intact.
+        for group in (self.all_sprites, self.player_bullets, self.enemy_bullets, self.enemies, self.bonus_group):
+            group.empty()
+
+        # Re-create player and propagate references.
+        self.player = Player(
+            self.screen.get_width() // 2,
+            self.screen.get_height() - 30,
+            self.player_bullets,
+            self.all_sprites
+        )
+        self.player.sound_manager = self.sound_manager
+        self.all_sprites.add(self.player)
+        global_state.global_player = self.player
+        self.score_manager.player = self.player
+        self.score_manager.reset(False)
+
+        # Reset level state and respawn enemies.
+        self.level_manager.enemy_group = self.enemies
+        self.level_manager.sprite_group = self.all_sprites
+        self.level_manager.bullet_group = self.enemy_bullets
+        self.level_manager.reset_level()
+
+        self.show_level_intro(self.level_manager.current_level)
+        self.level_manager.spawn_next_group()
+
+    def handle_resize(self, new_size):
+        """Handle window resize events for windowed mode."""
+        width = max(640, new_size[0])
+        height = max(480, new_size[1])
+        self.settings['screen_width'] = width
+        self.settings['screen_height'] = height
+
+        self.screen = pygame.display.set_mode((width, height), pygame.RESIZABLE)
+        self.background = Background(width, height, scroll_speed=1)
+        self.hud_overlay.resize((width, height))
+
+        # Update player bounds to stay within play area.
+        if hasattr(self, "player") and self.player:
+            left_boundary = int(width * PLAY_AREA.get("left_boundary", 0.115))
+            right_boundary = int(width * PLAY_AREA.get("right_boundary", 0.885))
+            play_area_center = left_boundary + (right_boundary - left_boundary) // 2
+
+            self.player.initial_x = play_area_center
+            self.player.initial_y = int(height * 0.98)
+            self.player.rect.centerx = max(left_boundary, min(right_boundary, self.player.rect.centerx))
+            self.player.rect.bottom = self.player.initial_y
+
+    def draw_pause_overlay(self) -> None:
+        """Render a pause overlay with handy shortcuts."""
+        overlay = pygame.Surface(self.screen.get_size(), pygame.SRCALPHA)
+        overlay.fill((12, 16, 32, 200))
+        self.screen.blit(overlay, (0, 0))
+
+        title_surface = self.pause_font_large.render("PAUSED", True, (255, 230, 185))
+        title_rect = title_surface.get_rect(center=(self.screen.get_width() // 2, self.screen.get_height() // 2 - 60))
+        self.screen.blit(title_surface, title_rect)
+
+        options = [
+            "Enter - Resume Mission",
+            "R - Restart Level",
+            "Q - Quit to Desktop"
+        ]
+
+        for idx, option in enumerate(options):
+            text_surface = self.pause_font_small.render(option, True, (220, 230, 255))
+            text_rect = text_surface.get_rect(center=(self.screen.get_width() // 2, title_rect.bottom + 30 + idx * 36))
+            self.screen.blit(text_surface, text_rect)
+
     def draw(self, dev_mode, editing):
         """Draw game state."""
         # Draw background (without borders)
@@ -233,17 +340,15 @@ class Game:
         
         # Draw borders ON TOP of the sprites
         self.background.draw_borders(self.screen)
-        
-        # Draw score
-        self.score_manager.draw(self.screen, 10, 10)
+
+        # HUD overlay
+        self.hud_overlay.draw(self.screen, self.player, self.score_manager, self.level_manager, paused=self.paused)
         
         if dev_mode:
             draw_dev_info(self.screen, self.player, self.level_manager, self.score_manager)
 
         if editing:
             self.editor.draw()           
-        
-        pygame.display.flip()
 
     def show_level_intro(self, level_number):
         """Display level introduction screen with countdown while game continues."""
@@ -280,17 +385,7 @@ class Game:
             self.update(dt)  # Use existing update method
             
             # Draw game state
-            self.background.draw(self.screen)
-            self.all_sprites.draw(self.screen)
-            self.player_bullets.draw(self.screen)
-            self.enemy_bullets.draw(self.screen)
-            self.bonus_group.draw(self.screen)
-            
-            # Draw borders ON TOP of the sprites
-            self.background.draw_borders(self.screen)
-            
-            # Draw score and overlay
-            self.score_manager.draw(self.screen, 10, 10)
+            self.draw(self.dev_mode, self.editing)
             
             # Draw semi-transparent overlay
             overlay = pygame.Surface(self.screen.get_size(), pygame.SRCALPHA)
@@ -362,27 +457,35 @@ class Game:
             self.level_manager.spawn_next_group()
             
             while self.running:
-                dt = self.clock.tick(60) / 1000.0
+                dt = self.clock.tick(self.settings.get('fps', 60)) / 1000.0
                 
                 # Handle events
                 for event in pygame.event.get():
                     if event.type == pygame.QUIT:
                         self.running = False
+                    elif event.type == pygame.VIDEORESIZE and not self.settings.get('fullscreen', False):
+                        self.handle_resize(event.size)
                     elif event.type == pygame.KEYDOWN:
                         if event.key == pygame.K_ESCAPE:
+                            self.toggle_pause()
+                        elif event.key == pygame.K_RETURN and self.paused:
+                            self.toggle_pause()
+                        elif event.key == pygame.K_r and self.paused:
+                            self.restart_level()
+                        elif event.key == pygame.K_q and self.paused:
                             self.running = False
-                        elif event.key == pygame.K_F3:
+                        elif event.key == pygame.K_F3 and not self.paused:
                             self.settings['debug'] = not self.settings['debug']
-                        elif event.key == pygame.K_e:
+                        elif event.key == pygame.K_e and not self.paused:
                             self.editing = not self.editing
-                        elif event.key == pygame.K_d:
+                        elif event.key == pygame.K_d and not self.paused:
                             self.dev_mode = not self.dev_mode
 
                 # Update game state
                 self.update(dt)
                 
                 # Check if level is complete
-                if self.level_manager.level_complete:
+                if not self.paused and self.level_manager.level_complete:
                     next_level = self.level_manager.current_level + 1
                     
                     # Reset score manager's combo and multiplier
@@ -395,6 +498,8 @@ class Game:
 
                 # Draw everything
                 self.draw(self.dev_mode, self.editing)
+                if self.paused:
+                    self.draw_pause_overlay()
                 pygame.display.flip()
             
             pygame.quit()

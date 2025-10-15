@@ -1,6 +1,5 @@
-from typing import List, Type, Optional, Callable
-import pygame
 import logging
+from typing import List, Type, Optional
 
 logger = logging.getLogger(__name__)
 

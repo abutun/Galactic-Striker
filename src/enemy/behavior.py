@@ -1,6 +1,3 @@
-import math
-import random
-
 class BehaviorTree:
     def __init__(self, alien):
         self.alien = alien

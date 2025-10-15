@@ -50,3 +50,9 @@ Galactic-Striker/
 
 ## Development
 When developing, always import modules relative to the project root, and test by running `python run.py`. 
+
+## Updated In-game Controls
+- `ESC` toggles the pause overlay.
+- `ENTER` resumes play when paused.
+- `R` restarts the current level from the pause overlay.
+- `Q` quits to desktop from the pause overlay.

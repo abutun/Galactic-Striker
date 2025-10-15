@@ -1,7 +1,10 @@
-import pygame
-from src.utils.utils import load_image
 import random
+
+import pygame
+
 from src.config.game_settings import PLAY_AREA
+from src.utils.utils import load_image
+
 
 class Background:
     def __init__(self, width, height, scroll_speed=1):

@@ -1,8 +1,9 @@
 import json
-import pygame
 import logging
 import tkinter as tk
 from tkinter import filedialog
+
+import pygame
 
 from src.level.level_data import AlienGroup, EntryPoint, LevelData, Movement, PathPoint
 

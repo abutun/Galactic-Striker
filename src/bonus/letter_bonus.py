@@ -1,6 +1,8 @@
 import pygame
+
 from src.utils.utils import load_image
 from .base_bonus import Bonus
+
 
 class LetterBonus(Bonus):
     def __init__(self, x, y, letter):

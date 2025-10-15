@@ -1,2 +1,2 @@
-from .base_enemy import BaseEnemy
 from .alien import Alien, NonBossAlien, BossAlien
+from .base_enemy import BaseEnemy
