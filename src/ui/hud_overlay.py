@@ -133,45 +133,56 @@ class HUDOverlay:
 
     def _draw_combo_block(self, surface: pygame.Surface, score_manager, paused: bool) -> None:
         width = 240
-        height = 140
+        height = 156
         panel = self._draw_panel((width, height))
         rect = panel.get_rect()
         rect.topright = (self.screen_width - 20, 20)
 
-        # Title
-        state_label = "Paused" if paused else "Multiplier"
-        label_color = (255, 220, 120) if paused else (150, 200, 255)
-        label_surface = self.font_small.render(state_label.upper(), True, label_color)
-        panel.blit(label_surface, (20, 20))
+        header_surface = self.font_small.render("STATUS", True, (150, 200, 255))
+        panel.blit(header_surface, (20, 15))
 
         if paused:
-            paused_text = self.font_large.render("||", True, (255, 220, 120))
-            panel.blit(paused_text, (width // 2 - paused_text.get_width() // 2, 58))
+            paused_icon = self.font_large.render("||", True, (255, 220, 120))
+            panel.blit(paused_icon, (width // 2 - paused_icon.get_width() // 2, 48))
+            hint_surface = self.font_small.render("PAUSED", True, (255, 220, 120))
+            panel.blit(hint_surface, hint_surface.get_rect(center=(width // 2, 112)))
         else:
             multiplier_value = getattr(score_manager, "multiplier", 1)
-            if multiplier_value > 1 and abs(multiplier_value - round(multiplier_value)) > 0.01:
-                multiplier_text = f"x{multiplier_value:.1f}"
-            else:
-                multiplier_text = f"x{int(round(max(1, multiplier_value)))}"
-
+            multiplier_text = f"x{multiplier_value:.1f}" if multiplier_value % 1 else f"x{int(multiplier_value)}"
             multiplier_surface = self.font_large.render(multiplier_text, True, (255, 255, 255))
-            panel.blit(multiplier_surface, (20, 56))
+            panel.blit(multiplier_surface, (20, 46))
 
             if getattr(score_manager, "combo", 0) > 1:
                 combo_color = (255, 140, 90) if self._combo_flash_on else (255, 220, 180)
                 combo_surface = self.font_medium.render(f"COMBO {score_manager.combo}", True, combo_color)
-                panel.blit(combo_surface, (20, 98))
+                panel.blit(combo_surface, (20, 96))
             else:
-                hint_surface = self.font_small.render("Keep streaking!", True, (180, 205, 255))
-                panel.blit(hint_surface, (20, 102))
+                hint_surface = self.font_small.render("KEEP STREAKING!", True, (180, 205, 255))
+                panel.blit(hint_surface, (20, 106))
 
         surface.blit(panel, rect)
 
     def _draw_footer(self, surface: pygame.Surface) -> None:
-        footer_text = "ESC Pause  •  ENTER Resume  •  R Restart  •  Q Quit"
-        footer_surface = self.font_small.render(footer_text, True, (180, 195, 230))
-        footer_rect = footer_surface.get_rect(center=(self.screen_width // 2, self.screen_height - 26))
-        surface.blit(footer_surface, footer_rect)
+        width = 240
+        height = 120
+        panel = self._draw_panel((width, height))
+        rect = panel.get_rect()
+        rect.topright = (self.screen_width - 20, 200)
+
+        header_surface = self.font_small.render("CONTROLS", True, (150, 200, 255))
+        panel.blit(header_surface, (20, 15))
+
+        lines = [
+            "ESC • PAUSE / RESUME",
+            "ENTER • RESUME PLAY",
+            "R • RESTART LEVEL",
+            "Q • QUIT • S • SETTINGS",
+        ]
+        for idx, text in enumerate(lines):
+            line_surface = self.font_small.render(text, True, (220, 230, 255))
+            panel.blit(line_surface, (20, 40 + idx * 20))
+
+        surface.blit(panel, rect)
 
     def _draw_life_hearts(self, surface: pygame.Surface, start_pos: Tuple[int, int], life: int, max_life: int) -> None:
         x, y = start_pos

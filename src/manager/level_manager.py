@@ -402,52 +402,60 @@ class LevelManager:
             time = pygame.time.get_ticks() / 1000.0
             
             # Define play area boundaries from game settings
-            left_boundary = sw * PLAY_AREA.get("left_boundary", 0.115)
-            right_boundary = sw * PLAY_AREA.get("right_boundary", 0.885)
+            left_boundary = int(sw * PLAY_AREA.get("left_boundary", 0.115))
+            right_boundary = int(sw * PLAY_AREA.get("right_boundary", 0.885))
             
-            def clamp_alien(alien):
-                if alien.rect.left < left_boundary:
-                    alien.rect.left = left_boundary
-                if alien.rect.right > right_boundary:
-                    alien.rect.right = right_boundary
-                if alien.rect.top < -alien.rect.height:
-                    alien.rect.top = -alien.rect.height
-                max_bottom = int(sh * 0.92)
-                if alien.rect.bottom > max_bottom:
-                    alien.rect.bottom = max_bottom
+            def wrap_alien(alien):
+                if alien.rect.right < left_boundary:
+                    alien.rect.left = right_boundary - alien.rect.width
+                    if hasattr(alien, "base_x"):
+                        alien.base_x = alien.rect.centerx
+                elif alien.rect.left > right_boundary:
+                    alien.rect.right = left_boundary + alien.rect.width
+                    if hasattr(alien, "base_x"):
+                        alien.base_x = alien.rect.centerx
+                
+                if alien.rect.top > sh:
+                    alien.rect.bottom = -alien.rect.height
+                    if hasattr(alien, "base_y"):
+                        alien.base_y = alien.rect.centery
+                elif alien.rect.bottom < -alien.rect.height:
+                    alien.rect.top = sh
+                    if hasattr(alien, "base_y"):
+                        alien.base_y = alien.rect.centery
 
             if movement == Movement.STRAIGHT:
                 for alien in aliens:
                     alien.rect.y += alien.speed
-                    clamp_alien(alien)
+                    wrap_alien(alien)
 
             elif movement == Movement.ZIGZAG:
                 for idx, alien in enumerate(aliens):
                     anchor = getattr(alien, "base_x", alien.rect.x)
                     alien.rect.y += alien.speed
                     alien.rect.x = anchor + math.sin(time * 2 + idx) * 35
-                    clamp_alien(alien)
+                    wrap_alien(alien)
 
             elif movement == Movement.CIRCULAR:
                 for alien in aliens:
                     anchor = getattr(alien, "base_x", alien.rect.x)
                     alien.rect.y += alien.speed
                     alien.rect.x = anchor + math.sin(time * 1.5) * 28
-                    clamp_alien(alien)
+                    wrap_alien(alien)
 
             elif movement == Movement.WAVE:
                 for idx, alien in enumerate(aliens):
                     anchor = getattr(alien, "base_x", alien.rect.x)
                     alien.rect.y += alien.speed
                     alien.rect.x = anchor + math.sin(time * 2 + idx * 0.4) * 45
-                    clamp_alien(alien)
+                    wrap_alien(alien)
 
             elif movement == Movement.SWARM:
                 if aliens:
                     leader = aliens[0]
                     leader.rect.y += leader.speed
                     leader.rect.x += math.sin(time * 2.5) * leader.speed * 1.5
-                    clamp_alien(leader)
+                    wrap_alien(leader)
 
                     for alien in aliens[1:]:
                         dx = leader.rect.x - alien.rect.x
@@ -459,14 +467,14 @@ class LevelManager:
                             alien.rect.y += dy * factor + alien.speed * 0.5
                         else:
                             alien.rect.y += alien.speed
-                        clamp_alien(alien)
+                        wrap_alien(alien)
 
             elif movement == Movement.RANDOM:
                 for alien in aliens:
                     jitter_x = random.uniform(-0.8, 0.8) * alien.speed
                     alien.rect.y += alien.speed
                     alien.rect.x += jitter_x
-                    clamp_alien(alien)
+                    wrap_alien(alien)
 
             elif movement == Movement.CHASE:
                 from src.state.global_state import global_player
@@ -482,7 +490,7 @@ class LevelManager:
                             alien.rect.y += (dy / dist) * step * 0.6
                         else:
                             alien.rect.y += alien.speed
-                        clamp_alien(alien)
+                        wrap_alien(alien)
 
             elif movement == Movement.TELEPORT:
                 for alien in aliens:
@@ -491,7 +499,7 @@ class LevelManager:
                         alien.rect.y = -alien.rect.height
                     else:
                         alien.rect.y += alien.speed
-                    clamp_alien(alien)
+                    wrap_alien(alien)
 
         except Exception as e:
             logger.error(f"Error updating group pattern: {e}")

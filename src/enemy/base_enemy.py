@@ -150,15 +150,19 @@ class BaseEnemy(pygame.sprite.Sprite):
         sw, sh = screen.get_size()
         left_bound = int(sw * PLAY_AREA.get("left_boundary", 0.115))
         right_bound = int(sw * PLAY_AREA.get("right_boundary", 0.885))
-        max_bottom = int(sh * 0.92)
 
-        if self.rect.left < left_bound:
-            self.rect.left = left_bound
-        if self.rect.right > right_bound:
-            self.rect.right = right_bound
+        if self.rect.right < left_bound:
+            self.rect.left = right_bound - self.rect.width
+            if hasattr(self, "base_x"):
+                self.base_x = self.rect.centerx
+        elif self.rect.left > right_bound:
+            self.rect.right = left_bound + self.rect.width
+            if hasattr(self, "base_x"):
+                self.base_x = self.rect.centerx
 
-        upper_limit = -self.rect.height * 1.5
-        if self.rect.top < upper_limit:
-            self.rect.top = upper_limit
-        if self.rect.bottom > max_bottom:
-            self.rect.bottom = max_bottom
+        if self.rect.top > sh:
+            self.rect.bottom = -self.rect.height
+            if hasattr(self, "base_y"):
+                self.base_y = self.rect.centery
+        elif self.rect.bottom < -self.rect.height:
+            self.rect.top = sh

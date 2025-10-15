@@ -256,7 +256,8 @@ class Player(pygame.sprite.Sprite):
     def fire_secondary(self):
         """Fire secondary weapon (missiles)."""
         if self.rockets > 0:
-            missile = Missile(self.rect.centerx, self.rect.top)
+            missile_speed = -7
+            missile = Missile(self.rect.centerx, self.rect.top, missile_speed)
             self.bullet_group.add(missile)
             self.rockets -= 1
 

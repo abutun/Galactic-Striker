@@ -58,44 +58,42 @@ from src.bonus import (
 
 # Developer mode overlay function.
 def draw_dev_info(screen, player, level_manager, score_manager):
-    info_lines = [
-        "Developer Mode: ON",
-        f"Level: {level_manager.level_data.level_number}",
-        f"Rank: {RANK_NAMES[player.rank - 1]} (#{player.rank})",
-        f"Collected Rank Markers: {len(player.rank_markers)}",
-        f"Scoop Active: {player.scoop_active}",
-        f"Shield Active: {player.shield_active}",
-        f"Mirror Mode: {player.mirror_mode}",
-        f"Drunk Mode: {player.drunk_mode}",
-        f"Autofire: {player.autofire}",
-        f"Is Immune: {player.is_immune}",
-        f"Weapon Level: {player.weapon_level}",
-        f"Primary Weapon: {player.primary_weapon}",
-        f"Life: {player.life}",
-        f"Shield: {player.shield}",
-        f"Speed: {player.speed}",
-        f"Money: {player.money}",
-        f"Time Stat: {player.time_stat}",
-        f"Bullet Speed: {player.bullet_speed}",
-        f"Bullet Count: {player.bullet_count}",
-        f"Score: {score_manager.score}",
-        f"Multiplier: {score_manager.multiplier}",
-        f"Multiplier Duration: {score_manager.multiplier_duration}",
-        f"Multiplier Start Time: {score_manager.multiplier_start_time}",
-        f"Combo: {score_manager.combo}",
-        f"Combo Timer: {score_manager.combo_timer}",
-        f"Letters: {', '.join(player.letters) if player.letters else 'None'}"
+    width, height = 260, 320
+    panel_surface = pygame.Surface((width, height), pygame.SRCALPHA)
+    panel_surface.fill((26, 32, 54, 220))
+    pygame.draw.rect(panel_surface, (110, 140, 210), panel_surface.get_rect(), width=2, border_radius=16)
+
+    title_font = pygame.font.Font(None, 32)
+    text_font = pygame.font.Font(None, 22)
+
+    title_surface = title_font.render("DEVELOPER MODE", True, (220, 230, 255))
+    panel_surface.blit(title_surface, (20, 18))
+
+    stats = [
+        ("Level", str(level_manager.level_data.level_number)),
+        ("Rank", f"{RANK_NAMES[player.rank - 1]} (#{player.rank})"),
+        ("Score", f"{score_manager.score:,}"),
+        ("Combo", str(score_manager.combo)),
+        ("Multiplier", str(score_manager.multiplier)),
+        ("Lives", str(player.life)),
+        ("Shield", str(player.shield)),
+        ("Weapon", str(player.primary_weapon)),
+        ("Autofire", str(player.autofire)),
+        ("Scoop", str(player.scoop_active)),
+        ("Mirror", str(player.mirror_mode)),
+        ("Drunk", str(player.drunk_mode)),
+        ("Letters", ", ".join(player.letters) if player.letters else "None"),
     ]
-    overlay = pygame.Surface((200, 480))
-    overlay.set_alpha(200)
-    overlay.fill((0, 0, 0))
-    font = pygame.font.Font(None, 20)
-    y_offset = 10
-    for line in info_lines:
-        text_surface = font.render(line, True, (255, 255, 255))
-        overlay.blit(text_surface, (10, y_offset))
-        y_offset += text_surface.get_height() + 2
-    screen.blit(overlay, (10, 120))
+
+    y = 60
+    for label, value in stats:
+        label_surface = text_font.render(f"{label.upper()}", True, (160, 200, 255))
+        value_surface = text_font.render(value, True, (255, 255, 255))
+        panel_surface.blit(label_surface, (20, y))
+        panel_surface.blit(value_surface, (20, y + 18))
+        y += 44
+
+    screen.blit(panel_surface, (20, 120))
 
 
 class Game:
