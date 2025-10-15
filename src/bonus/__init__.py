@@ -1,16 +1,16 @@
-from .rank_marker_bonus import RankMarker
-from .stat_bonus import ExtraSpeedBonus, ExtraBulletBonus, ExtraTimeBonus, ExtraBulletSpeedBonus
-from .life_bonus import ExtraLifeBonus
-from .special_bonus import ShipAutofireBonus, AlienScoopBonus, MoneyBombBonus, GemBombBonus
-from .letter_bonus import LetterBonus
 from .bonus_level_bonus import BonusMeteorstormBonus, BonusMemorystationBonus
 from .hidden_bonus import (
     DecreaseStrengthRedBonus, DecreaseStrengthGreenBonus, DecreaseStrengthBlueBonus,
-    X2ScoreMultiplierBonus, X3ScoreMultiplierBonus, X4ScoreMultiplierBonus, X5ScoreMultiplierBonus, 
+    X2ScoreMultiplierBonus, X3ScoreMultiplierBonus, X4ScoreMultiplierBonus, X5ScoreMultiplierBonus,
     CashDoublerBonus, MirrorModeBonus, DrunkModeBonus, FreezeModeBonus, WarpForwardBonus
 )
+from .letter_bonus import LetterBonus
+from .life_bonus import ExtraLifeBonus
 from .money_bonus import MoneyBonus10, MoneyBonus50, MoneyBonus100, MoneyBonus200
+from .rank_marker_bonus import RankMarker
 from .shot_bonus import SingleShotBonus, DoubleShotBonus, TripleShotBonus, QuadShotBonus
+from .special_bonus import ShipAutofireBonus, AlienScoopBonus, MoneyBombBonus, GemBombBonus
+from .stat_bonus import ExtraSpeedBonus, ExtraBulletBonus, ExtraTimeBonus, ExtraBulletSpeedBonus
 
 __all__ = [
     'RankMarker',

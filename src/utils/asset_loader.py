@@ -1,7 +1,8 @@
-import os
-import pygame
-from typing import Dict, Optional
 from functools import lru_cache
+from typing import Dict, Optional
+
+import pygame
+
 
 class AssetLoader:
     _instance = None

@@ -1,6 +1,6 @@
-import pygame
 import logging
 from typing import Dict, Optional
+
 from src.utils.sprite_animation import SpriteAnimation
 from src.utils.utils import load_image
 

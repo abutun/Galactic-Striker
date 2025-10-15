@@ -1,13 +1,13 @@
 # src/enemy/base_enemy.py
 
-import pygame
-import math
-from src.utils.utils import load_image
-from .behavior_tree import *
 import logging
-from src.utils.utils import ResourceManager
+
+import pygame
+
 from src.config.game_settings import ALIEN_SETTINGS, PLAY_AREA
 from src.utils.sprite_animation import SpriteAnimation
+from src.utils.utils import load_image
+from .behavior_tree import *
 
 logger = logging.getLogger(__name__)
 
@@ -150,11 +150,19 @@ class BaseEnemy(pygame.sprite.Sprite):
         sw, sh = screen.get_size()
         left_bound = int(sw * PLAY_AREA.get("left_boundary", 0.115))
         right_bound = int(sw * PLAY_AREA.get("right_boundary", 0.885))
+
         if self.rect.right < left_bound:
-            self.rect.left = right_bound
+            self.rect.left = right_bound - self.rect.width
+            if hasattr(self, "base_x"):
+                self.base_x = self.rect.centerx
         elif self.rect.left > right_bound:
-            self.rect.right = left_bound
+            self.rect.right = left_bound + self.rect.width
+            if hasattr(self, "base_x"):
+                self.base_x = self.rect.centerx
+
         if self.rect.top > sh:
-            self.rect.bottom = 0
-        elif self.rect.bottom < 0:
+            self.rect.bottom = -self.rect.height
+            if hasattr(self, "base_y"):
+                self.base_y = self.rect.centery
+        elif self.rect.bottom < -self.rect.height:
             self.rect.top = sh

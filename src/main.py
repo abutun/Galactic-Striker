@@ -1,7 +1,6 @@
-import os
-import sys
 import logging
-import random
+from typing import Optional
+
 import pygame
 
 # Configure logging
@@ -9,20 +8,21 @@ logger = logging.getLogger(__name__)
 
 # Core game components
 from src.player.player import Player, RANK_NAMES
-from src.enemy.alien import NonBossAlien
 from src.misc.background import Background
 from src.manager.score_manager import ScoreManager
 from src.manager.sound_manager import SoundManager
 from src.manager.level_manager import LevelManager
-from src.level.level_editor import LevelEditor
+from src.manager.reward_manager import RewardManager
+from src.ui.hud_overlay import HUDOverlay
+from src.ui.level_intro import LevelIntroOverlay
+from src.ui.settings_menu import SettingsMenu
 
 # Game settings and state
 from src.config.game_settings import (
     ALIEN_SETTINGS,
     FORMATIONS,
     MOVEMENT_PATTERNS,
-    SPECIAL_EFFECTS,
-    PLAY_AREA
+    SPECIAL_EFFECTS
 )
 import src.state.global_state as global_state
 
@@ -56,69 +56,64 @@ from src.bonus import (
     WarpForwardBonus
 )
 
-# Add project root to Python path
-project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, project_root)
-
-
 # Developer mode overlay function.
 def draw_dev_info(screen, player, level_manager, score_manager):
-    info_lines = [
-        "Developer Mode: ON",
-        f"Level: {level_manager.level_data.level_number}",
-        f"Rank: {RANK_NAMES[player.rank - 1]} (#{player.rank})",
-        f"Collected Rank Markers: {len(player.rank_markers)}",
-        f"Scoop Active: {player.scoop_active}",
-        f"Shield Active: {player.shield_active}",
-        f"Mirror Mode: {player.mirror_mode}",
-        f"Drunk Mode: {player.drunk_mode}",
-        f"Scoop Active: {player.autofire}",
-        f"Is Immune: {player.is_immune}",
-        f"Weapon Level: {player.weapon_level}",
-        f"Primary Weapon: {player.primary_weapon}",
-        f"Life: {player.life}",
-        f"Shield: {player.shield}",
-        f"Speed: {player.speed}",
-        f"Money: {player.money}",
-        f"Time Stat: {player.time_stat}",
-        f"Bullet Speed: {player.bullet_speed}",
-        f"Bullet Count: {player.bullet_count}",
-        f"Score: {score_manager.score}",
-        f"Multiplier: {score_manager.multiplier}",
-        f"Multiplier Duration: {score_manager.multiplier_duration}",
-        f"Multiplier Start Time: {score_manager.multiplier_start_time}",
-        f"Combo: {score_manager.combo}",
-        f"Combo Timer: {score_manager.combo_timer}",
-        f"Letters: {', '.join(player.letters) if player.letters else 'None'}"
+    width, height = 260, 320
+    panel_surface = pygame.Surface((width, height), pygame.SRCALPHA)
+    panel_surface.fill((26, 32, 54, 220))
+    pygame.draw.rect(panel_surface, (110, 140, 210), panel_surface.get_rect(), width=2, border_radius=16)
+
+    title_font = pygame.font.Font(None, 32)
+    text_font = pygame.font.Font(None, 22)
+
+    title_surface = title_font.render("DEVELOPER MODE", True, (220, 230, 255))
+    panel_surface.blit(title_surface, (20, 18))
+
+    stats = [
+        ("Level", str(level_manager.level_data.level_number)),
+        ("Rank", f"{RANK_NAMES[player.rank - 1]} (#{player.rank})"),
+        ("Score", f"{score_manager.score:,}"),
+        ("Combo", str(score_manager.combo)),
+        ("Multiplier", str(score_manager.multiplier)),
+        ("Lives", str(player.life)),
+        ("Shield", str(player.shield)),
+        ("Weapon", str(player.primary_weapon)),
+        ("Autofire", str(player.autofire)),
+        ("Scoop", str(player.scoop_active)),
+        ("Mirror", str(player.mirror_mode)),
+        ("Drunk", str(player.drunk_mode)),
+        ("Letters", ", ".join(player.letters) if player.letters else "None"),
     ]
-    overlay = pygame.Surface((200, 480))
-    overlay.set_alpha(200)
-    overlay.fill((0, 0, 0))
-    font = pygame.font.Font(None, 20)
-    y_offset = 10
-    for line in info_lines:
-        text_surface = font.render(line, True, (255, 255, 255))
-        overlay.blit(text_surface, (10, y_offset))
-        y_offset += text_surface.get_height() + 2
-    screen.blit(overlay, (10, 120))
+
+    y = 60
+    for label, value in stats:
+        label_surface = text_font.render(f"{label.upper()}", True, (160, 200, 255))
+        value_surface = text_font.render(value, True, (255, 255, 255))
+        panel_surface.blit(label_surface, (20, y))
+        panel_surface.blit(value_surface, (20, y + 18))
+        y += 44
+
+    screen.blit(panel_surface, (20, 120))
 
 
 class Game:
     def __init__(self):
         pygame.init()
-        pygame.mixer.init()  # Initialize sound system
-        
-        # Get the display info
-        display_info = pygame.display.Info()
         self.settings = self.load_settings()
-        
-        # Set up fullscreen display
+
+        # Attempt to initialise audio, fall back gracefully when unavailable.
+        self.mixer_available = True
+        try:
+            pygame.mixer.init()
+        except pygame.error as exc:
+            self.mixer_available = False
+            logger.warning("Audio initialisation failed: %s. Running without sound.", exc)
+
+        pygame.display.set_caption("Galactic Striker")
         self.screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
         self.settings['screen_width'] = self.screen.get_width()
         self.settings['screen_height'] = self.screen.get_height()
-        
-        pygame.display.set_caption("Galactic Striker")
-        
+
         # Initialize clock for controlling frame rate
         self.clock = pygame.time.Clock()
         
@@ -130,27 +125,46 @@ class Game:
         self.bonus_group = pygame.sprite.Group()
         
         # Create background with borders
-        self.background = Background(self.screen.get_width(), self.screen.get_height(), scroll_speed=1)
+        self.background = Background(
+            self.screen.get_width(),
+            self.screen.get_height(),
+            scroll_speed=1,
+            density=self.settings.get('star_density', 0.00025)
+        )
+        self.hud_overlay = HUDOverlay(self.screen.get_size())
         
         # Create player at the bottom center of the screen
         player_x = self.screen.get_width() // 2
         player_y = self.screen.get_height() - 30  # 30 pixels from bottom
-        self.player = Player(player_x, player_y, self.player_bullets)
+        self.player = Player(player_x, player_y, self.player_bullets, self.all_sprites)
         self.all_sprites.add(self.player)
+        global_state.global_player = self.player
         
         # Initialize managers
         self.score_manager = ScoreManager()
-        self.sound_manager = SoundManager()
+        self.sound_manager = SoundManager(enabled=self.mixer_available, sfx_volume=self.settings.get('sfx_volume', 0.7))
         self.level_manager = LevelManager(1, self.enemies, self.all_sprites, self.enemy_bullets)
-        self.editor = LevelEditor()
+        self.reward_manager = RewardManager()
 
         # Pass sound manager to objects that need it
         self.player.sound_manager = self.sound_manager
         self.level_manager.sound_manager = self.sound_manager
+        self.score_manager.player = self.player
         
         self.running = True
-        self.dev_mode = True  # developer mode toggle
-        self.editing = False  # editing mode toggle
+        self.dev_mode = bool(self.settings.get('debug', False))
+        self.paused = False
+        self.pause_font_large = pygame.font.Font(None, 86)
+        self.pause_font_small = pygame.font.Font(None, 36)
+        self.level_intro: Optional[LevelIntroOverlay] = None
+        self.level_intro_pending_level: Optional[int] = None
+        self.level_intro_spawn_queued = False
+
+        self.settings_menu = SettingsMenu(self.screen.get_size())
+        self._configure_settings_menu()
+
+        pygame.mouse.set_visible(False)
+        self.schedule_level_intro(self.level_manager.current_level, initial=True)
 
 
     def load_settings(self):
@@ -167,8 +181,96 @@ class Game:
             'music_volume': 0.5,
             'sfx_volume': 0.7,
             'difficulty': 1,
-            'fullscreen': False
+            'fullscreen': True,
+            'star_density': 0.00025
         }
+
+    def _configure_settings_menu(self) -> None:
+        """Register adjustable settings for the in-game menu."""
+        self.settings_menu.add_option(
+            "Developer Overlay",
+            getter=lambda: self.dev_mode,
+            setter=self._set_dev_mode,
+            kind="toggle",
+            description="Display internal stats while playing.",
+        )
+        self.settings_menu.add_option(
+            "Difficulty",
+            getter=lambda: self.settings.get('difficulty', 1),
+            setter=self._set_difficulty,
+            kind="range",
+            step=1,
+            min_value=1,
+            max_value=10,
+            description="Adjusts enemy behaviour scaling.",
+        )
+        self.settings_menu.add_option(
+            "Effects Volume",
+            getter=lambda: self.settings.get('sfx_volume', 0.7),
+            setter=self._set_sfx_volume,
+            kind="range",
+            step=0.05,
+            min_value=0.0,
+            max_value=1.0,
+            description="Master volume for sound effects.",
+        )
+        self.settings_menu.add_option(
+            "Star Density",
+            getter=lambda: self.settings.get('star_density', 0.00025),
+            setter=self._set_star_density,
+            kind="range",
+            step=0.00005,
+            min_value=0.00005,
+            max_value=0.0015,
+            formatter=lambda value: f"{value:.5f}",
+            description="Visual density of the starfield backdrop.",
+        )
+
+    def _set_dev_mode(self, value) -> None:
+        self.dev_mode = bool(value)
+
+    def _set_sfx_volume(self, value) -> None:
+        volume = max(0.0, min(1.0, float(value)))
+        self.settings['sfx_volume'] = volume
+        if self.sound_manager:
+            self.sound_manager.set_master_volume(volume)
+
+    def _set_star_density(self, value) -> None:
+        density = max(0.00005, min(0.0015, float(value)))
+        self.settings['star_density'] = density
+        self.background.set_density(density)
+
+    def _set_difficulty(self, value) -> None:
+        self.settings['difficulty'] = int(max(1, min(10, int(value))))
+
+    def schedule_level_intro(self, level_number: int, initial: bool = False) -> None:
+        """Prepare a non-blocking intro overlay for the given level."""
+        level_data = getattr(self.level_manager, "level_data", None)
+        level_name = getattr(level_data, "name", None) if level_data else None
+        self.level_intro = LevelIntroOverlay(
+            level_number,
+            level_name=level_name,
+            countdown_seconds=3.0 if not initial else 4.0,
+            hold_seconds=0.8,
+            screen_size=self.screen.get_size(),
+        )
+        self.level_intro_pending_level = level_number
+        self.level_intro_spawn_queued = True
+        self.level_manager.next_group_pending = False
+        if initial:
+            self.level_manager.active_groups = []
+
+    def _update_level_intro(self, dt: float) -> None:
+        if not self.level_intro or self.paused:
+            return
+        self.level_intro.update(dt)
+        if self.level_intro_spawn_queued and self.level_intro.should_spawn():
+            self.level_manager.spawn_next_group()
+            self.level_intro.mark_spawned()
+            self.level_intro_spawn_queued = False
+        if self.level_intro.is_finished():
+            self.level_intro = None
+            self.level_intro_pending_level = None
 
     def handle_collisions(self):
         """Handle all game collisions."""
@@ -200,112 +302,104 @@ class Game:
 
     def update(self, dt):
         """Update game state."""
+        if self.paused:
+            return
+
         # Update all game objects
-        self.background.update()
+        self.background.update(dt)
         self.all_sprites.update()
         self.player_bullets.update()
         self.enemy_bullets.update()
         self.enemies.update()
         self.bonus_group.update()
         self.level_manager.update()
+        self.score_manager.update()
 
         # Handle collisions
         self.handle_collisions()
 
     def spawn_rewards(self, position):
         """Spawn rewards with probability based on level difficulty."""
-        try:
-            # Base chance starts at 15% and increases with level difficulty
-            base_chance = 0.15 + (min(self.level_manager.current_level, 100) * 0.001)  # Max +10% at level 100
-            
-            # Only proceed if we hit the spawn chance
-            if random.random() > base_chance:
-                return
-            
-            chance = random.random()
-            reward = None
-            
-            # Define reward groups with their probabilities and classes
-            reward_groups = {
-                # Money bonuses (15%)
-                (0, 0.15): [
-                    (MoneyBonus10, 0.4),     # 6%
-                    (MoneyBonus50, 0.3),     # 4.5%
-                    (MoneyBonus100, 0.2),    # 3%
-                    (MoneyBonus200, 0.1)     # 1.5%
-                ],
-                # Weapon bonuses (15%)
-                (0.15, 0.30): [
-                    (SingleShotBonus, 0.2),   # 3%
-                    (DoubleShotBonus, 0.2),   # 3%
-                    (TripleShotBonus, 0.2),   # 3%
-                    (QuadShotBonus, 0.2),     # 3%
-                ],
-                # Stat bonuses (15%)
-                (0.30, 0.45): [
-                    (ExtraSpeedBonus, 0.25),       # 3.75%
-                    (ExtraBulletBonus, 0.25),      # 3.75%
-                    (ExtraTimeBonus, 0.25),        # 3.75%
-                    (ExtraBulletSpeedBonus, 0.25)  # 3.75%
-                ],
-                # Special bonuses (15%)
-                (0.45, 0.60): [
-                    (ShipAutofireBonus, 0.2),    # 3%
-                    (AlienScoopBonus, 0.2),      # 3%
-                    (MoneyBombBonus, 0.2),       # 3%
-                    (GemBombBonus, 0.2),         # 3%
-                    (ExtraLifeBonus, 0.2)        # 3%
-                ],
-                # Game mode bonuses (15%)
-                (0.60, 0.75): [
-                    (MirrorModeBonus, 0.2),      # 3%
-                    (DrunkModeBonus, 0.2),       # 3%
-                    (FreezeModeBonus, 0.2),      # 3%
-                    (WarpForwardBonus, 0.2),     # 3%
-                    (CashDoublerBonus, 0.2)      # 3%
-                ],
-                # Modifier bonuses (15%)
-                (0.75, 0.90): [
-                    (DecreaseStrengthRedBonus, 0.15),    # 2.25%
-                    (DecreaseStrengthGreenBonus, 0.15),  # 2.25%
-                    (DecreaseStrengthBlueBonus, 0.15),   # 2.25%
-                    (X2ScoreMultiplierBonus, 0.15),      # 2.25%
-                    (X3ScoreMultiplierBonus, 0.15),      # 2.25%
-                    (X4ScoreMultiplierBonus, 0.15),      # 2.25%
-                    (X5ScoreMultiplierBonus, 0.15),      # 2.25%                 
-                    (BonusMeteorstormBonus, 0.125),      # 1.875%
-                    (BonusMemorystationBonus, 0.125)     # 1.875%
-                ],
-                # Collection bonuses (10%)
-                (0.90, 1.0): [
-                    (lambda x, y: RankMarker(x, y, random.choice(['red', 'blue', 'green', 'yellow', 'purple', 'orange', 'dark_purple'])), 0.4),    # 4%
-                    (lambda x, y: LetterBonus(x, y, random.choice('EXTRA')), 0.6)  # 6%
-                ]
-            }
+        reward = self.reward_manager.spawn_reward(
+            position, 
+            self.level_manager.current_level, 
+            self.sound_manager
+        )
+        
+        if reward:
+            self.bonus_group.add(reward)
+            self.all_sprites.add(reward)
 
-            # Find the appropriate group based on chance
-            for (min_prob, max_prob), rewards in reward_groups.items():
-                if min_prob <= chance < max_prob:
-                    # Select reward from group based on internal probabilities
-                    sub_chance = random.random()
-                    cumulative = 0
-                    for reward_class, prob in rewards:
-                        cumulative += prob
-                        if sub_chance <= cumulative:
-                            reward = reward_class(position[0], position[1])
-                            break
+    def toggle_pause(self) -> None:
+        """Pause or resume gameplay while keeping the scene visible."""
+        self.paused = not self.paused
+        if self.sound_manager:
+            if self.paused:
+                self.sound_manager.pause_all()
+            else:
+                self.sound_manager.resume_all()
+        if self.paused or self.settings_menu.active:
+            pygame.mouse.set_visible(True)
+        else:
+            pygame.mouse.set_visible(False)
 
-            # Only proceed if we got a reward
-            if reward:
-                reward.sound_manager = self.sound_manager
-                self.bonus_group.add(reward)
-                self.all_sprites.add(reward)
-                logger.info(f"Spawned reward: {reward.__class__.__name__} at position {position}")
-            
-        except Exception as e:
-            logger.error(f"Error spawning rewards: {e}")
+    def restart_level(self) -> None:
+        """Reset the current level and respawn the player."""
+        logger.info("Restarting level %s", self.level_manager.current_level)
 
-    def draw(self, dev_mode, editing):
+        if self.paused:
+            self.paused = False
+            if self.sound_manager:
+                self.sound_manager.resume_all()
+
+        # Clear existing entities but reuse sprite groups to keep references intact.
+        for group in (self.all_sprites, self.player_bullets, self.enemy_bullets, self.enemies, self.bonus_group):
+            group.empty()
+
+        # Re-create player and propagate references.
+        self.player = Player(
+            self.screen.get_width() // 2,
+            self.screen.get_height() - 30,
+            self.player_bullets,
+            self.all_sprites
+        )
+        self.player.sound_manager = self.sound_manager
+        self.all_sprites.add(self.player)
+        global_state.global_player = self.player
+        self.score_manager.player = self.player
+        self.score_manager.reset(False)
+
+        # Reset level state and respawn enemies.
+        self.level_manager.enemy_group = self.enemies
+        self.level_manager.sprite_group = self.all_sprites
+        self.level_manager.bullet_group = self.enemy_bullets
+        self.level_manager.reset_level()
+
+        self.schedule_level_intro(self.level_manager.current_level)
+
+    def draw_pause_overlay(self) -> None:
+        """Render a pause overlay with handy shortcuts."""
+        overlay = pygame.Surface(self.screen.get_size(), pygame.SRCALPHA)
+        overlay.fill((12, 16, 32, 200))
+        self.screen.blit(overlay, (0, 0))
+
+        title_surface = self.pause_font_large.render("PAUSED", True, (255, 230, 185))
+        title_rect = title_surface.get_rect(center=(self.screen.get_width() // 2, self.screen.get_height() // 2 - 60))
+        self.screen.blit(title_surface, title_rect)
+
+        options = [
+            "Enter - Resume Mission",
+            "R - Restart Level",
+            "S - Settings",
+            "Q - Quit to Desktop"
+        ]
+
+        for idx, option in enumerate(options):
+            text_surface = self.pause_font_small.render(option, True, (220, 230, 255))
+            text_rect = text_surface.get_rect(center=(self.screen.get_width() // 2, title_rect.bottom + 30 + idx * 36))
+            self.screen.blit(text_surface, text_rect)
+
+    def draw(self):
         """Draw game state."""
         # Draw background (without borders)
         self.background.draw(self.screen)
@@ -317,83 +411,18 @@ class Game:
         
         # Draw borders ON TOP of the sprites
         self.background.draw_borders(self.screen)
+
+        # HUD overlay
+        self.hud_overlay.draw(self.screen, self.player, self.score_manager, self.level_manager, paused=self.paused)
         
-        # Draw score
-        self.score_manager.draw(self.screen, 10, 10)
-        
-        if dev_mode:
+        if self.dev_mode:
             draw_dev_info(self.screen, self.player, self.level_manager, self.score_manager)
-
-        if editing:
-            self.editor.draw()           
-        
-        pygame.display.flip()
-
-    def show_level_intro(self, level_number):
-        """Display level introduction screen with countdown while game continues."""
-        font_large = pygame.font.Font(None, 74)
-        font_small = pygame.font.Font(None, 36)
-        
-        # Create text surfaces
-        level_text = font_large.render(f"LEVEL {level_number}", True, (255, 255, 255))
-        level_rect = level_text.get_rect(center=(self.screen.get_width()//2, self.screen.get_height()//2 - 50))
-        
-        countdown = 5
-        start_time = pygame.time.get_ticks()
-        
-        while countdown > 0:
-            current_time = pygame.time.get_ticks()
-            dt = self.clock.tick(60) / 1000.0
-            
-            # Handle events
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    pygame.quit()
-                    sys.exit()
-                elif event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_ESCAPE:
-                        return  # Allow skipping the intro
-            
-            # Update countdown
-            elapsed = (current_time - start_time) / 1000  # Convert to seconds
-            if elapsed >= 1.0:
-                countdown -= 1
-                start_time = current_time
-            
-            # Update game state
-            self.update(dt)  # Use existing update method
-            
-            # Draw game state
-            self.background.draw(self.screen)
-            self.all_sprites.draw(self.screen)
-            self.player_bullets.draw(self.screen)
-            self.enemy_bullets.draw(self.screen)
-            self.bonus_group.draw(self.screen)
-            
-            # Draw borders ON TOP of the sprites
-            self.background.draw_borders(self.screen)
-            
-            # Draw score and overlay
-            self.score_manager.draw(self.screen, 10, 10)
-            
-            # Draw semi-transparent overlay
-            overlay = pygame.Surface(self.screen.get_size(), pygame.SRCALPHA)
-            overlay.fill((0, 0, 0, 128))  # Semi-transparent black
-            self.screen.blit(overlay, (0, 0))
-            
-            # Draw level text and countdown
-            self.screen.blit(level_text, level_rect)
-            countdown_text = font_large.render(str(countdown), True, (255, 255, 255))
-            countdown_rect = countdown_text.get_rect(center=(self.screen.get_width()//2, self.screen.get_height()//2 + 50))
-            self.screen.blit(countdown_text, countdown_rect)
-            
-            pygame.display.flip()
 
     def game_over(self):
         """Handle game over state."""
         try:
             # Draw the final game state once
-            self.draw(self.dev_mode, self.editing)
+            self.draw()
             
             # Create and setup overlay
             overlay = pygame.Surface(self.screen.get_size(), pygame.SRCALPHA)
@@ -441,44 +470,69 @@ class Game:
     def run(self):
         """Main game loop."""
         try:
-            # Show intro and load first level
-            self.show_level_intro(1)
-            self.level_manager.spawn_next_group()
-            
             while self.running:
-                dt = self.clock.tick(60) / 1000.0
+                dt = self.clock.tick(self.settings.get('fps', 60)) / 1000.0
                 
                 # Handle events
                 for event in pygame.event.get():
                     if event.type == pygame.QUIT:
                         self.running = False
-                    elif event.type == pygame.KEYDOWN:
+                        continue
+
+                    if self.settings_menu.active:
+                        self.settings_menu.handle_event(event)
+                        if self.settings_menu.active:
+                            continue
+                        if event.type == pygame.KEYDOWN:
+                            # Suppress the key that closed the menu
+                            continue
+
+                    if event.type == pygame.KEYDOWN:
                         if event.key == pygame.K_ESCAPE:
+                            self.toggle_pause()
+                        elif event.key == pygame.K_RETURN and self.paused:
+                            self.toggle_pause()
+                        elif event.key == pygame.K_r and self.paused:
+                            self.restart_level()
+                        elif event.key == pygame.K_q and self.paused:
                             self.running = False
-                        elif event.key == pygame.K_F3:
+                        elif event.key == pygame.K_s:
+                            if self.settings_menu.active:
+                                self.settings_menu.close()
+                            else:
+                                if not self.paused:
+                                    self.toggle_pause()
+                                self.settings_menu.open()
+                        elif event.key == pygame.K_F3 and not self.paused:
                             self.settings['debug'] = not self.settings['debug']
-                        elif event.key == pygame.K_e:
-                            self.editing = not self.editing
-                        elif event.key == pygame.K_d:
+                            self.dev_mode = self.settings['debug']
+                        elif event.key == pygame.K_d and not self.paused:
                             self.dev_mode = not self.dev_mode
 
                 # Update game state
-                self.update(dt)
+                if not self.paused:
+                    self.update(dt)
+                    self._update_level_intro(dt)
+                else:
+                    self.background.update(dt * 0.3)
                 
                 # Check if level is complete
-                if self.level_manager.level_complete:
-                    next_level = self.level_manager.current_level + 1
-                    
+                if not self.paused and self.level_manager.level_complete:
                     # Reset score manager's combo and multiplier
                     self.score_manager.reset(False)
 
-                    self.show_level_intro(next_level)  # Show intro while game continues
-                    
-                    self.level_manager.load_next_level()  # Load next level after countdown
-                    self.level_manager.spawn_next_group()  # Spawn first group of new level
+                    self.level_manager.load_next_level()  # Load next level data
+                    self.schedule_level_intro(self.level_manager.current_level)
 
                 # Draw everything
-                self.draw(self.dev_mode, self.editing)
+                self.draw()
+                if self.level_intro:
+                    self.level_intro.draw(self.screen)
+                if self.paused:
+                    self.draw_pause_overlay()
+                if self.settings_menu.active:
+                    self.settings_menu.update(dt)
+                    self.settings_menu.draw(self.screen)
                 pygame.display.flip()
             
             pygame.quit()

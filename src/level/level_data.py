@@ -1,8 +1,7 @@
 from dataclasses import dataclass
-from typing import List, Dict, Optional
 from enum import Enum
-import pygame
-import json
+from typing import List, Dict, Optional
+
 
 class Movement(Enum):
     STRAIGHT = "straight"

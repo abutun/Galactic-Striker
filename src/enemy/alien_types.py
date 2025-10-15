@@ -1,8 +1,8 @@
-from enum import Enum
-from dataclasses import dataclass
-from typing import Optional, List
-import os
 import logging
+import os
+from dataclasses import dataclass
+from enum import Enum
+from typing import Optional, List
 
 logger = logging.getLogger(__name__)
 

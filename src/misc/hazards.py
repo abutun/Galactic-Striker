@@ -1,5 +1,5 @@
 import random
-import pygame
+
 
 class Asteroid:
     def __init__(self, x, y, size):

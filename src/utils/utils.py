@@ -1,7 +1,8 @@
-import os
-import pygame
 import logging
+import os
 from typing import Dict, Tuple, Optional
+
+import pygame
 
 logging.basicConfig(
     level=logging.INFO,
