@@ -47,8 +47,8 @@ class Background:
     def _create_star_layers(self) -> None:
         base_count = max(120, int(self.screen_width * self.screen_height * self.star_density))
         layer_specs = [
-            {"count": int(base_count * 0.6), "speed": 32, "radius": (1, 2), "alpha": (130, 190)},
-            {"count": int(base_count * 0.4), "speed": 60, "radius": (2, 3), "alpha": (170, 230)},
+            {"count": int(base_count * 0.6), "speed": 32, "radius": (1, 1), "alpha": (130, 185)},
+            {"count": int(base_count * 0.4), "speed": 60, "radius": (1, 2), "alpha": (165, 215)},
         ]
 
         self.star_layers: List[List[Star]] = []
@@ -141,7 +141,7 @@ class Background:
         if key in self._glow_cache:
             return self._glow_cache[key]
 
-        size = radius * 6
+        size = max(3, radius * 4)
         surface = pygame.Surface((size, size), pygame.SRCALPHA)
         center = size // 2
         max_radius = size // 2
